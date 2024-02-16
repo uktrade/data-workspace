@@ -1,4 +1,4 @@
-# Data Workspace
+# data-workspace
 
 This is the core repository for Data Workspace, an open source data analysis platform with features for users with a range of technical skills. It contains the source for the [Data Workspace technical documentation](https://data-workspace.docs.trade.gov.uk/), and the Terraform code to deploy Data Workspace into AWS.
 
@@ -12,7 +12,7 @@ The components of Data Workspace are stored across several Git repositories.
 
 ### Core
 
-- [Data Workspace](https://github.com/uktrade/data-workspace) (this repository)
+- [data-workspace](https://github.com/uktrade/data-workspace) (this repository)
 
    Contains the Terraform code to deploy Data Workspace in AWS, and the public facing technical documentation for Data Workspace.
 
