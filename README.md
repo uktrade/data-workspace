@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="Data Workspace logo" width="160" height="160" src="./docs/assets/data-workspace-logo.svg">
+  <img alt="Data Workspace logo" width="130" height="160" src="./docs/assets/data-workspace-logo.svg">
 </p>
 
 <p align="center"><strong>Data Workspace</strong> <em>- an open source data analysis platform</em></p>
