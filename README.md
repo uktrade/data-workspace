@@ -1,4 +1,10 @@
-# data-workspace
+<p align="center">
+  <img alt="Data Workspace logo" width="160" height="160" src="./docs/assets/data-workspace-logo.svg">
+</p>
+
+<p align="center"><strong>Data Workspace</strong> <em>- an open source data analysis platform</em></p>
+
+---
 
 This is the core repository for Data Workspace, an open source data analysis platform with features for users with a range of technical skills. It contains the source for the [Data Workspace technical documentation](https://data-workspace.docs.trade.gov.uk/), and the Terraform code to deploy Data Workspace into AWS.
 
