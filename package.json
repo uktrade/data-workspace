@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "preinstall": "npx npm-force-resolutions"
+  },
+  "dependencies": {
+    "@11ty/eleventy": "^2.0.1",
+    "@kevingimbel/eleventy-plugin-mermaid": "^2.2.1",
+    "@x-govuk/govuk-eleventy-plugin": "^6.0.3"
+  },
+  "resolutions": {
+    "localtunnel": "2.0.2"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.9.5"
+  }
+}

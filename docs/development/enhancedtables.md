@@ -1,8 +1,9 @@
 ---
 title: Enhanced tables
+layout: sub-navigation
+order: 6
 ---
 
-# Enhanced tables
 
 Turn an existing govuk styled table into a govuk styled ag-grid grid.
 
@@ -38,6 +39,7 @@ Configuration for the columns is done on the `<th>` elements via data attributes
 - `data-resizable` - allow resizing of the column (disabled by default).
 
 ```
+{% raw %}
 <table class="govuk-table enhanced-table data-size-to-fit">
   <thead class="govuk-table__head">
     <tr class="govuk-table__row">
@@ -57,6 +59,7 @@ Configuration for the columns is done on the `<th>` elements via data attributes
     {% endfor %}
   </tbody>
 </table>
+{% endraw %}
 ```
 
 ## Initialise it
@@ -64,6 +67,7 @@ Configuration for the columns is done on the `<th>` elements via data attributes
 Add the following to your page:
 
 ```
+{% raw %}
 <script src="{% static 'ag-grid-community.min.js' %}"></script>
 <script src="{% static 'dayjs.min.js' %}"></script>
 <script src="{% static 'js/grid-utils.js' %}"></script>
@@ -74,4 +78,5 @@ Add the following to your page:
     initEnhancedTable("enhanced-table");
   });
 </script>
+{% endraw %}
 ```

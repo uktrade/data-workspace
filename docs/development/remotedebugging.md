@@ -1,8 +1,8 @@
 ---
 title: Remote debugging
+layout: sub-navigation
+order: 5
 ---
-
-# Remote debugging containers
 
 ## PDB
 
@@ -25,23 +25,23 @@ To set this up locally:
 To debug via the pycharm remote debugger you will need to jump through a few hoops:
 
 1. Configure `docker-compose.yml` as a remote interpreter:  
-    ![Remote interpreter config](assets/pycharm-remote-interpreter.png)
+    ![Remote interpreter config](/development/assets/pycharm-remote-interpreter.png)
 
 2. Configure a python debug server for `pydev-pycharm` to connect to. You will need to ensure the path mapping 
 is set to the path of your dev environment:  
-    ![Python debug server](assets/remote-debug-server.png)
+    ![Python debug server](/development/assets/remote-debug-server.png)
 
 3. Bring up the containers: 
     ` docker compose up`
 
 4. Start the pycharm debugger:  
-    ![Start the debugger](assets/pycharm-start-debugger.png)
+    ![Start the debugger](/development/assets/pycharm-start-debugger.png)
 
 5. Add a breakpoint using pydev-pycharm:  
-    ![Pydev breakpoint](assets/pycharm-breakpoint.png)
+    ![Pydev breakpoint](/development/assets/pycharm-breakpoint.png)
 
 4. Profit:  
-    ![Pycharm debug output](assets/pycharm-debug-ouput.png)
+    ![Pycharm debug output](/development/assets/pycharm-debug-ouput.png)
 
 ## VSCode
 
@@ -81,7 +81,7 @@ Below are the basic steps for debugging remotely with vscode. They are confirmed
 5. Bring up the containers:  
     `docker compose up`
 6. Start the remote python debugger:  
-    ![Vscode run debug](assets/vscode-run-debug.png)
+    ![Vscode run debug](/development/assets/vscode-run-debug.png)
 7. Load the relevant page [http://dataworkspace.test:8000](http://dataworkspace.test:8000).
 8. Start debugging: 
-    ![vscode debugger](assets/vscode-debugger-output.png)
+    ![vscode debugger](/development/assets/vscode-debugger-output.png)

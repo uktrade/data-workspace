@@ -1,7 +1,7 @@
 ---
 title: Application lifecycle
+layout: sub-navigation
 ---
-# Application lifecycle
 
 As an example, from the point of view of user `abcde1234`, `https://jupyterlab-abcde1234.mydomain.com/` is the fixed address of their private JupyterLab application. Going to `https://jupyterlab-abcde1234.mydomain.com/` in a browser will:
 

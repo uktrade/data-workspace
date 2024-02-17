@@ -1,9 +1,9 @@
 ---
-title: Components
+title: Architecture
+layout: sub-navigation
+description: How the main component of Data Workspace work together
+order: 4
 ---
-
-Data Workspace is made of a number of components. This page explains what those are and how they work together.
-
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ graph
 
 The architecture is heavily Docker/ECS Fargate based.
 
-``` mermaid
+```mermaid
 graph
   A[User] -->|Staff SSO| B[Amazon Quicksight];
   B --> C["PostgreSQL (Aurora)"];
@@ -88,3 +88,5 @@ graph
 
 - [sentryproxy](https://quay.io/repository/uktrade/data-workspace-sentryproxy):
   Proxies errors to a Sentry instance: only used by JupyterLab.
+
+{% mermaid_js %}

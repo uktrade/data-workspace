@@ -35,3 +35,7 @@ terraform.rc
 
 # Ignore files added by macOS Finder
 .DS_Store
+
+# Ignore files generated when working on documentation
+/node_modules
+/_site
