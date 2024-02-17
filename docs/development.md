@@ -1,8 +1,9 @@
 ---
-title: Running locally
+title: Development
+layout: sub-navigation
+description: Run Data Workspace locally to develop features or evaluate if it's suitable for your use case 
+order: 1
 ---
-
-To develop features on Data Workspace, or to evaluate if it's suitable for your use case, it can be helpful to run Data Workspace on your local computer.
 
 
 ## Prerequisites

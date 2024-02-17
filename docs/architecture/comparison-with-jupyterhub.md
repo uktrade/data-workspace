@@ -1,8 +1,7 @@
 ---
 title: Comparison with JupyterHub
+layout: sub-navigation
 ---
-
-# Comparison with JupyterHub
 
 In addition to being able to run any Docker container, not just JupyterLab, Data Workspace has some deliberate architectural features that are different to JupyterHub.
 

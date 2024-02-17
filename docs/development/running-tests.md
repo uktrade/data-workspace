@@ -1,5 +1,7 @@
 ---
 title: Running tests
+layout: sub-navigation
+order: 2
 ---
 
 Running tests locally is useful when developing features on Data Workspace to make sure existing functionality isn't broken, and to ensure any new functionality works as intended.

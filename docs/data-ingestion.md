@@ -1,5 +1,8 @@
 ---
 title: Data Ingestion
+layout: sub-navigation
+description: The high level view of how data gets ingested into Data Workspace
+order: 3
 ---
 
 Data Workspace is essentially an interface to a PostgreSQL database, referred to as the datasets database. Technical users can access specific tables in the datasets database directly, but there is a concept of "datasets" on top of this direct access. Each dataset has its own page in the user-facing data catalogue that has features for non-technical users.
@@ -20,9 +23,7 @@ A source dataset is the core Data Workspace dataset type. It is made up of one o
 
 However, ingesting into these tables is not handled by the Data Workspace project itself. There are many ways to ingest data into PostgreSQL tables. The Department for Business and Trade uses [Airflow](https://airflow.apache.org/) to handle ingestion using a combination of Python and SQL code.
 
-!!! note
-
-    The Airflow pipelines used by The Department for Business and Trade to ingest data are not open source. Some parts of Data Workspace relating to this ingestion depend on this closed source code.
+> The Airflow pipelines used by The Department for Business and Trade to ingest data are not open source. Some parts of Data Workspace relating to this ingestion depend on this closed source code.
 
 
 ## Reference datasets

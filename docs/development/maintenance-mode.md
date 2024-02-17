@@ -1,5 +1,6 @@
 ---
-title: Enabling Maintenance Mode in Django
+title: Maintenance Mode
+layout: sub-navigation
 ---
 
 This guide will walk you through the process of enabling maintenance mode in your Django application through the admin interface.

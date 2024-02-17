@@ -1,5 +1,7 @@
 ---
 title: Releases
+layout: sub-navigation
+order: 7
 ---
 
 ## Notify the team

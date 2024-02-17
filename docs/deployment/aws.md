@@ -1,7 +1,8 @@
 ---
 title: Deploying to AWS
+layout: sub-navigation
 ---
-# Deploying to AWS
+
 
 Data Workspace contains code that helps it be deployed using Amazon Web Services (AWS). This page explains how to use this code.
 
