@@ -1,11 +1,11 @@
 ---
-title: Maintenance Mode
+title: Maintenance mode
 layout: sub-navigation
 ---
 
 This guide will walk you through the process of enabling maintenance mode in your Django application through the admin interface.
 
-## Enabling Maintenance Mode
+## Enabling maintenance mode
 
 1. **Access the Django Admin Interface**: Navigate to the Django Admin Interface (`/admin`).
 
