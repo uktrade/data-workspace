@@ -1,24 +1,24 @@
 resource "aws_ecs_service" "prometheus" {
   name             = "${var.prefix}-prometheus"
-  cluster          = "${aws_ecs_cluster.main_cluster.id}"
-  task_definition  = "${aws_ecs_task_definition.prometheus.arn}"
+  cluster          = aws_ecs_cluster.main_cluster.id
+  task_definition  = aws_ecs_task_definition.prometheus.arn
   desired_count    = 1
   launch_type      = "FARGATE"
   platform_version = "1.4.0"
 
   network_configuration {
-    subnets         = "${aws_subnet.private_with_egress.*.id}"
+    subnets         = aws_subnet.private_with_egress.*.id
     security_groups = ["${aws_security_group.prometheus_service.id}"]
   }
 
   load_balancer {
-    target_group_arn = "${aws_alb_target_group.prometheus.arn}"
-    container_port   = "${local.prometheus_container_port}"
-    container_name   = "${local.prometheus_container_name}"
+    target_group_arn = aws_alb_target_group.prometheus.arn
+    container_port   = local.prometheus_container_port
+    container_name   = local.prometheus_container_name
   }
 
   service_registries {
-    registry_arn   = "${aws_service_discovery_service.prometheus.arn}"
+    registry_arn = aws_service_discovery_service.prometheus.arn
   }
 
   depends_on = [
@@ -31,8 +31,8 @@ data "external" "prometheus_current_tag" {
   program = ["${path.module}/container-tag.sh"]
 
   query = {
-    cluster_name = "${aws_ecs_cluster.main_cluster.name}"
-    service_name = "${var.prefix}-prometheus"  # Manually specified to avoid a cycle
+    cluster_name   = "${aws_ecs_cluster.main_cluster.name}"
+    service_name   = "${var.prefix}-prometheus" # Manually specified to avoid a cycle
     container_name = "${local.prometheus_container_name}"
   }
 }
@@ -40,9 +40,9 @@ data "external" "prometheus_current_tag" {
 resource "aws_service_discovery_service" "prometheus" {
   name = "${var.prefix}-prometheus"
   dns_config {
-    namespace_id = "${aws_service_discovery_private_dns_namespace.jupyterhub.id}"
+    namespace_id = aws_service_discovery_private_dns_namespace.jupyterhub.id
     dns_records {
-      ttl = 10
+      ttl  = 10
       type = "A"
     }
   }
@@ -56,29 +56,29 @@ resource "aws_service_discovery_service" "prometheus" {
 }
 
 resource "aws_ecs_task_definition" "prometheus" {
-  family                   = "${var.prefix}-prometheus"
-  container_definitions    = templatefile(
+  family = "${var.prefix}-prometheus"
+  container_definitions = templatefile(
     "${path.module}/ecs_main_prometheus_container_definitions.json", {
-      container_image   = "${aws_ecr_repository.prometheus.repository_url}:${data.external.prometheus_current_tag.result.tag}"
-      container_name    = "${local.prometheus_container_name}"
-      container_port    = "${local.prometheus_container_port}"
-      container_cpu     = "${local.prometheus_container_cpu}"
-      container_memory  = "${local.prometheus_container_memory}"
+      container_image  = "${aws_ecr_repository.prometheus.repository_url}:${data.external.prometheus_current_tag.result.tag}"
+      container_name   = "${local.prometheus_container_name}"
+      container_port   = "${local.prometheus_container_port}"
+      container_cpu    = "${local.prometheus_container_cpu}"
+      container_memory = "${local.prometheus_container_memory}"
 
       log_group  = "${aws_cloudwatch_log_group.prometheus.name}"
       log_region = "${data.aws_region.aws_region.name}"
 
-      port = "${local.prometheus_container_port}"
-      url = "https://${var.admin_domain}/api/v1/application"
-      metrics_service_discovery_basic_auth_user = "${var.metrics_service_discovery_basic_auth_user}"
+      port                                          = "${local.prometheus_container_port}"
+      url                                           = "https://${var.admin_domain}/api/v1/application"
+      metrics_service_discovery_basic_auth_user     = "${var.metrics_service_discovery_basic_auth_user}"
       metrics_service_discovery_basic_auth_password = "${var.metrics_service_discovery_basic_auth_password}"
     }
   )
-  execution_role_arn       = "${aws_iam_role.prometheus_task_execution.arn}"
-  task_role_arn            = "${aws_iam_role.prometheus_task.arn}"
+  execution_role_arn       = aws_iam_role.prometheus_task_execution.arn
+  task_role_arn            = aws_iam_role.prometheus_task.arn
   network_mode             = "awsvpc"
-  cpu                      = "${local.prometheus_container_cpu}"
-  memory                   = "${local.prometheus_container_memory}"
+  cpu                      = local.prometheus_container_cpu
+  memory                   = local.prometheus_container_memory
   requires_compatibilities = ["FARGATE"]
 
   lifecycle {
@@ -94,17 +94,17 @@ resource "aws_cloudwatch_log_group" "prometheus" {
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "prometheus" {
-  count = "${var.cloudwatch_subscription_filter ? 1 : 0}"
+  count           = var.cloudwatch_subscription_filter ? 1 : 0
   name            = "${var.prefix}-prometheus"
-  log_group_name  = "${aws_cloudwatch_log_group.prometheus.name}"
+  log_group_name  = aws_cloudwatch_log_group.prometheus.name
   filter_pattern  = ""
-  destination_arn = "${var.cloudwatch_destination_arn}"
+  destination_arn = var.cloudwatch_destination_arn
 }
 
 resource "aws_iam_role" "prometheus_task_execution" {
   name               = "${var.prefix}-prometheus-task-execution"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.prometheus_task_execution_ecs_tasks_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.prometheus_task_execution_ecs_tasks_assume_role.json
 }
 
 data "aws_iam_policy_document" "prometheus_task_execution_ecs_tasks_assume_role" {
@@ -119,14 +119,14 @@ data "aws_iam_policy_document" "prometheus_task_execution_ecs_tasks_assume_role"
 }
 
 resource "aws_iam_role_policy_attachment" "prometheus_task_execution" {
-  role       = "${aws_iam_role.prometheus_task_execution.name}"
-  policy_arn = "${aws_iam_policy.prometheus_task_execution.arn}"
+  role       = aws_iam_role.prometheus_task_execution.name
+  policy_arn = aws_iam_policy.prometheus_task_execution.arn
 }
 
 resource "aws_iam_policy" "prometheus_task_execution" {
-  name        = "${var.prefix}-prometheus-task-execution"
-  path        = "/"
-  policy       = "${data.aws_iam_policy_document.prometheus_task_execution.json}"
+  name   = "${var.prefix}-prometheus-task-execution"
+  path   = "/"
+  policy = data.aws_iam_policy_document.prometheus_task_execution.json
 }
 
 data "aws_iam_policy_document" "prometheus_task_execution" {
@@ -166,7 +166,7 @@ data "aws_iam_policy_document" "prometheus_task_execution" {
 resource "aws_iam_role" "prometheus_task" {
   name               = "${var.prefix}-prometheus-task"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.prometheus_task_ecs_tasks_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.prometheus_task_ecs_tasks_assume_role.json
 }
 
 data "aws_iam_policy_document" "prometheus_task_ecs_tasks_assume_role" {
@@ -181,14 +181,14 @@ data "aws_iam_policy_document" "prometheus_task_ecs_tasks_assume_role" {
 }
 
 resource "aws_alb" "prometheus" {
-  name            = "${var.prefix}-pm"
-  subnets         = "${aws_subnet.public.*.id}"
-  security_groups = ["${aws_security_group.prometheus_alb.id}"]
+  name                       = "${var.prefix}-pm"
+  subnets                    = aws_subnet.public.*.id
+  security_groups            = ["${aws_security_group.prometheus_alb.id}"]
   enable_deletion_protection = true
   timeouts {}
 
   access_logs {
-    bucket  = "${aws_s3_bucket.alb_access_logs.id}"
+    bucket  = aws_s3_bucket.alb_access_logs.id
     prefix  = "prometheus"
     enabled = true
   }
@@ -199,30 +199,30 @@ resource "aws_alb" "prometheus" {
 }
 
 resource "aws_alb_listener" "prometheus" {
-  load_balancer_arn = "${aws_alb.prometheus.arn}"
-  port              = "${local.prometheus_alb_port}"
+  load_balancer_arn = aws_alb.prometheus.arn
+  port              = local.prometheus_alb_port
   protocol          = "HTTPS"
 
   default_action {
-    target_group_arn = "${aws_alb_target_group.prometheus.arn}"
+    target_group_arn = aws_alb_target_group.prometheus.arn
     type             = "forward"
   }
 
   ssl_policy      = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  certificate_arn = "${aws_acm_certificate_validation.prometheus.certificate_arn}"
+  certificate_arn = aws_acm_certificate_validation.prometheus.certificate_arn
 }
 
 resource "aws_alb_target_group" "prometheus" {
   name_prefix = "pm-"
-  port        = "${local.prometheus_container_port}"
+  port        = local.prometheus_container_port
   protocol    = "HTTP"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
   target_type = "ip"
 
   health_check {
-    path = "/-/healthy"
-    protocol = "HTTP"
-    healthy_threshold = 2
+    path                = "/-/healthy"
+    protocol            = "HTTP"
+    healthy_threshold   = 2
     unhealthy_threshold = 2
   }
 

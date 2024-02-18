@@ -95,13 +95,13 @@ resource "aws_ecr_repository" "mlflow" {
 }
 
 resource "aws_vpc_endpoint" "ecr_dkr" {
-  vpc_id              = "${aws_vpc.main.id}"
+  vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.dkr"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
   security_group_ids = ["${aws_security_group.ecr_dkr.id}"]
-  subnet_ids = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
 
@@ -109,13 +109,13 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
 }
 
 resource "aws_vpc_endpoint" "ecr_api" {
-  vpc_id            = "${aws_vpc.main.id}"
-  service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.api"
-  vpc_endpoint_type = "Interface"
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.api"
+  vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
   security_group_ids = ["${aws_security_group.ecr_api.id}"]
-  subnet_ids = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
 
@@ -127,7 +127,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
 
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["${aws_iam_role.admin_task.arn}"]
     }
 
@@ -144,7 +144,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
 
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["${aws_iam_role.admin_task.arn}"]
     }
 
@@ -160,7 +160,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
 
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["${aws_iam_role.admin_task.arn}"]
     }
 
@@ -176,7 +176,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
 
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["${aws_iam_role.admin_task.arn}"]
     }
 
@@ -199,7 +199,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
 
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["${aws_iam_role.admin_task.arn}"]
     }
 
@@ -223,7 +223,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   # For Fargate to start tasks
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
@@ -242,7 +242,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   /* For ECS to fetch images */
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
@@ -275,11 +275,11 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   }
 
   # For GitLab runner to login and get base images
-  dynamic statement {
+  dynamic "statement" {
     for_each = var.gitlab_on ? aws_iam_role.gitlab_runner[*].arn : []
     content {
       principals {
-        type = "AWS"
+        type        = "AWS"
         identifiers = [statement.value]
       }
       actions = [
@@ -292,7 +292,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
     }
   }
 
-  dynamic statement {
+  dynamic "statement" {
     for_each = var.gitlab_on ? aws_iam_role.gitlab_runner[*].arn : []
     content {
       principals {
@@ -314,11 +314,11 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   }
 
   # For GitLab runner to login and push user-provided images
-  dynamic statement {
+  dynamic "statement" {
     for_each = var.gitlab_on ? aws_iam_role.gitlab_runner[*].arn : []
     content {
       principals {
-        type = "AWS"
+        type        = "AWS"
         identifiers = [statement.value]
       }
 
