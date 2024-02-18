@@ -17,7 +17,7 @@ This is the entry-point repository for Data Workspace, a PostgreSQL-based open s
 
 - [docs/](./docs/)
 
-   The source of the [Data Workspace developer documentation](https://data-workspace.docs.trade.gov.uk/). The documentation is built using the node-based [Eleventy static site generator](https://www.11ty.dev/) and the [X-GOV https://x-govuk.github.io/govuk-eleventy-plugin/](govuk-eleventy-plugin) in order to use the GOV.UK design system.
+   The source of the [Data Workspace developer documentation](https://data-workspace.docs.trade.gov.uk/). The documentation is built using the node-based [Eleventy static site generator](https://www.11ty.dev/) and the [X-GOVUK govuk-eleventy-plugin](https://x-govuk.github.io/govuk-eleventy-plugin/) in order to use the GOV.UK design system.
 
    The built documentation is hosted on [GitHub pages](https://pages.github.com/).
 
