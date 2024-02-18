@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "notebooks" {
-  bucket = "${var.notebooks_bucket}"
+  bucket = var.notebooks_bucket
 
   versioning {
     enabled = true
@@ -32,8 +32,8 @@ resource "aws_s3_bucket" "notebooks" {
 }
 
 resource "aws_s3_bucket_policy" "notebooks" {
-  bucket = "${aws_s3_bucket.notebooks.id}"
-  policy = "${data.aws_iam_policy_document.notebooks.json}"
+  bucket = aws_s3_bucket.notebooks.id
+  policy = data.aws_iam_policy_document.notebooks.json
 }
 
 data "aws_iam_policy_document" "notebooks" {
@@ -50,7 +50,7 @@ data "aws_iam_policy_document" "notebooks" {
       "arn:aws:s3:::${aws_s3_bucket.notebooks.id}/*",
     ]
     condition {
-      test = "Bool"
+      test     = "Bool"
       variable = "aws:SecureTransport"
       values = [
         "false"

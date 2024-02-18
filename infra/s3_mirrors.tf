@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "mirrors" {
-  count = "${var.mirrors_bucket_name != "" ? 1 : 0}"
-  bucket = "${var.mirrors_bucket_name}"
+  count  = var.mirrors_bucket_name != "" ? 1 : 0
+  bucket = var.mirrors_bucket_name
 
   tags = {
     "name" = "website"
@@ -20,19 +20,19 @@ resource "aws_s3_bucket" "mirrors" {
 }
 
 data "aws_s3_bucket" "mirrors" {
-  count = "${var.mirrors_data_bucket_name != "" ? 1 : 0}"
-  bucket = "${var.mirrors_data_bucket_name}"
+  count  = var.mirrors_data_bucket_name != "" ? 1 : 0
+  bucket = var.mirrors_data_bucket_name
   # provider = "aws.mirror"
 }
 
 resource "aws_s3_bucket_policy" "mirrors" {
-  count = "${var.mirrors_bucket_name != "" ? 1 : 0}"
-  bucket = "${aws_s3_bucket.mirrors.*.id[count.index]}"
-  policy = "${data.aws_iam_policy_document.mirrors.*.json[count.index]}"
+  count  = var.mirrors_bucket_name != "" ? 1 : 0
+  bucket = aws_s3_bucket.mirrors.*.id[count.index]
+  policy = data.aws_iam_policy_document.mirrors.*.json[count.index]
 }
 
 data "aws_iam_policy_document" "mirrors" {
-  count = "${var.mirrors_bucket_name != "" ? 1 : 0}"
+  count = var.mirrors_bucket_name != "" ? 1 : 0
 
   # We are happy with public GET
   statement {
@@ -41,7 +41,7 @@ data "aws_iam_policy_document" "mirrors" {
       identifiers = ["*"]
     }
     actions = [
-        "s3:GetObject",
+      "s3:GetObject",
     ]
 
     resources = [
@@ -62,7 +62,7 @@ data "aws_iam_policy_document" "mirrors" {
       "${aws_s3_bucket.mirrors.*.arn[count.index]}/*",
     ]
     condition {
-      test = "Bool"
+      test     = "Bool"
       variable = "aws:SecureTransport"
       values = [
         "false"

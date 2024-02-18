@@ -1,6 +1,6 @@
 resource "aws_efs_file_system" "notebooks" {
   creation_token = "${var.prefix}-notebooks"
-  encrypted = true
+  encrypted      = true
 
   tags = {
     Name = "${var.prefix}-notebooks"
@@ -8,8 +8,8 @@ resource "aws_efs_file_system" "notebooks" {
 }
 
 resource "aws_efs_file_system_policy" "notebooks" {
-  file_system_id = "${aws_efs_file_system.notebooks.id}"
-  policy = "${data.aws_iam_policy_document.aws_efs_file_system_policy_notebooks.json}"
+  file_system_id = aws_efs_file_system.notebooks.id
+  policy         = data.aws_iam_policy_document.aws_efs_file_system_policy_notebooks.json
 }
 
 data "aws_iam_policy_document" "aws_efs_file_system_policy_notebooks" {
@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "aws_efs_file_system_policy_notebooks" {
   # > be able to access it.
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
@@ -51,19 +51,19 @@ data "aws_iam_policy_document" "aws_efs_file_system_policy_notebooks" {
 }
 
 resource "aws_efs_mount_target" "notebooks" {
-  file_system_id = "${aws_efs_file_system.notebooks.id}"
-  subnet_id      = "${aws_subnet.private_with_egress.*.id[0]}"
+  file_system_id = aws_efs_file_system.notebooks.id
+  subnet_id      = aws_subnet.private_with_egress.*.id[0]
 
   security_groups = ["${aws_security_group.efs_mount_target_notebooks.id}"]
 }
 
 resource "aws_vpc_endpoint" "efs_notebooks" {
-  vpc_id            = "${aws_vpc.main.id}"
-  service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.elasticfilesystem"
-  vpc_endpoint_type = "Interface"
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.${data.aws_region.aws_region.name}.elasticfilesystem"
+  vpc_endpoint_type  = "Interface"
   security_group_ids = ["${aws_security_group.efs_notebooks.id}"]
 
-  policy = "${data.aws_iam_policy_document.aws_vpc_endpoint_s3_notebooks.json}"
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_s3_notebooks.json
 
   timeouts {}
 
@@ -72,7 +72,7 @@ resource "aws_vpc_endpoint" "efs_notebooks" {
 data "aws_iam_policy_document" "aws_vpc_endpoint_efs" {
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 

@@ -74,29 +74,29 @@ module "jupyterhub" {
   admin_environment              = file("admin_environment.json")
   admin_deregistration_delay     = 300
 
-  uploads_bucket   = "REPLACE_ME"
-  appstream_bucket = "REPLACE_ME"
-  notebooks_bucket = "REPLACE_ME"
-  notebooks_bucket_cors_domains  = ["REPLACE_ME"]
+  uploads_bucket                = "REPLACE_ME"
+  appstream_bucket              = "REPLACE_ME"
+  notebooks_bucket              = "REPLACE_ME"
+  notebooks_bucket_cors_domains = ["REPLACE_ME"]
 
-  notebook_container_image          = "REPLACE_ME"
-  superset_container_image          = "REPLACE_ME"
+  notebook_container_image = "REPLACE_ME"
+  superset_container_image = "REPLACE_ME"
 
   alb_access_logs_bucket = "REPLACE_ME"
   alb_logs_account       = "REPLACE_ME"
 
   cloudwatch_destination_arn = "REPLACE_ME"
 
-  mirrors_data_bucket_name     = ""
-  mirrors_bucket_name          = "REPLACE_ME"
+  mirrors_data_bucket_name = ""
+  mirrors_bucket_name      = "REPLACE_ME"
 
-  sentry_dsn         = "REPLACE_ME"
+  sentry_dsn           = "REPLACE_ME"
   sentry_notebooks_dsn = "REPLACE_ME"
-  sentry_environment = "Production"
+  sentry_environment   = "Production"
 
-  healthcheck_domain          = "REPLACE_ME"
+  healthcheck_domain = "REPLACE_ME"
 
-  prometheus_domain          = "REPLACE_ME"
+  prometheus_domain = "REPLACE_ME"
 
   cloudwatch_subscription_filter = true
 
@@ -106,11 +106,11 @@ module "jupyterhub" {
   zendesk_service_field_id    = "REPLACE_ME"
   zendesk_service_field_value = "REPLACE_ME"
 
-  prometheus_whitelist = []
+  prometheus_whitelist                          = []
   metrics_service_discovery_basic_auth_user     = "REPLACE_ME"
   metrics_service_discovery_basic_auth_password = "REPLACE_ME"
 
-  google_analytics_site_id             = "REPLACE_ME"
+  google_analytics_site_id = "REPLACE_ME"
 
   gitlab_ip_whitelist = []
 
@@ -159,12 +159,12 @@ module "jupyterhub" {
   quicksight_security_group_name        = "jupyterhub-quicksight"
   quicksight_security_group_description = "Allow quicksight to connect to data workspace datasets DB"
   quicksight_subnet_availability_zone   = "eu-west-2b"
-  quicksight_namespace = "default"
-  quicksight_dashboard_group = "DataWorkspace"
-  quicksight_user_region = "eu-west-2"
-  quicksight_sso_url = "REPLACE_ME"
-  quicksight_author_custom_permissions = "author-custom-permissions"
-  quicksight_author_iam_arn = "REPLACE_ME"
+  quicksight_namespace                  = "default"
+  quicksight_dashboard_group            = "DataWorkspace"
+  quicksight_user_region                = "eu-west-2"
+  quicksight_sso_url                    = "REPLACE_ME"
+  quicksight_author_custom_permissions  = "author-custom-permissions"
+  quicksight_author_iam_arn             = "REPLACE_ME"
 
   shared_keypair_public_key = "REPLACE_ME"
 
@@ -175,10 +175,10 @@ module "jupyterhub" {
   flower_password = "REPLACE_ME"
 
   jwt_private_key = "-----BEGIN PRIVATE KEY-----\\REPLACE_ME\\n-----END PRIVATE KEY-----\\n"
-  jwt_public_key = "-----BEGIN PUBLIC KEY-----\\REPLACE_ME\\n-----END PUBLIC KEY-----\\n"
+  jwt_public_key  = "-----BEGIN PUBLIC KEY-----\\REPLACE_ME\\n-----END PUBLIC KEY-----\\n"
 
-  mlflow_artifacts_bucket = "REPLACE_ME"
-  mlflow_instances = ["REPLACE_ME"]
-  mlflow_instances_long = ["REPLACE_ME"]
+  mlflow_artifacts_bucket  = "REPLACE_ME"
+  mlflow_instances         = ["REPLACE_ME"]
+  mlflow_instances_long    = ["REPLACE_ME"]
   mlflow_db_instance_class = "db.t3.medium"
 }

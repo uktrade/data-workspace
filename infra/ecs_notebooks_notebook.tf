@@ -1,27 +1,27 @@
 resource "aws_ecs_task_definition" "notebook" {
-  family                = "${var.prefix}-notebook"
-  container_definitions    = templatefile(
+  family = "${var.prefix}-notebook"
+  container_definitions = templatefile(
     "${path.module}/ecs_notebooks_notebook_container_definitions.json", {
-      container_image  = "${var.notebook_container_image}:${data.external.notebook_current_tag.result.tag}"
-      container_name   = "${local.notebook_container_name}"
+      container_image = "${var.notebook_container_image}:${data.external.notebook_current_tag.result.tag}"
+      container_name  = "${local.notebook_container_name}"
 
       log_group  = "${aws_cloudwatch_log_group.notebook.name}"
       log_region = "${data.aws_region.aws_region.name}"
 
-      sentry_dsn = "${var.sentry_notebooks_dsn}"
+      sentry_dsn         = "${var.sentry_notebooks_dsn}"
       sentry_environment = "${var.sentry_environment}"
 
       metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:${data.external.notebook_metrics_current_tag.result.tag}"
-      s3sync_container_image = "${aws_ecr_repository.s3sync.repository_url}:${data.external.notebook_s3sync_current_tag.result.tag}"
+      s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:${data.external.notebook_s3sync_current_tag.result.tag}"
 
       home_directory = "/home/jovyan"
     }
   )
-  execution_role_arn    = "${aws_iam_role.notebook_task_execution.arn}"
+  execution_role_arn = aws_iam_role.notebook_task_execution.arn
   # task_role_arn         = "${aws_iam_role.notebook_task.arn}"
-  network_mode          = "awsvpc"
-  cpu                   = "${local.notebook_container_cpu}"
-  memory                = "${local.notebook_container_memory}"
+  network_mode             = "awsvpc"
+  cpu                      = local.notebook_container_cpu
+  memory                   = local.notebook_container_memory
   requires_compatibilities = ["FARGATE"]
 
   ephemeral_storage {
@@ -43,7 +43,7 @@ data "external" "notebook_current_tag" {
   program = ["${path.module}/task_definition_tag.sh"]
 
   query = {
-    task_family = "${var.prefix}-notebook"
+    task_family    = "${var.prefix}-notebook"
     container_name = "${local.notebook_container_name}"
   }
 }
@@ -52,7 +52,7 @@ data "external" "notebook_metrics_current_tag" {
   program = ["${path.module}/task_definition_tag.sh"]
 
   query = {
-    task_family = "${var.prefix}-notebook"
+    task_family    = "${var.prefix}-notebook"
     container_name = "metrics"
   }
 }
@@ -61,7 +61,7 @@ data "external" "notebook_s3sync_current_tag" {
   program = ["${path.module}/task_definition_tag.sh"]
 
   query = {
-    task_family = "${var.prefix}-notebook"
+    task_family    = "${var.prefix}-notebook"
     container_name = "s3sync"
   }
 }
@@ -72,17 +72,17 @@ resource "aws_cloudwatch_log_group" "notebook" {
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "notebook" {
-  count = "${var.cloudwatch_subscription_filter ? 1 : 0}"
+  count           = var.cloudwatch_subscription_filter ? 1 : 0
   name            = "${var.prefix}-notebook"
-  log_group_name  = "${aws_cloudwatch_log_group.notebook.name}"
+  log_group_name  = aws_cloudwatch_log_group.notebook.name
   filter_pattern  = ""
-  destination_arn = "${var.cloudwatch_destination_arn}"
+  destination_arn = var.cloudwatch_destination_arn
 }
 
 resource "aws_iam_role" "notebook_task_execution" {
   name               = "${var.prefix}-notebook-task-execution"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.notebook_task_execution_ecs_tasks_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.notebook_task_execution_ecs_tasks_assume_role.json
 }
 
 data "aws_iam_policy_document" "notebook_task_execution_ecs_tasks_assume_role" {
@@ -97,14 +97,14 @@ data "aws_iam_policy_document" "notebook_task_execution_ecs_tasks_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "notebook_task_execution" {
-  role       = "${aws_iam_role.notebook_task_execution.name}"
-  policy_arn = "${aws_iam_policy.notebook_task_execution.arn}"
+  role       = aws_iam_role.notebook_task_execution.name
+  policy_arn = aws_iam_policy.notebook_task_execution.arn
 }
 
 resource "aws_iam_policy" "notebook_task_execution" {
-  name        = "${var.prefix}-notebook-task-execution"
-  path        = "/"
-  policy       = "${data.aws_iam_policy_document.notebook_task_execution.json}"
+  name   = "${var.prefix}-notebook-task-execution"
+  path   = "/"
+  policy = data.aws_iam_policy_document.notebook_task_execution.json
 }
 
 data "aws_iam_policy_document" "notebook_task_execution" {
@@ -121,10 +121,10 @@ data "aws_iam_policy_document" "notebook_task_execution" {
 
   statement {
     actions = [
-        "ecr:GetAuthorizationToken",
-        "ecr:BatchCheckLayerAvailability",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:BatchGetImage",
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
     ]
 
     resources = [
@@ -160,17 +160,17 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     ]
 
     condition {
-      test = "ForAnyValue:StringLike"
+      test     = "ForAnyValue:StringLike"
       variable = "s3:prefix"
-      values = ["__S3_PREFIXES__"]
+      values   = ["__S3_PREFIXES__"]
     }
   }
 
   statement {
     actions = [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:DeleteObject"
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject"
     ]
 
     resources = ["__S3_BUCKET_ARNS__"]
@@ -194,7 +194,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     ]
 
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "elasticfilesystem:AccessPointArn"
       values = [
         "arn:aws:elasticfilesystem:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:access-point/__ACCESS_POINT_ID__"
@@ -208,11 +208,11 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
 }
 
 resource "aws_vpc_endpoint" "s3" {
-  vpc_id            = "${aws_vpc.notebooks.id}"
+  vpc_id            = aws_vpc.notebooks.id
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.s3"
   vpc_endpoint_type = "Gateway"
 
-  policy = "${data.aws_iam_policy_document.aws_vpc_endpoint_s3_notebooks.json}"
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_s3_notebooks.json
 
   timeouts {}
 }
@@ -220,7 +220,7 @@ resource "aws_vpc_endpoint" "s3" {
 data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
@@ -236,14 +236,14 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
     actions = [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:DeleteObject"
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject"
     ]
 
     resources = [
@@ -254,13 +254,13 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
     actions = [
-        "s3:GetBucketLocation",
-        "s3:ListBucket",
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
     ]
 
     resources = [
@@ -270,12 +270,12 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
   statement {
     principals {
-      type = "*"
+      type        = "*"
       identifiers = ["*"]
     }
 
     actions = [
-        "s3:GetObject",
+      "s3:GetObject",
     ]
 
     resources = [
@@ -285,7 +285,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
   statement {
     principals {
-      type = "*"
+      type        = "*"
       identifiers = ["*"]
     }
 
@@ -300,12 +300,12 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
   statement {
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
 
     actions = [
-        "s3:GetObject",
+      "s3:GetObject",
     ]
 
     resources = [
@@ -319,7 +319,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
 resource "aws_iam_policy" "notebook_task_boundary" {
   name   = "${var.prefix}-notebook-task-boundary"
-  policy = "${data.aws_iam_policy_document.jupyterhub_notebook_task_boundary.json}"
+  policy = data.aws_iam_policy_document.jupyterhub_notebook_task_boundary.json
 }
 
 data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
@@ -335,9 +335,9 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
 
   statement {
     actions = [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:DeleteObject"
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject"
     ]
 
     resources = [
@@ -368,28 +368,28 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
 }
 
 resource "aws_vpc_endpoint_route_table_association" "s3" {
-  vpc_endpoint_id = "${aws_vpc_endpoint.s3.id}"
-  route_table_id  = "${aws_route_table.private_without_egress.id}"
+  vpc_endpoint_id = aws_vpc_endpoint.s3.id
+  route_table_id  = aws_route_table.private_without_egress.id
 }
 
 resource "aws_vpc_endpoint" "cloudwatch_logs" {
-  vpc_id            = "${aws_vpc.main.id}"
+  vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.logs"
   vpc_endpoint_type = "Interface"
 
   security_group_ids = ["${aws_security_group.cloudwatch.id}"]
-  subnet_ids = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
 
   private_dns_enabled = true
 }
 
 resource "aws_vpc_endpoint" "cloudwatch_monitoring" {
-  vpc_id            = "${aws_vpc.main.id}"
+  vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.monitoring"
   vpc_endpoint_type = "Interface"
 
   security_group_ids = ["${aws_security_group.cloudwatch.id}"]
-  subnet_ids = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
 
   private_dns_enabled = true
 }

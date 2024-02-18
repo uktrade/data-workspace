@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "mlflow" {
-  count  = "${length(var.mlflow_instances)}"
+  count  = length(var.mlflow_instances)
   bucket = "${var.mlflow_artifacts_bucket}-${var.mlflow_instances[count.index]}"
 
   server_side_encryption_configuration {
@@ -26,13 +26,13 @@ resource "aws_s3_bucket" "mlflow" {
 }
 
 resource "aws_s3_bucket_policy" "mlflow" {
-  count  = "${length(var.mlflow_instances)}"
-  bucket = "${aws_s3_bucket.mlflow[count.index].id}"
-  policy = "${data.aws_iam_policy_document.mlflow[count.index].json}"
+  count  = length(var.mlflow_instances)
+  bucket = aws_s3_bucket.mlflow[count.index].id
+  policy = data.aws_iam_policy_document.mlflow[count.index].json
 }
 
 data "aws_iam_policy_document" "mlflow" {
-  count  = "${length(var.mlflow_instances)}"
+  count = length(var.mlflow_instances)
   statement {
     effect = "Deny"
     principals {
@@ -46,7 +46,7 @@ data "aws_iam_policy_document" "mlflow" {
       "arn:aws:s3:::${aws_s3_bucket.mlflow[count.index].id}/*",
     ]
     condition {
-      test = "Bool"
+      test     = "Bool"
       variable = "aws:SecureTransport"
       values = [
         "false"

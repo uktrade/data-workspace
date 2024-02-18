@@ -1,17 +1,17 @@
 locals {
   mlflow_container_vars = var.mlflow_on ? {
     "0" = {
-        container_image      = "${aws_ecr_repository.mlflow.repository_url}:master"
-        container_name       = "mlflow"
-        log_group            = "${aws_cloudwatch_log_group.mlflow[0].name}"
-        log_region           = "${data.aws_region.aws_region.name}"
-        cpu                  = "${local.mlflow_container_cpu}"
-        memory               = "${local.mlflow_container_memory}"
-        artifact_bucket_name = "${aws_s3_bucket.mlflow[0].bucket}"
-        jwt_public_key       = "${var.jwt_public_key}"
-        mlflow_hostname      = "http://mlflow--${var.mlflow_instances_long[0]}.${var.admin_domain}"
-        database_uri         = "postgresql://${aws_rds_cluster.mlflow[0].master_username}:${random_string.aws_db_instance_mlflow_password[0].result}@${aws_rds_cluster.mlflow[0].endpoint}:5432/${aws_rds_cluster.mlflow[0].database_name}"
-        proxy_port           = "${local.mlflow_port}"
+      container_image      = "${aws_ecr_repository.mlflow.repository_url}:master"
+      container_name       = "mlflow"
+      log_group            = "${aws_cloudwatch_log_group.mlflow[0].name}"
+      log_region           = "${data.aws_region.aws_region.name}"
+      cpu                  = "${local.mlflow_container_cpu}"
+      memory               = "${local.mlflow_container_memory}"
+      artifact_bucket_name = "${aws_s3_bucket.mlflow[0].bucket}"
+      jwt_public_key       = "${var.jwt_public_key}"
+      mlflow_hostname      = "http://mlflow--${var.mlflow_instances_long[0]}.${var.admin_domain}"
+      database_uri         = "postgresql://${aws_rds_cluster.mlflow[0].master_username}:${random_string.aws_db_instance_mlflow_password[0].result}@${aws_rds_cluster.mlflow[0].endpoint}:5432/${aws_rds_cluster.mlflow[0].database_name}"
+      proxy_port           = "${local.mlflow_port}"
     }
   } : {}
 }
@@ -19,8 +19,8 @@ locals {
 resource "aws_ecs_service" "mlflow" {
   count                             = var.mlflow_on ? length(var.mlflow_instances) : 0
   name                              = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
-  cluster                           = "${aws_ecs_cluster.main_cluster.id}"
-  task_definition                   = "${aws_ecs_task_definition.mlflow_service[count.index].arn}"
+  cluster                           = aws_ecs_cluster.main_cluster.id
+  task_definition                   = aws_ecs_task_definition.mlflow_service[count.index].arn
   desired_count                     = 1
   launch_type                       = "FARGATE"
   deployment_maximum_percent        = 200
@@ -33,19 +33,19 @@ resource "aws_ecs_service" "mlflow" {
   }
 
   load_balancer {
-    target_group_arn = "${aws_lb_target_group.mlflow[count.index].arn}"
-    container_port   = "${local.mlflow_port}"
+    target_group_arn = aws_lb_target_group.mlflow[count.index].arn
+    container_port   = local.mlflow_port
     container_name   = "mlflow"
   }
 
   load_balancer {
-    target_group_arn = "${aws_lb_target_group.mlflow_dataflow[count.index].arn}"
-    container_port   = "${local.mlflow_port}"
+    target_group_arn = aws_lb_target_group.mlflow_dataflow[count.index].arn
+    container_port   = local.mlflow_port
     container_name   = "mlflow"
   }
 
   service_registries {
-    registry_arn   = "${aws_service_discovery_service.mlflow[count.index].arn}"
+    registry_arn = aws_service_discovery_service.mlflow[count.index].arn
   }
 
   depends_on = [
@@ -54,12 +54,12 @@ resource "aws_ecs_service" "mlflow" {
 }
 
 resource "aws_service_discovery_service" "mlflow" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
-  name   = "mlflow--${var.mlflow_instances_long[count.index]}"
+  count = var.mlflow_on ? length(var.mlflow_instances) : 0
+  name  = "mlflow--${var.mlflow_instances_long[count.index]}"
   dns_config {
-    namespace_id = "${aws_service_discovery_private_dns_namespace.jupyterhub.id}"
+    namespace_id = aws_service_discovery_private_dns_namespace.jupyterhub.id
     dns_records {
-      ttl = 10
+      ttl  = 10
       type = "A"
     }
   }
@@ -73,19 +73,19 @@ resource "aws_service_discovery_service" "mlflow" {
 }
 
 resource "aws_ecs_task_definition" "mlflow_service" {
-  count                    = var.mlflow_on ? length(var.mlflow_instances) : 0
-  family                   = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
-  container_definitions    = templatefile(
+  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
+  family = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
+  container_definitions = templatefile(
     "${path.module}/ecs_main_mlflow_container_definitions.json",
     local.mlflow_container_vars[count.index]
   )
-  execution_role_arn       = "${aws_iam_role.mlflow_task_execution[count.index].arn}"
-  task_role_arn            = "${aws_iam_role.mlflow_task[count.index].arn}"
+  execution_role_arn       = aws_iam_role.mlflow_task_execution[count.index].arn
+  task_role_arn            = aws_iam_role.mlflow_task[count.index].arn
   network_mode             = "awsvpc"
-  cpu                      = "${local.mlflow_container_cpu}"
-  memory                   = "${local.mlflow_container_memory}"
+  cpu                      = local.mlflow_container_cpu
+  memory                   = local.mlflow_container_memory
   requires_compatibilities = ["FARGATE"]
-  tags = {}
+  tags                     = {}
 
   lifecycle {
     ignore_changes = [
@@ -101,14 +101,14 @@ resource "aws_cloudwatch_log_group" "mlflow" {
 }
 
 resource "aws_iam_role" "mlflow_task_execution" {
-  count             = var.mlflow_on ? length(var.mlflow_instances) : 0
-  name              = "${var.prefix}-mlflow-task-execution-${var.mlflow_instances[count.index]}"
+  count              = var.mlflow_on ? length(var.mlflow_instances) : 0
+  name               = "${var.prefix}-mlflow-task-execution-${var.mlflow_instances[count.index]}"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.mlflow_task_execution_ecs_tasks_assume_role[count.index].json}"
+  assume_role_policy = data.aws_iam_policy_document.mlflow_task_execution_ecs_tasks_assume_role[count.index].json
 }
 
 data "aws_iam_policy_document" "mlflow_task_execution_ecs_tasks_assume_role" {
-  count             = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count = var.mlflow_on ? length(var.mlflow_instances) : 0
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -120,20 +120,20 @@ data "aws_iam_policy_document" "mlflow_task_execution_ecs_tasks_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "mlflow_task_execution" {
-  count             = var.mlflow_on ? length(var.mlflow_instances) : 0
-  role       = "${aws_iam_role.mlflow_task_execution[count.index].name}"
-  policy_arn = "${aws_iam_policy.mlflow_task_execution[count.index].arn}"
+  count      = var.mlflow_on ? length(var.mlflow_instances) : 0
+  role       = aws_iam_role.mlflow_task_execution[count.index].name
+  policy_arn = aws_iam_policy.mlflow_task_execution[count.index].arn
 }
 
 resource "aws_iam_policy" "mlflow_task_execution" {
   count  = var.mlflow_on ? length(var.mlflow_instances) : 0
   name   = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}-task-execution"
   path   = "/"
-  policy = "${data.aws_iam_policy_document.mlflow_task_execution[count.index].json}"
+  policy = data.aws_iam_policy_document.mlflow_task_execution[count.index].json
 }
 
 data "aws_iam_policy_document" "mlflow_task_execution" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count = var.mlflow_on ? length(var.mlflow_instances) : 0
   statement {
     actions = [
       "logs:CreateLogStream",
@@ -168,14 +168,14 @@ data "aws_iam_policy_document" "mlflow_task_execution" {
 }
 
 resource "aws_iam_role" "mlflow_task" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count              = var.mlflow_on ? length(var.mlflow_instances) : 0
   name               = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}-task"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.mlflow_task_ecs_tasks_assume_role[count.index].json}"
+  assume_role_policy = data.aws_iam_policy_document.mlflow_task_ecs_tasks_assume_role[count.index].json
 }
 
 data "aws_iam_policy_document" "mlflow_task_ecs_tasks_assume_role" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count = var.mlflow_on ? length(var.mlflow_instances) : 0
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -187,26 +187,26 @@ data "aws_iam_policy_document" "mlflow_task_ecs_tasks_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "mlflow_access_artifacts_bucket" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
-  role       = "${aws_iam_role.mlflow_task[count.index].name}"
-  policy_arn = "${aws_iam_policy.mlflow_access_artifacts_bucket[count.index].arn}"
+  count      = var.mlflow_on ? length(var.mlflow_instances) : 0
+  role       = aws_iam_role.mlflow_task[count.index].name
+  policy_arn = aws_iam_policy.mlflow_access_artifacts_bucket[count.index].arn
 }
 
 resource "aws_iam_policy" "mlflow_access_artifacts_bucket" {
   count  = var.mlflow_on ? length(var.mlflow_instances) : 0
-  name        = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}-access-artifacts-bucket"
-  path        = "/"
-  policy       = "${data.aws_iam_policy_document.mlflow_access_artifacts_bucket[count.index].json}"
+  name   = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}-access-artifacts-bucket"
+  path   = "/"
+  policy = data.aws_iam_policy_document.mlflow_access_artifacts_bucket[count.index].json
 }
 
 
 data "aws_iam_policy_document" "mlflow_access_artifacts_bucket" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count = var.mlflow_on ? length(var.mlflow_instances) : 0
   statement {
     actions = [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:DeleteObject"
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject"
     ]
 
     resources = [
@@ -227,27 +227,27 @@ data "aws_iam_policy_document" "mlflow_access_artifacts_bucket" {
 }
 
 resource "aws_lb" "mlflow" {
-  count              = var.mlflow_on ? length(var.mlflow_instances) : 0
-  name               = "${var.prefix}-mf-${var.mlflow_instances[count.index]}"
-  load_balancer_type = "network"
-  internal           = true
+  count                            = var.mlflow_on ? length(var.mlflow_instances) : 0
+  name                             = "${var.prefix}-mf-${var.mlflow_instances[count.index]}"
+  load_balancer_type               = "network"
+  internal                         = true
   enable_cross_zone_load_balancing = true
-  enable_deletion_protection = true
+  enable_deletion_protection       = true
 
   subnet_mapping {
-    subnet_id            = "${aws_subnet.private_without_egress.*.id[0]}"
+    subnet_id            = aws_subnet.private_without_egress.*.id[0]
     private_ipv4_address = cidrhost("${aws_subnet.private_without_egress.*.cidr_block[0]}", 7 + count.index)
   }
 }
 
 resource "aws_lb_listener" "mlflow" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
-  load_balancer_arn = "${aws_lb.mlflow[count.index].arn}"
-  port              = "${local.mlflow_port}"
+  count             = var.mlflow_on ? length(var.mlflow_instances) : 0
+  load_balancer_arn = aws_lb.mlflow[count.index].arn
+  port              = local.mlflow_port
   protocol          = "TCP"
 
   default_action {
-    target_group_arn = "${aws_lb_target_group.mlflow[count.index].arn}"
+    target_group_arn = aws_lb_target_group.mlflow[count.index].arn
     type             = "forward"
   }
 }
@@ -255,18 +255,18 @@ resource "aws_lb_listener" "mlflow" {
 resource "aws_lb_target_group" "mlflow" {
   count              = var.mlflow_on ? length(var.mlflow_instances) : 0
   name_prefix        = "f${var.mlflow_instances[count.index]}-"
-  port               = "${local.mlflow_port}"
-  vpc_id             = "${aws_vpc.notebooks.id}"
+  port               = local.mlflow_port
+  vpc_id             = aws_vpc.notebooks.id
   target_type        = "ip"
   protocol           = "TCP"
   preserve_client_ip = false
 
   health_check {
-    protocol = "HTTP"
-    interval = 10
+    protocol            = "HTTP"
+    interval            = 10
     healthy_threshold   = 5
     unhealthy_threshold = 5
-    path = "/healthcheck"
+    path                = "/healthcheck"
   }
 
   lifecycle {
@@ -275,27 +275,27 @@ resource "aws_lb_target_group" "mlflow" {
 }
 
 resource "aws_lb" "mlflow_dataflow" {
-  count              = var.mlflow_on ? length(var.mlflow_instances) : 0
-  name               = "${var.prefix}-mfdf-${var.mlflow_instances[count.index]}"
-  load_balancer_type = "network"
-  internal           = true
+  count                            = var.mlflow_on ? length(var.mlflow_instances) : 0
+  name                             = "${var.prefix}-mfdf-${var.mlflow_instances[count.index]}"
+  load_balancer_type               = "network"
+  internal                         = true
   enable_cross_zone_load_balancing = true
-  enable_deletion_protection = true
+  enable_deletion_protection       = true
 
   subnet_mapping {
-    subnet_id            = "${aws_subnet.datasets.*.id[0]}"
+    subnet_id            = aws_subnet.datasets.*.id[0]
     private_ipv4_address = cidrhost("${aws_subnet.datasets.*.cidr_block[0]}", 7 + count.index)
   }
 }
 
 resource "aws_lb_listener" "mlflow_dataflow" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
-  load_balancer_arn = "${aws_lb.mlflow_dataflow[count.index].arn}"
-  port              = "${local.mlflow_port}"
+  count             = var.mlflow_on ? length(var.mlflow_instances) : 0
+  load_balancer_arn = aws_lb.mlflow_dataflow[count.index].arn
+  port              = local.mlflow_port
   protocol          = "TCP"
 
   default_action {
-    target_group_arn = "${aws_lb_target_group.mlflow_dataflow[count.index].arn}"
+    target_group_arn = aws_lb_target_group.mlflow_dataflow[count.index].arn
     type             = "forward"
   }
 }
@@ -303,15 +303,15 @@ resource "aws_lb_listener" "mlflow_dataflow" {
 resource "aws_lb_target_group" "mlflow_dataflow" {
   count              = var.mlflow_on ? length(var.mlflow_instances) : 0
   name_prefix        = "df${var.mlflow_instances[count.index]}-"
-  port               = "${local.mlflow_port}"
-  vpc_id             = "${aws_vpc.datasets.id}"
+  port               = local.mlflow_port
+  vpc_id             = aws_vpc.datasets.id
   target_type        = "ip"
   protocol           = "TCP"
   preserve_client_ip = false
 
   health_check {
-    protocol = "HTTP"
-    interval = 10
+    protocol            = "HTTP"
+    interval            = 10
     healthy_threshold   = 5
     unhealthy_threshold = 5
 
@@ -324,20 +324,20 @@ resource "aws_lb_target_group" "mlflow_dataflow" {
 }
 
 resource "aws_iam_role" "mlflow_ecs" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count              = var.mlflow_on ? length(var.mlflow_instances) : 0
   name               = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}-ecs"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.mlflow_ecs_assume_role[count.index].json}"
+  assume_role_policy = data.aws_iam_policy_document.mlflow_ecs_assume_role[count.index].json
 }
 
 resource "aws_iam_role_policy_attachment" "mlflow_ecs" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
-  role       = "${aws_iam_role.mlflow_ecs[count.index].name}"
+  count      = var.mlflow_on ? length(var.mlflow_instances) : 0
+  role       = aws_iam_role.mlflow_ecs[count.index].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"
 }
 
 data "aws_iam_policy_document" "mlflow_ecs_assume_role" {
-  count  = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count = var.mlflow_on ? length(var.mlflow_instances) : 0
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -352,35 +352,35 @@ resource "aws_rds_cluster" "mlflow" {
   count                   = var.mlflow_on ? length(var.mlflow_instances) : 0
   cluster_identifier      = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
   engine                  = "aurora-postgresql"
-  availability_zones      = "${var.aws_availability_zones}"
+  availability_zones      = var.aws_availability_zones
   database_name           = "${var.prefix_underscore}_mlflow_${var.mlflow_instances[count.index]}"
   master_username         = "${var.prefix_underscore}_mlflow_master_${var.mlflow_instances[count.index]}"
-  master_password         = "${random_string.aws_db_instance_mlflow_password[count.index].result}"
+  master_password         = random_string.aws_db_instance_mlflow_password[count.index].result
   backup_retention_period = 31
   preferred_backup_window = "03:29-03:59"
   apply_immediately       = true
 
   vpc_security_group_ids = ["${aws_security_group.mlflow_db[count.index].id}"]
-  db_subnet_group_name   = "${aws_db_subnet_group.mlflow[count.index].name}"
+  db_subnet_group_name   = aws_db_subnet_group.mlflow[count.index].name
 
-  final_snapshot_identifier  = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
-  copy_tags_to_snapshot      = true
+  final_snapshot_identifier = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
+  copy_tags_to_snapshot     = true
 }
 
 resource "aws_rds_cluster_instance" "mlflow" {
   count              = var.mlflow_on ? length(var.mlflow_instances) : 0
   identifier         = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
-  cluster_identifier = "${aws_rds_cluster.mlflow[count.index].id}"
-  engine             = "${aws_rds_cluster.mlflow[count.index].engine}"
-  engine_version     = "${aws_rds_cluster.mlflow[count.index].engine_version}"
-  instance_class     = "${var.mlflow_db_instance_class}"
+  cluster_identifier = aws_rds_cluster.mlflow[count.index].id
+  engine             = aws_rds_cluster.mlflow[count.index].engine
+  engine_version     = aws_rds_cluster.mlflow[count.index].engine_version
+  instance_class     = var.mlflow_db_instance_class
   promotion_tier     = 1
 }
 
 resource "aws_db_subnet_group" "mlflow" {
-  count              = var.mlflow_on ? length(var.mlflow_instances) : 0
-  name               = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
-  subnet_ids         = "${aws_subnet.private_without_egress.*.id}"
+  count      = var.mlflow_on ? length(var.mlflow_instances) : 0
+  name       = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
+  subnet_ids = aws_subnet.private_without_egress.*.id
 
   tags = {
     Name = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"

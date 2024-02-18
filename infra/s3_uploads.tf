@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "uploads" {
-  bucket = "${var.uploads_bucket}"
+  bucket = var.uploads_bucket
 
   server_side_encryption_configuration {
     rule {
@@ -16,14 +16,14 @@ resource "aws_s3_bucket" "uploads" {
 }
 
 resource "aws_s3_bucket_logging" "uploads_logging" {
-  bucket = aws_s3_bucket.uploads.id
+  bucket        = aws_s3_bucket.uploads.id
   target_bucket = aws_s3_bucket.logging.id
   target_prefix = "logs/"
 }
 
 resource "aws_s3_bucket_policy" "uploads" {
-  bucket = "${aws_s3_bucket.uploads.id}"
-  policy = "${data.aws_iam_policy_document.uploads_bucket.json}"
+  bucket = aws_s3_bucket.uploads.id
+  policy = data.aws_iam_policy_document.uploads_bucket.json
 }
 
 data "aws_iam_policy_document" "uploads_bucket" {
@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "uploads_bucket" {
       "arn:aws:s3:::${aws_s3_bucket.uploads.id}/*",
     ]
     condition {
-      test = "Bool"
+      test     = "Bool"
       variable = "aws:SecureTransport"
       values = [
         "false"

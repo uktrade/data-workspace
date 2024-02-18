@@ -1,11 +1,11 @@
 resource "aws_ecs_service" "flower" {
-  name            = "${var.prefix}-flower"
-  cluster         = "${aws_ecs_cluster.main_cluster.id}"
-  task_definition = "${aws_ecs_task_definition.flower_service.arn}"
-  desired_count   = 1
-  launch_type     = "FARGATE"
-  deployment_maximum_percent = 200
-  platform_version = "1.4.0"
+  name                              = "${var.prefix}-flower"
+  cluster                           = aws_ecs_cluster.main_cluster.id
+  task_definition                   = aws_ecs_task_definition.flower_service.arn
+  desired_count                     = 1
+  launch_type                       = "FARGATE"
+  deployment_maximum_percent        = 200
+  platform_version                  = "1.4.0"
   health_check_grace_period_seconds = "10"
 
   network_configuration {
@@ -14,7 +14,7 @@ resource "aws_ecs_service" "flower" {
   }
 
   load_balancer {
-    target_group_arn = "${aws_lb_target_group.flower_80.arn}"
+    target_group_arn = aws_lb_target_group.flower_80.arn
     container_port   = "80"
     container_name   = "flower"
   }
@@ -25,8 +25,8 @@ resource "aws_ecs_service" "flower" {
 }
 
 resource "aws_ecs_task_definition" "flower_service" {
-  family                   = "${var.prefix}-flower"
-  container_definitions    = templatefile(
+  family = "${var.prefix}-flower"
+  container_definitions = templatefile(
     "${path.module}/ecs_main_flower_container_definitions.json", {
       container_image = "${aws_ecr_repository.flower.repository_url}:master"
       container_name  = "flower"
@@ -39,11 +39,11 @@ resource "aws_ecs_task_definition" "flower_service" {
       flower_password = "${var.flower_password}"
     }
   )
-  execution_role_arn       = "${aws_iam_role.flower_task_execution.arn}"
-  task_role_arn            = "${aws_iam_role.flower_task.arn}"
+  execution_role_arn       = aws_iam_role.flower_task_execution.arn
+  task_role_arn            = aws_iam_role.flower_task.arn
   network_mode             = "awsvpc"
-  cpu                      = "${local.flower_container_cpu}"
-  memory                   = "${local.flower_container_memory}"
+  cpu                      = local.flower_container_cpu
+  memory                   = local.flower_container_memory
   requires_compatibilities = ["FARGATE"]
 
   lifecycle {
@@ -61,7 +61,7 @@ resource "aws_cloudwatch_log_group" "flower" {
 resource "aws_iam_role" "flower_task_execution" {
   name               = "${var.prefix}-flower-task-execution"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.flower_task_execution_ecs_tasks_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.flower_task_execution_ecs_tasks_assume_role.json
 }
 
 data "aws_iam_policy_document" "flower_task_execution_ecs_tasks_assume_role" {
@@ -76,14 +76,14 @@ data "aws_iam_policy_document" "flower_task_execution_ecs_tasks_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "flower_task_execution" {
-  role       = "${aws_iam_role.flower_task_execution.name}"
-  policy_arn = "${aws_iam_policy.flower_task_execution.arn}"
+  role       = aws_iam_role.flower_task_execution.name
+  policy_arn = aws_iam_policy.flower_task_execution.arn
 }
 
 resource "aws_iam_policy" "flower_task_execution" {
   name   = "${var.prefix}-flower-task-execution"
   path   = "/"
-  policy = "${data.aws_iam_policy_document.flower_task_execution.json}"
+  policy = data.aws_iam_policy_document.flower_task_execution.json
 }
 
 data "aws_iam_policy_document" "flower_task_execution" {
@@ -123,7 +123,7 @@ data "aws_iam_policy_document" "flower_task_execution" {
 resource "aws_iam_role" "flower_task" {
   name               = "${var.prefix}-flower-task"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.flower_task_ecs_tasks_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.flower_task_ecs_tasks_assume_role.json
 }
 
 data "aws_iam_policy_document" "flower_task_ecs_tasks_assume_role" {
@@ -138,21 +138,21 @@ data "aws_iam_policy_document" "flower_task_ecs_tasks_assume_role" {
 }
 
 resource "aws_lb" "flower" {
-  name               = "${var.prefix}-flower"
-  load_balancer_type = "application"
-  internal           = true
-  security_groups    = ["${aws_security_group.flower_lb.id}"]
-  subnets            = "${aws_subnet.private_without_egress.*.id}"
+  name                       = "${var.prefix}-flower"
+  load_balancer_type         = "application"
+  internal                   = true
+  security_groups            = ["${aws_security_group.flower_lb.id}"]
+  subnets                    = aws_subnet.private_without_egress.*.id
   enable_deletion_protection = true
 }
 
 resource "aws_lb_listener" "flower_80" {
-  load_balancer_arn = "${aws_lb.flower.arn}"
+  load_balancer_arn = aws_lb.flower.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = "${aws_lb_target_group.flower_80.arn}"
+    target_group_arn = aws_lb_target_group.flower_80.arn
     type             = "forward"
   }
 }
@@ -160,13 +160,13 @@ resource "aws_lb_listener" "flower_80" {
 resource "aws_lb_target_group" "flower_80" {
   name_prefix = "f80-"
   port        = "80"
-  vpc_id      = "${aws_vpc.notebooks.id}"
+  vpc_id      = aws_vpc.notebooks.id
   target_type = "ip"
   protocol    = "HTTP"
 
   health_check {
-    protocol = "HTTP"
-    interval = 10
+    protocol            = "HTTP"
+    interval            = 10
     healthy_threshold   = 2
     unhealthy_threshold = 5
 
@@ -181,11 +181,11 @@ resource "aws_lb_target_group" "flower_80" {
 resource "aws_iam_role" "flower_ecs" {
   name               = "${var.prefix}-flower-ecs"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.flower_ecs_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.flower_ecs_assume_role.json
 }
 
 resource "aws_iam_role_policy_attachment" "flower_ecs" {
-  role       = "${aws_iam_role.flower_ecs.name}"
+  role       = aws_iam_role.flower_ecs.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"
 }
 
