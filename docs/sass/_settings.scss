@@ -7,6 +7,14 @@ $govuk-font-family: system-ui, sans-serif;
 	margin-bottom: -5px;
 }
 
+// The same as the X-GOVUK site. It's a touch softer than the main GOV.UK brand blue, and I think
+// it's a touch better to ever so slightly differential from the GOV.UK blue, because this is
+// a technical product
+$govuk-brand-colour: #2288aa;
+$govuk-link-colour: #006688;
+$govuk-link-hover-colour: #004466;
+$govuk-link-visited-colour: #333366;
+
 // Also the same as the X-GOVUK site. It gives more space to the menu on the left that the default
 // spacing I don't think gives much room for, especially if it's got multiple levels.
 $govuk-page-width: 1100px;
