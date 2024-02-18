@@ -19,11 +19,11 @@ order: 7
 
 **Example of how to tag and push**
 
-```
+```shell
 git tag -a v2024-01-19 -m v2024-01-19
 ```
 
-```
+```shell
 git push origin v2024-01-19
 ```
 
