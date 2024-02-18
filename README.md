@@ -13,36 +13,6 @@ This is the entry-point repository for Data Workspace, a PostgreSQL-based open s
 
 ---
 
-### Repository contents
-
-- [docs/](./docs/)
-
-   The source of the [Data Workspace developer documentation](https://data-workspace.docs.trade.gov.uk/). The documentation is built using the node-based [Eleventy static site generator](https://www.11ty.dev/) and the [X-GOVUK govuk-eleventy-plugin](https://x-govuk.github.io/govuk-eleventy-plugin/) in order to use the GOV.UK design system.
-
-   The built documentation is hosted on [GitHub pages](https://pages.github.com/).
-
-- [infra/](./infra/)
-
-   The [Terraform](https://www.terraform.io/) source to build the infrastructure of Data Workspace in Amazon Web Services (AWS).
-
-- [package-lock.json](./package-lock.json)
-
-   The list of specific versions of all the direct and transitive node dependencies needed to build the Data Workspace developer documentation.
-
-- [package.json](./package.json)
-
-   The list of the direct node dependencies needed to build the Data Workspace developer documentation.
-
-- [eleventy.config.js](./eleventy.config.js)
-
-   The configuration for the Data Workspace developer documentation.
-
-- [README.md](./README.md)
-
-   The source of the file you're currently reading.
-
----
-
 ### Catalogue of Data Workspace repositories
 
 The components of Data Workspace are stored across several Git repositories.
@@ -51,7 +21,7 @@ The components of Data Workspace are stored across several Git repositories.
 
 - [data-workspace](https://github.com/uktrade/data-workspace) (this repository)
 
-   Contains the Terraform code to deploy Data Workspace in AWS, and the public facing developer documentation for Data Workspace.
+   Contains the Terraform code to deploy Data Workspace in AWS, and the public facing developer documentation for Data Workspace. See [Contents of this repository](#contents-of-this-repository) for details of what goes where.
 
 - [data-workspace-frontend](https://github.com/uktrade/data-workspace-frontend)
 
@@ -86,3 +56,33 @@ Some of the components of Data Workspace are lower level, and less Data Workspac
 - [ecs-pipeline](https://github.com/uktrade/ecs-pipeline)
 
    Used to deploy Data Workspace from Jenkins
+
+---
+
+### Contents of this repository
+
+- [docs/](./docs/)
+
+   The source of the [Data Workspace developer documentation](https://data-workspace.docs.trade.gov.uk/). The documentation is built using the node-based [Eleventy static site generator](https://www.11ty.dev/) and the [X-GOVUK govuk-eleventy-plugin](https://x-govuk.github.io/govuk-eleventy-plugin/) in order to use the GOV.UK design system.
+
+   The built documentation is hosted on [GitHub pages](https://pages.github.com/).
+
+- [infra/](./infra/)
+
+   The [Terraform](https://www.terraform.io/) source to build the infrastructure of Data Workspace in Amazon Web Services (AWS).
+
+- [package-lock.json](./package-lock.json)
+
+   The list of specific versions of all the direct and transitive node dependencies needed to build the Data Workspace developer documentation.
+
+- [package.json](./package.json)
+
+   The list of the direct node dependencies needed to build the Data Workspace developer documentation.
+
+- [eleventy.config.js](./eleventy.config.js)
+
+   The configuration for the Data Workspace developer documentation.
+
+- [README.md](./README.md)
+
+   The source of the file you're currently reading.
