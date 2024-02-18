@@ -4,7 +4,7 @@ layout: product
 title: Host your own data analysis platform
 description: Data Workspace is a PostgreSQL-based open source data analysis platform with features for users with a range of technical skills
 image:
-  src: /assets/data-workspace-logo-white-for-dark-background.svg
+  src: /assets/data-workspace-logo-colour-for-dark-background.svg
   alt: Data Workspace logo of a database with bar charts
 startButton:
   href: "development"
