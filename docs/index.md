@@ -24,10 +24,11 @@ order: 0
 </div>
 
 <div class="govuk-grid-row">
-
   <section class="govuk-grid-column-full">
     <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--xl govuk-!-margin-top-0">
     <h2 class="govuk-heading-m">Contribute</h2>
-    <p class="govuk-body">Data Workspace has been built with features specifically for the Department for Business and Trade. However, we are open to contributions that make it more generic. See the <a href="/contributing/">Contributing page</a>.</p>
+    <p class="govuk-body">The code for Data Workspace is, with a few exceptions, public, and we welcome contributions. Visit the <a href="https://github.com/uktrade/data-workspace">Data Workspace core repository on GitHub</a> or the <a href="/contributing/">Contributing page</a>.</p>
+
+    <p class="govuk-body">Note that Data Workspace has been built with features specifically for the Department for Business and Trade. However, we are especially open to contributions that make these more generic.</p>
   </section>
 </div>
