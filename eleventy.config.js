@@ -23,11 +23,12 @@ module.exports = function(eleventyConfig) {
         meta: {
           items: [
             {
+              href: 'https://github.com/uktrade/data-workspace',
+              text: 'Data Workspace GitHub repository'
+            },
+            {
               href: 'https://www.gov.uk/government/organisations/department-for-business-and-trade',
-              text: 'Created by the Department for Business and Trade (DBT)',
-              attributes: {
-                target: '_blank'
-              }
+              text: 'Created by the Department for Business and Trade (DBT)'
             }
           ]
         }
