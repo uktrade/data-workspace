@@ -16,7 +16,7 @@ To create migrations you must have the Data Workspace prerequisites and cloned i
 
 After making changes to Django models, to create any required migrations:
 
-```bash
+```shell
 docker compose build && \
 docker compose run \
     --user root \
