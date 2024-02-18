@@ -1,14 +1,14 @@
 ---
 title: Development
 layout: sub-navigation
-description: Run Data Workspace locally to develop features or evaluate if it's suitable for your use case 
+description: Run the frontend of Data Workspace locally to develop features or evaluate if it's suitable for your use case 
 order: 1
 ---
 
 
 ## Prerequisites
 
-To run Data Workspace locally, you must have these tools installed:
+To run the frontend of Data Workspace locally, you must have these tools installed:
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
@@ -18,28 +18,27 @@ You should also have familiarity with the command line, and editing text files. 
 
 ## Cloning source code
 
-To run Data Workspace locally, you must also have the Data Workspace source code, which is stored in the [Data Workspace GitHub repository](https://github.com/uktrade/data-workspace). The process of copying this code so it is available locally is known as cloning.
+To run the frontend of Data Workspace locally, you must have its source code. This is stored in the [data-workspace-frontend GitHub repository](https://github.com/uktrade/data-workspace-frontend), and the process of copying this code so it's available locally is known as cloning.
 
 1. If you don't already have a GitHub account, [create a GitHub account](https://github.com/signup).
 
 2. [Setup an SSH key and associate it with your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
 
-3. [Create a new fork of the Data Workspace repository](https://github.com/uktrade/data-workspace/fork). Make a note of the owner you choose to fork to. This is usually your GitHub username. There is more documentation on forking at [GitHub's guide on contributing to projects](https://docs.github.com/en/get-started/quickstart/contributing-to-projects).
+3. [Create a new fork of the Data Workspace repository](https://github.com/uktrade/data-workspace-frontend/fork). Make a note of the owner you choose to fork to. This is usually your GitHub username. There is more documentation on forking at [GitHub's guide on contributing to projects](https://docs.github.com/en/get-started/quickstart/contributing-to-projects).
     
-    If you're a member if the [uktrade GitHub organisation](https://github.com/uktrade) you should skip this step and not fork. If you're not planning on contributing changes, you can also skip forking.
-
+    > If you're a member if the [uktrade GitHub organisation](https://github.com/uktrade) you should skip this step and not fork. If you're not planning on contributing changes, you can also skip forking.
 
 4. Clone the repository by running the following command, replacing `owner` with the owner that you forked to in step 3. If you skipped forking, `owner` should be `uktrade`:
 
-    ```bash
-    git clone git@github.com:owner/data-workspace.git
+    ```shell
+    git clone git@github.com:owner/data-workspace-frontend.git
     ```
 
     This will create a new directory containing a copy of the Data Workspace source code, `data-workspace`.
 
 5. Change to the `data-workspace` directory:
 
-    ```bash
+    ```shell
     cd data-workspace
     ```
 
@@ -66,14 +65,14 @@ To run tool and visualisation-related code, you will need subdomains in your `/e
 
 Set the required variables:
 
-```bash
+```shell
 cp .envs/sample.env .envs/dev.env
 cp .envs/superset-sample.env .envs/superset.dev.env
 ```
 
 Start the application:
 
-```bash
+```shell
 docker compose up --build
 ```
 
@@ -83,7 +82,7 @@ The application should then visible at [http://dataworkspace.test:8000](http://d
 
 Then run `docker compose` using the superset profile:
 
-```bash
+```shell
 docker compose --profile superset up
 ```
 
@@ -106,7 +105,7 @@ We use [node-sass](https://github.com/sass/node-sass#command-line-interface) to 
 To build this locally requires NodeJS. Ideally installed via `nvm` [https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm):
 
 
-```
+```shell
   # this will configure node from .nvmrc or prompt you to install
   nvm use
   npm install
@@ -149,6 +148,6 @@ git add ../bundles/*.js ../stats/react_apps-stats.json
 
 If you have issues building the containers try the following:
 
-```
+```shell
 DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose up --build
 ```
