@@ -5,6 +5,11 @@ description: How the main component of Data Workspace work together
 order: 4
 ---
 
+<script type="module">
+  import mermaid from '/assets/mermaid/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true });
+</script>
+
 ## Prerequisites
 
 To understand the components of Data Workspace's architecture, you should have familiary with:
@@ -20,17 +25,17 @@ To understand the components of Data Workspace's architecture, you should have f
 
 At the highest level, users access the Data Workspace application, which accesses a PostgreSQL database.
 
-```mermaid
+<pre class="mermaid">
 graph
   A[User] --> B[Data Workspace]
   B --> C["PostgreSQL (Aurora)"]
-```
+</pre>
 
 ## Medium level architecture
 
 The architecture is heavily Docker/ECS Fargate based.
 
-```mermaid
+<pre class="mermaid">
 graph
   A[User] -->|Staff SSO| B[Amazon Quicksight];
   B --> C["PostgreSQL (Aurora)"];
@@ -41,10 +46,7 @@ graph
   G --> C;
   H --> C;
   I --> C;
-
-
-
-```
+</pre>
 
 ## User-facing
 
@@ -88,5 +90,3 @@ graph
 
 - [sentryproxy](https://quay.io/repository/uktrade/data-workspace-sentryproxy):
   Proxies errors to a Sentry instance: only used by JupyterLab.
-
-{% mermaid_js %}
