@@ -1,10 +1,7 @@
 const govukEleventyPlugin = require('@x-govuk/govuk-eleventy-plugin')
-const pluginMermaid = require("@kevingimbel/eleventy-plugin-mermaid");
 const fs = require('fs')
 
 module.exports = function(eleventyConfig) {
-  eleventyConfig.addPlugin(pluginMermaid);
-
   eleventyConfig.addPlugin(govukEleventyPlugin, {
     icons: {
       shortcut: '/assets/dit-favicon.png'
@@ -68,6 +65,8 @@ eleventyConfig.addCollection('homepage', (collection) =>
   eleventyConfig.addPassthroughCopy('./docs/assets')
   eleventyConfig.addPassthroughCopy('./docs/CNAME')
   eleventyConfig.addPassthroughCopy('./docs/development/assets')
+  eleventyConfig.addPassthroughCopy({'./node_modules/mermaid/dist/**.mjs': 'assets/mermaid'})
+  eleventyConfig.addPassthroughCopy({'./node_modules/mermaid/dist/**.js': 'assets/mermaid'})
 
   return {
     dataTemplateEngine: 'njk',

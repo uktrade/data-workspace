@@ -4,8 +4,8 @@
   },
   "dependencies": {
     "@11ty/eleventy": "^2.0.1",
-    "@kevingimbel/eleventy-plugin-mermaid": "^2.2.1",
-    "@x-govuk/govuk-eleventy-plugin": "^6.0.3"
+    "@x-govuk/govuk-eleventy-plugin": "^6.0.3",
+    "mermaid": "^10.8.0"
   },
   "resolutions": {
     "localtunnel": "2.0.2"
