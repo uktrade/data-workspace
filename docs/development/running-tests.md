@@ -16,19 +16,19 @@ To create migrations you must have the Data Workspace prerequisites and cloned i
 
 To run all tests:
 
-```bash
+```shell
 make docker-test
 ```
 
 To only run Django unit tests:
 
-```bash
+```shell
 make docker-test-unit
 ```
 
 To only run higher level integration tests:
 
-```bash
+```shell
 make docker-test-integration
 ```
 
@@ -37,25 +37,25 @@ make docker-test-integration
 
 To run the tests locally without having to rebuild the containers every time append `-local` to the test make commands:
 
-```bash
+```shell
 make docker-test-unit-local
 ```
 
-```bash
+```shell
 make docker-test-integration-local
 ```
 
-```bash
+```shell
 make docker-test-local
 ```
 
 To run specific tests pass `-e TARGET=<test>` into make:
 
-```bash
+```shell
 make docker-test-unit-local -e TARGET=dataworkspace/dataworkspace/tests/test_admin.py::TestCustomAdminSite::test_non_admin_access
 ```
 
-```bash
+```shell
 make docker-test-integration-local -e TARGET=test/test_application.py
 ```
 

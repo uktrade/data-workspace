@@ -31,7 +31,7 @@ The Data Workspace source code contains a template for this configuration. To cr
 
 3. Copy the template into a new folder for the environment:
 
-    ```bash
+    ```shell
     mkdir -p ../data-workspace-environments
     cp -Rp infra/environment-template ../data-workspace-environments/production
     ```
@@ -47,13 +47,13 @@ Before deploying the environment, it must be initialised.
 1. Change to the new folder for the environment:
 
 
-    ```bash
+    ```shell
     cd ../data-workspace-environments/production
     ```
 
 2. Generate new SSH keys:
 
-    ```bash
+    ```shell
     ./create-keys.sh
     ```
 
@@ -63,7 +63,7 @@ Before deploying the environment, it must be initialised.
 
 4. Create an S3 bucket and dynamodb table for Terraform to use, and add them to `main.tf`. `--bucket` will provide the base name for both objects.
 
-    ```bash
+    ```shell
     ./bootstrap-terraform.sh \
         --profile <value> \
         --bucket <value> \
@@ -78,7 +78,7 @@ Before deploying the environment, it must be initialised.
 
 3. Initialise Terraform:
 
-    ```bash
+    ```shell
     terraform init
     ```
 
@@ -87,12 +87,12 @@ Before deploying the environment, it must be initialised.
 
 Check the environment you created has worked correctly:
 
-```bash
+```shell
 terraform plan
 ```
 
 If everything looks right, you're ready to deploy:
 
-```bash
+```shell
 terraform apply
 ```

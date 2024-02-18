@@ -33,7 +33,7 @@ Changes are then submitted via a Pull Request (PR). To do this:
 
 2. Make a branch using this descriptive name:
 
-    ```bash
+    ```shell
     git checkout -b docs/add-example
     cd data-workspace
     ```
@@ -42,14 +42,14 @@ Changes are then submitted via a Pull Request (PR). To do this:
 
 4. Preview your changes locally:
 
-    ```bash
+    ```shell
     pip install -r requirements-docs.txt  # Only needed once
     mkdocs serve
     ```
 
 5. Commit your change and push to your fork. Ideally the commit message will follow the [Conventional Commit specification](https://www.conventionalcommits.org/):
 
-    ```bash
+    ```shell
     git add docs/getting-started.md  # Repeat for each file changed
     git commit -m "docs: add an example"
     git push origin docs/add-example
@@ -70,13 +70,13 @@ Changes are submitted via a Pull Request (PR). To do this:
 
 2. Make a branch using this descriptive name:
 
-    ```bash
+    ```shell
     git checkout -b fix/a-bug-description
     ```
 
 3. Make sure you can run existing tests locally, for example by running:
 
-    ```bash
+    ```shell
     make docker-test
     ```
 
@@ -87,7 +87,7 @@ Changes are submitted via a Pull Request (PR). To do this:
 
 5. Commit your changes and push to your fork. Ideally the commit message will follow the [Conventional Commit specification](https://www.conventionalcommits.org/):
 
-    ```bash
+    ```shell
     git add my_file.py  # Repeat for each file changed
     git commit -m "fix: the bug description"
     git push origin fix/the-bug-description
