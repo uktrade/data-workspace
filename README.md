@@ -47,7 +47,7 @@ This is the entry-point repository for Data Workspace, a PostgreSQL-based open s
 
 The components of Data Workspace are stored across several Git repositories.
 
-### Core
+#### Core
 
 - [data-workspace](https://github.com/uktrade/data-workspace) (this repository)
 
@@ -60,14 +60,14 @@ The components of Data Workspace are stored across several Git repositories.
    Also contains the Dockerfiles for other components such as GitLab, Superset, MLFlow, and services relating to metrics. However, it's planned to move these out to separate repositories.
 
 
-### Tools
+#### Tools
 
 - [data-workspace-tools](https://github.com/uktrade/data-workspace-tools)
 
   Contains the definitions of the on-demand tools that users can launch in Data Workspace.
 
 
-### Low level
+#### Low level
 
 Some of the components of Data Workspace are lower level, and less Data Workspace-specific - they can at least theorically be re-used outside of Data Workspace
 
