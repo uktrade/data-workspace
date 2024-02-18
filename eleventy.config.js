@@ -4,7 +4,7 @@ const fs = require('fs')
 module.exports = function(eleventyConfig) {
   eleventyConfig.addPlugin(govukEleventyPlugin, {
     icons: {
-      shortcut: '/assets/dit-favicon.png'
+      shortcut: '/assets/data-workspace-favicon.svg'
     },
     header: {
       logotype: {
