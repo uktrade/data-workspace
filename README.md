@@ -67,21 +67,15 @@ Some of the components of Data Workspace are lower level, and less Data Workspac
 
    The built documentation is hosted on [GitHub pages](https://pages.github.com/).
 
+- [package-lock.json](./package-lock.json)<br>
+  [package.json](./package.json)<br>
+  [eleventy.config.js](./eleventy.config.js)
+
+   Supporting files for building the Data Workspace developer documentation. The `package.json` file has the list of direct dependencies, `package-lock.json` has specific versions of all the direct and transitive node dependencies, and `eleventy.config.js` contains the configuration.
+
 - [infra/](./infra/)
 
    The [Terraform](https://www.terraform.io/) source to build the infrastructure of Data Workspace in Amazon Web Services (AWS).
-
-- [package-lock.json](./package-lock.json)
-
-   The list of specific versions of all the direct and transitive node dependencies needed to build the Data Workspace developer documentation.
-
-- [package.json](./package.json)
-
-   The list of the direct node dependencies needed to build the Data Workspace developer documentation.
-
-- [eleventy.config.js](./eleventy.config.js)
-
-   The configuration for the Data Workspace developer documentation.
 
 - [README.md](./README.md)
 
