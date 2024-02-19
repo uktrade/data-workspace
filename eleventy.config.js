@@ -20,6 +20,10 @@ module.exports = function(eleventyConfig) {
         meta: {
           items: [
             {
+              href: '/sitemap/',
+              text: 'Sitemap'
+            },
+            {
               href: 'https://github.com/uktrade/data-workspace',
               text: 'Data Workspace GitHub repository'
             },
