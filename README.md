@@ -61,6 +61,14 @@ Some of the components of Data Workspace are lower level, and less Data Workspac
 
 ### Contents of this repository
 
+- [.github/workflows/](.github/workflows/)
+
+   The [GitHub actions](https://docs.github.com/en/actions) workflows for this repository. There is currently one workflow: on change of the main branch (such as a merge of a PR) it builds the developer documentation in [docs/](./docs/), pushes it to [GitHub pages](https://pages.github.com/), and surfaces it at https://data-workspace.docs.trade.gov.uk/.
+
+- [.gitignore](./.gitignore)
+
+   A list of file patterns that are not committed to this repository by default during local development. For example it contains the patterns that match temporary files created by Terraform when run locally, or the built documentation when building the documentation locally.
+
 - [docs/](./docs/)
 
    The source of the [Data Workspace developer documentation](https://data-workspace.docs.trade.gov.uk/). The documentation is built using the node-based [Eleventy static site generator](https://www.11ty.dev/) and the [X-GOVUK govuk-eleventy-plugin](https://x-govuk.github.io/govuk-eleventy-plugin/) in order to use the GOV.UK design system.
