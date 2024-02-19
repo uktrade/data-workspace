@@ -88,3 +88,7 @@ Some of the components of Data Workspace are lower level, and less Data Workspac
 - [README.md](./README.md)
 
    The source of the file you're currently reading.
+
+- [CODEOWNERS](./CODEOWNERS)
+
+   The list of [code owners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners) that can approve pull requests in this repository.
