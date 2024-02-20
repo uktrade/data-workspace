@@ -68,7 +68,15 @@ Some of the components of Data Workspace are lower level, and less Data Workspac
 
 - [.github/workflows/](.github/workflows/)
 
-   The [GitHub actions](https://docs.github.com/en/actions) workflows for this repository. There is currently one workflow: on change of the main branch (such as a merge of a PR) it builds the developer documentation in [docs/](./docs/), pushes it to [GitHub pages](https://pages.github.com/), and surfaces it at https://data-workspace.docs.trade.gov.uk/.
+   The [GitHub actions](https://docs.github.com/en/actions) workflows for this repository.
+
+   - [deploy-docs-to-github-pages.yml](./.github/workflows/deploy-docs-to-github-pages.yml)
+
+      On change of the main branch (such as a merge of a PR) it builds the developer documentation in [docs/](./docs/), pushes it to [GitHub pages](https://pages.github.com/), and surfaces it at https://data-workspace.docs.trade.gov.uk/
+
+   - [lint-terraform.yml](./.github/workflows/lint-terraform.yml)
+
+      On any PR against the main branch, or change of the main branch, it runs linting checks against the Terraform code to make sure it is consistently formatted.
 
 - [.gitignore](./.gitignore)
 
