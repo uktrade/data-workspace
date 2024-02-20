@@ -53,6 +53,11 @@ Some of the components of Data Workspace are lower level, and less Data Workspac
 
    Used in Theia to give reasonably straightforward access to a PostgreSQL database
 
+- [mirror-git-to-s3](https://github.com/uktrade/mirror-git-to-s3)<br>
+  [git-lfs-http-mirror](https://github.com/uktrade/git-lfs-http-mirror)
+
+   Used to mirror git repositories that use Large File Storage (LFS) to S3 and to then access them from inside tools.
+
 - [ecs-pipeline](https://github.com/uktrade/ecs-pipeline)
 
    Used to deploy Data Workspace from Jenkins
