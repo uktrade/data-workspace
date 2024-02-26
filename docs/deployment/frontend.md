@@ -1,5 +1,5 @@
 ---
-title: Releases
+title: Deploying the frontend
 layout: sub-navigation
 order: 7
 ---
