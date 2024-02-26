@@ -27,7 +27,7 @@ The components of Data Workspace are stored across several Git repositories.
 
    Contains the core Django application the defines the most user-facing components of Data Workspace. Also contains "the proxy" that sits in front of the Django application that integrates with SSO and routes requests, for example to tools.
 
-   Also contains the Dockerfiles for other components such as GitLab, Superset, MLFlow, and services relating to metrics. However, it's planned to move these out to separate repositories.
+   Also contains the Dockerfiles for other components. However, it's planned to move these out to separate repositories.
 
 
 #### Tools
@@ -35,6 +35,18 @@ The components of Data Workspace are stored across several Git repositories.
 - [data-workspace-tools](https://github.com/uktrade/data-workspace-tools)
 
   Contains the definitions of the on-demand tools that users can launch in Data Workspace.
+
+- [data-workspace-mlflow](https://github.com/uktrade/data-workspace-mlflow)
+
+  Contains the definitions of MLFlow, an MLOps tool.
+
+- [data-workspace-superset](https://github.com/uktrade/data-workspace-superset)
+
+  Contains the definitions of Superset, a dashboarding tool.
+
+- [data-workspace-gitlab](https://github.com/uktrade/data-workspace-gitlab)
+
+  Contains the definitions of GitLab, which stores code and run CI pipelines.
 
 
 #### Low level
