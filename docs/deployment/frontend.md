@@ -10,7 +10,7 @@ order: 7
 
 ## Tag your release
 
-1. View the current [tags in Data Workspace](https://github.com/uktrade/data-workspace/tags)
+1. View the current [tags in Data Workspace](https://github.com/uktrade/data-workspace-frontend/tags)
 
 - Make a note of the latest tag
 - Check out the master branch and pull the latest.
@@ -29,11 +29,11 @@ git push origin v2024-01-19
 
 ## Create draft release notes
 
-1. View the current [tags in Data Workspace](https://github.com/uktrade/data-workspace/tags)
+1. View the current [tags in Data Workspace](https://github.com/uktrade/data-workspace-frontend/tags)
 
 - Click on the tag that you just created/pushed
-- Use the compare dropdown on the left of the page to compare your tag with the previous released tag to figure out what changes have been made since the last release. This will give you a list of all the changes to be released. Click [latest](https://github.com/uktrade/data-workspace/releases/latest) to view the latest released tag.
-- View the current [releases in Data Workspace](https://github.com/uktrade/data-workspace/releases)
+- Use the compare dropdown on the left of the page to compare your tag with the previous released tag to figure out what changes have been made since the last release. This will give you a list of all the changes to be released. Click [latest](https://github.com/uktrade/data-workspace-frontend/releases/latest) to view the latest released tag.
+- View the current [releases in Data Workspace](https://github.com/uktrade/data-workspace-frontend/releases)
 - Click "Draft a new release"
 - Choose the tag you just created
 - Click the "[Generate release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes)" button
@@ -52,7 +52,7 @@ git push origin v2024-01-19
 - Check the changes in [staging](https://data.trade.staging.uktrade.digital/)
 - Click "Proceed" on the `release: prod` job
 - Check the changes in [production](https://data.trade.gov.uk/)
-- Go back to the [releases in Github](https://github.com/uktrade/data-workspace/releases)
+- Go back to the [releases in Github](https://github.com/uktrade/data-workspace-frontend/releases)
 - Click on the draft release you created earlier
 - Click "Publish release"
 
