@@ -679,6 +679,8 @@ resource "aws_alb_target_group" "admin" {
     protocol            = "HTTP"
     healthy_threshold   = 3
     unhealthy_threshold = 2
+    timeout             = 30
+    interval            = 40
   }
 
   lifecycle {
