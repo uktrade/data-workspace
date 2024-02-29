@@ -74,6 +74,10 @@ Some of the components of Data Workspace are lower level, and less Data Workspac
 
    Used to deploy Data Workspace from Jenkins
 
+- [quicksight-bulk-update-datasets](https://github.com/uktrade/quicksight-bulk-update-datasets)
+
+   A CLI script to make bulk updates to Amazon Quicksight datasets
+
 ---
 
 ### Contents of this repository
