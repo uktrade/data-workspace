@@ -198,7 +198,8 @@ resource "aws_lb_target_group" "superset_8000" {
 
   health_check {
     protocol            = "HTTP"
-    interval            = 10
+    timeout             = 15
+    interval            = 20
     healthy_threshold   = 2
     unhealthy_threshold = 5
 
