@@ -1887,3 +1887,69 @@ resource "aws_security_group_rule" "notebooks_egress_http_to_mlflow_service" {
   to_port   = local.mlflow_port
   protocol  = "tcp"
 }
+
+resource "aws_security_group" "arango_lb" {
+  name        = "${var.prefix}-arango_lb"
+  description = "${var.prefix}-arango_lb"
+  vpc_id      = "${aws_vpc.main.id}"
+
+  tags = {
+    Name = "${var.prefix}-arango_lb"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "arango_service" {
+  name        = "${var.prefix}-arango"
+  description = "${var.prefix}-arango"
+  vpc_id      = "${aws_vpc.main.id}"
+
+  tags = {
+    Name = "${var.prefix}-arango"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Connections to ECR and CloudWatch. ECR needs S3, and its VPC endpoint type
+# does not have an IP range or security group to limit access to
+resource "aws_security_group_rule" "arango_egress_https_all" {
+  description = "egress-https-to-all"
+
+  security_group_id = aws_security_group.arango_service.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango_service_ingress_8529_arango_lb" {
+  description = "ingress-arango-lb"
+
+  security_group_id        = "${aws_security_group.arango_service.id}"
+  source_security_group_id = "${aws_security_group.arango_lb.id}"
+
+  type      = "ingress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango_service_egress_8529_arango_lb" {
+  description = "egress-arango-lb"
+
+  security_group_id        = "${aws_security_group.arango_service.id}"
+  source_security_group_id = "${aws_security_group.arango_lb.id}"
+
+  type      = "egress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "tcp"
+}
