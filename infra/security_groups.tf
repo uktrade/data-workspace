@@ -1947,7 +1947,7 @@ resource "aws_security_group_rule" "arango_egress_https_all" {
   description = "egress-https-to-all"
 
   security_group_id = aws_security_group.arango_service.id
-  cidr_blocks       = ["0.0.0.0/0"]
+  source_security_group_id = aws_security_group.ecr_api.id
 
   type      = "egress"
   from_port = "443"
@@ -1976,5 +1976,17 @@ resource "aws_security_group_rule" "arango_service_egress_8529_arango_lb" {
   type      = "egress"
   from_port = "8529"
   to_port   = "8529"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango" {
+  description = "ingress-https-from-arango-service"
+
+  security_group_id        = aws_security_group.arango_service.id
+  source_security_group_id = aws_security_group.ecr_api.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
   protocol  = "tcp"
 }
