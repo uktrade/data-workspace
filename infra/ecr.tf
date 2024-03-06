@@ -275,11 +275,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
       "${aws_ecr_repository.superset.arn}",
       "${aws_ecr_repository.flower.arn}",
       "${aws_ecr_repository.mlflow.arn}",
-<<<<<<< HEAD
       "${aws_ecr_repository.arango.arn}"
-=======
-      "${aws_ecr_repository.arango.arn}",
->>>>>>> 9f83c4d94f6574276992d2323b8e89159b9d16a0
     ]
   }
 
