@@ -86,6 +86,18 @@ resource "aws_security_group_rule" "sentryproxy_ingress_http_notebooks" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "sentryproxy_ingress_http_superset" {
+  description = "ingress-http-superset"
+
+  security_group_id        = aws_security_group.sentryproxy_service.id
+  source_security_group_id = aws_security_group.superset_service.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group" "admin_alb" {
   name        = "${var.prefix}-admin-alb"
   description = "${var.prefix}-admin-alb"

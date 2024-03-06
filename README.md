@@ -74,6 +74,69 @@ Some of the components of Data Workspace are lower level, and less Data Workspac
 
    Used to deploy Data Workspace from Jenkins
 
+- [quicksight-bulk-update-datasets](https://github.com/uktrade/quicksight-bulk-update-datasets)
+
+   A CLI script to make bulk updates to Amazon Quicksight datasets
+
+
+#### Ingesting data
+
+These components are usually used to ingest data into the PostgreSQL database that's the core of Data Workspace
+
+- [pg-bulk-ingest](https://github.com/uktrade/pg-bulk-ingest)<br>
+  [pg-force-execute](https://github.com/uktrade/pg-force-execute)
+   
+   Used to ingest large amounts of data in the PostgreSQL database
+
+- [to-file-like-obj](https://github.com/uktrade/to-file-like-obj)
+
+   Used in serveral ways to convery from iterables of bytes to a file-like object for memory-efficient data ingestion. For example when parsing CSVs.
+
+- [iterable-subprocess](https://github.com/uktrade/iterable-subprocess)
+
+   Used to extract data from archives in a format that requires running an external program.
+
+- [stream-read-ods](https://github.com/uktrade/stream-read-ods)
+
+   Used to extract data from Open Document Spreadsheet (ODS) files in a memory-efficient and disk-efficient way.
+
+- [stream-unzip](https://github.com/uktrade/stream-unzip)
+
+   Used to extract data from ZIP files in a memory-efficient and disk-efficient way.
+
+- [stream-read-xbrl](https://github.com/uktrade/stream-read-xbrl)
+
+   Used to ingest data from Companies House.
+
+- [sqlite-s3vfs](https://github.com/uktrade/sqlite-s3vfs)
+
+   Used to generate large and complex SQLite files that are then ingested into the Data Workspace PostgreSQL database.
+
+- [s3-dropbox](https://github.com/uktrade/s3-dropbox)
+
+   Used to power a simple API to accept incoming data files in any format and drop it in S3, subsequently ingested into Data Workspace.
+
+
+#### Publishing data
+
+These components are used when publishing data from Data Workspace.
+
+- [public-data-api](https://github.com/uktrade/public-data-api)
+
+   Makes data available to the public.
+
+- [stream-zip](https://github.com/uktrade/stream-zip)
+
+   Creates ZIP files in a memory-efficient and disk-efficient way.
+
+- [stream-write-ods](https://github.com/uktrade/stream-write-ods)
+
+   Creates Open Document Spreadsheet (ODS) files in a memory-efficient and disk-efficient way.
+
+- [postgresql-proxy](https://github.com/uktrade/postgresql-proxy)
+
+   Part of the system that makes data available to other internal applications.
+
 ---
 
 ### Contents of this repository
