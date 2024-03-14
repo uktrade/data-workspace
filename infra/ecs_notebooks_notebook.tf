@@ -14,6 +14,9 @@ resource "aws_ecs_task_definition" "notebook" {
       metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:${data.external.notebook_metrics_current_tag.result.tag}"
       s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:${data.external.notebook_s3sync_current_tag.result.tag}"
 
+      cloudwatch_namespace = "${var.cloudwatch_namespace}"
+      cloudwatch_region    = "${var.cloudwatch_region}"
+
       home_directory = "/home/jovyan"
     }
   )
@@ -189,6 +192,32 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
 
   statement {
     actions = [
+      "cloudwatch:PutMetricData",
+    ]
+
+    resources = [
+      "*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "cloudwatch:namespace"
+      values = [
+        "${var.cloudwatch_namespace}/S3Sync"
+      ]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [
+        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+      ]
+    }
+  }
+
+  statement {
+    actions = [
       "elasticfilesystem:ClientMount",
       "elasticfilesystem:ClientWrite",
     ]
@@ -357,6 +386,32 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
 
   statement {
     actions = [
+      "cloudwatch:PutMetricData",
+    ]
+
+    resources = [
+      "*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "cloudwatch:namespace"
+      values = [
+        "${var.cloudwatch_namespace}/S3Sync"
+      ]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [
+        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+      ]
+    }
+  }
+
+  statement {
+    actions = [
       "elasticfilesystem:ClientMount",
       "elasticfilesystem:ClientWrite",
     ]
@@ -380,7 +435,34 @@ resource "aws_vpc_endpoint" "cloudwatch_logs" {
   security_group_ids = ["${aws_security_group.cloudwatch.id}"]
   subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
 
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_cloudwatch_logs.json
+
   private_dns_enabled = true
+}
+
+data "aws_iam_policy_document" "aws_vpc_endpoint_cloudwatch_logs" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "*",
+    ]
+
+    resources = [
+      "*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [
+        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+      ]
+    }
+  }
 }
 
 resource "aws_vpc_endpoint" "cloudwatch_monitoring" {
@@ -391,5 +473,32 @@ resource "aws_vpc_endpoint" "cloudwatch_monitoring" {
   security_group_ids = ["${aws_security_group.cloudwatch.id}"]
   subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
 
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_cloudwatch_monitoring.json
+
   private_dns_enabled = true
+}
+
+data "aws_iam_policy_document" "aws_vpc_endpoint_cloudwatch_monitoring" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "*",
+    ]
+
+    resources = [
+      "*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [
+        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+      ]
+    }
+  }
 }

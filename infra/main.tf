@@ -23,6 +23,12 @@ variable "ip_whitelist" {
 variable "prefix" {}
 variable "prefix_short" {}
 variable "prefix_underscore" {}
+variable "cloudwatch_namespace" {
+  default = "DataWorkspace"
+}
+variable "cloudwatch_region" {
+  default = "eu-west-2"
+}
 
 variable "vpc_cidr" {}
 variable "subnets_num_bits" {}

@@ -67,6 +67,12 @@
     },{
       "name": "SENTRY_ENVIRONMENT",
       "value": "${sentry_environment}"
+    }, {
+      "name": "CLOUDWATCH_MONITORING_NAMESPACE",
+      "value": "${cloudwatch_namespace}/S3Sync"
+    }, {
+      "name": "CLOUDWATCH_MONITORING_REGION",
+      "value": "${cloudwatch_region}"
     }]
   }
 ]
