@@ -16,6 +16,9 @@ resource "aws_ecs_task_definition" "pgadmin" {
       metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:${data.external.pgadmin_metrics_current_tag.result.tag}"
       s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:${data.external.pgadmin_s3sync_current_tag.result.tag}"
 
+      cloudwatch_namespace = "${var.cloudwatch_namespace}"
+      cloudwatch_region    = "${var.cloudwatch_region}"
+
       home_directory = "/home/pgadmin"
     }
   )

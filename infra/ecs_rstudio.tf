@@ -16,6 +16,9 @@ resource "aws_ecs_task_definition" "rstudio" {
       metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:${data.external.rstudio_metrics_current_tag.result.tag}"
       s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:${data.external.rstudio_s3sync_current_tag.result.tag}"
 
+      cloudwatch_namespace = "${var.cloudwatch_namespace}"
+      cloudwatch_region    = "${var.cloudwatch_region}"
+
       home_directory = "/home/rstudio"
     }
   )
