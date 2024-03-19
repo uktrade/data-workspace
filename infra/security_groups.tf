@@ -1926,6 +1926,30 @@ resource "aws_security_group" "arango_lb" {
   }
 }
 
+resource "aws_security_group_rule" "arango_lb_ingress_https_from_whitelist" {
+  description = "ingress-https-from-whitelist"
+
+  security_group_id = aws_security_group.arango_lb.id
+  cidr_blocks       = "${var.ip_whitelist}"
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango_lb_egress_https_to_arango_service" {
+  description = "egress-https-to-arango-service"
+
+  security_group_id        = aws_security_group.arango_lb.id
+  source_security_group_id = aws_security_group.arango_service.id
+
+  type      = "egress"
+  from_port = local.arango_container_port
+  to_port   = local.arango_container_port
+  protocol  = "tcp"
+}
+
 resource "aws_security_group" "arango_service" {
   name        = "${var.prefix}-arango"
   description = "${var.prefix}-arango"
