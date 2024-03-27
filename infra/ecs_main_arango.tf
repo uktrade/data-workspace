@@ -3,7 +3,12 @@ resource "aws_ecs_service" "arango" {
   cluster         = "${aws_ecs_cluster.main_cluster.id}"
   task_definition = "${aws_ecs_task_definition.arango_service.arn}"
   desired_count   = 1
-  launch_type     = "FARGATE"
+
+  capacity_provider_strategy {
+   capacity_provider = aws_ecs_capacity_provider.arango_capacity_provider.name
+   weight            = 100
+   base              = 1
+ }
 
   network_configuration {
     subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
@@ -19,7 +24,97 @@ resource "aws_ecs_service" "arango" {
   depends_on = [
     # The target group must have been associated with the listener first
     "aws_lb_listener.arango",
+    "aws_autoscaling_group.arango_service"
   ]
+}
+
+resource "aws_service_discovery_service" "arango" {
+  name = "${var.prefix}-arango"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.jupyterhub.id
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+  }
+}
+
+resource "aws_autoscaling_group" "arango_service" {
+  name_prefix               = "${var.prefix}-arango"
+  max_size                  = 2
+  min_size                  = 1
+  desired_capacity          = 1
+  health_check_grace_period = 120
+  health_check_type         = "EC2"
+  vpc_zone_identifier       = ["${aws_subnet.private_with_egress.*.id[0]}"]
+
+  launch_template {
+    id                      = aws_launch_template.arango_service.id
+    version                 = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "${var.prefix}-arango-service"
+    propagate_at_launch = true
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_launch_template" "arango_service" {
+  name_prefix = "${var.prefix}-arango-service-"
+  image_id             = "ami-0d17f7a2768c41ccd"
+  instance_type        = "t2.xlarge"
+  key_name             = "${aws_key_pair.shared.key_name}"
+  vpc_security_group_ids = ["${aws_security_group.arango-ec2.id}",
+                            "${aws_security_group.arango_service.id}"]
+
+  iam_instance_profile {
+    name = "${aws_iam_instance_profile.arango_ec2.name}"
+  }
+
+  user_data = "${data.template_file.ecs_config_template.rendered}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+data "template_file" "ecs_config_template" {
+  template = "${filebase64("${path.module}/arango_user_data.sh")}"
+  vars     = {
+    ECS_CLUSTER = "${aws_ecs_cluster.main_cluster.name}"
+    EBS_REGION  = "${data.aws_region.aws_region.name}"
+  }
+  }
+
+resource "aws_ecs_capacity_provider" "arango_capacity_provider" {
+ name = "${var.prefix}-arango_service"
+
+ auto_scaling_group_provider {
+   auto_scaling_group_arn = aws_autoscaling_group.arango_service.arn
+
+   managed_scaling {
+     maximum_scaling_step_size = 1000
+     minimum_scaling_step_size = 1
+     status                    = "ENABLED"
+     target_capacity           = 3
+   }
+ }
+}
+
+resource "aws_ecs_cluster_capacity_providers" "arango" {
+ cluster_name = aws_ecs_cluster.main_cluster.name
+
+ capacity_providers = [aws_ecs_capacity_provider.arango_capacity_provider.name]
+
+ default_capacity_provider_strategy {
+   capacity_provider = aws_ecs_capacity_provider.arango_capacity_provider.name
+ }
 }
 
 resource "aws_ecs_task_definition" "arango_service" {
@@ -156,6 +251,33 @@ data "aws_iam_policy_document" "arango_ecs_assume_role" {
       identifiers = ["ecs.amazonaws.com"]
     }
   }
+}
+
+resource "aws_iam_role" "arango_ec2" {
+  name               = "${var.prefix}-arango-ec2"
+  assume_role_policy = data.aws_iam_policy_document.arango_ec2_assume_role.json
+}
+
+data "aws_iam_policy_document" "arango_ec2_assume_role" {
+
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "arango_ec2" {
+  role       = aws_iam_role.arango_ec2.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_instance_profile" "arango_ec2" {
+  name  = "${var.prefix}-arango-ec2"
+  role  = aws_iam_role.arango_ec2.id
 }
 
 resource "aws_lb" "arango" {
