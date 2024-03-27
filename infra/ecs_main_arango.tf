@@ -129,7 +129,20 @@ resource "aws_ecs_task_definition" "arango_service" {
   network_mode             = "awsvpc"
   cpu                      = "${local.arango_container_cpu}"
   memory                   = "${local.arango_container_memory}"
-  requires_compatibilities = ["FARGATE"]
+  requires_compatibilities = ["EC2"]
+
+  volume {
+    name = "arango-ebs-volume"
+    docker_volume_configuration {
+      scope         = "shared"
+      autoprovision = true
+      driver        = "rexray/ebs"
+      driver_opts = {
+        volumetype = "gp2"
+        size       = 5
+      }
+    }
+  }
 
   lifecycle {
     ignore_changes = [
