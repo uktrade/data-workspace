@@ -14,6 +14,9 @@ resource "aws_ecs_task_definition" "superset" {
       metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:master"
       s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:master"
 
+      cloudwatch_namespace = "${var.cloudwatch_namespace}"
+      cloudwatch_region    = "${var.cloudwatch_region}"
+
       home_directory = "/home/superset"
     }
   )
