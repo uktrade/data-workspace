@@ -266,6 +266,10 @@ locals {
   flower_container_memory = 8192
   flower_container_cpu    = 1024
 
+  arango_container_memory = 8192
+  arango_container_cpu    = 4096
+  arango_container_port   = 8529
+
   mlflow_container_memory = 8192
   mlflow_container_cpu    = 1024
   mlflow_port             = 8004
