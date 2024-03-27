@@ -21,6 +21,10 @@ resource "aws_ecs_service" "arango" {
     container_name   = "arango"
   }
 
+  service_registries {
+    registry_arn = aws_service_discovery_service.arango.arn
+  }
+
   depends_on = [
     # The target group must have been associated with the listener first
     "aws_lb_listener.arango",
@@ -291,6 +295,10 @@ resource "aws_lb" "arango" {
     subnet_id     = "${aws_subnet.public.*.id[0]}"
     
   }
+
+  tags = {
+    name = "arango-to-notebook-lb"
+  }
 }
 
 resource "aws_lb_listener" "arango" {
@@ -309,6 +317,21 @@ resource "aws_lb_target_group" "arango" {
   port        = "8529"
   vpc_id      = "${aws_vpc.main.id}"
   target_type = "ip"
+  protocol    = "TCP"
+  preserve_client_ip = true
+
+  health_check {
+    protocol = "TCP"
+    interval = 10
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_lb_target_group" "notebooks" {
+  name = "${var.prefix}-notebooks"
+  port        = "8888"
+  vpc_id      = "${aws_vpc.notebooks.id}"
   protocol    = "TCP"
   preserve_client_ip = true
 
