@@ -5,8 +5,8 @@ order: 7
 ---
 
 ## Notify the team
-1. Post a message into di-dev channel in the Data Infrastructure (DDaT) Team saying that you want to do a release and ask if there are any objections. If no objections, proceed with the following steps.
 
+1. Post a message into di-dev channel in the Data Infrastructure (DDaT) Team saying that you want to do a release and ask if there are any objections. If no objections, proceed with the following steps.
 
 ## Tag your release
 
@@ -14,17 +14,23 @@ order: 7
 
 - Make a note of the latest tag
 - Check out the master branch and pull the latest.
-- Create a new tag from the master branch following this format `v<year>-<month>-<day>` eg. v2024-01-19
+- Create a new tag from the master branch(see "How to Tag your release")
 - Push the new tag to Github
+
+## How to Tag your release
+
+**Format** `v<year>.<month>.<day>`
+
+If there are multiple releases in one day, increment the tag alphabetically starting with `b`. For example `v2024.01.19` then `v2024.01.19.b`, `v2024.01.19.c` and so on.
 
 **Example of how to tag and push**
 
 ```shell
-git tag -a v2024-01-19 -m v2024-01-19
+git tag -a v2024.01.19 -m v2024.01.19
 ```
 
 ```shell
-git push origin v2024-01-19
+git push origin v2024.01.19
 ```
 
 ## Create draft release notes
@@ -39,7 +45,6 @@ git push origin v2024-01-19
 - Click the "[Generate release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes)" button
 - Check the option "Set as the latest release"
 - Click "Save draft"
-
 
 ## Release tag to production
 
