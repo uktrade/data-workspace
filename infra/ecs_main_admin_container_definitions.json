@@ -56,6 +56,22 @@
       "value": "datasets_1"
     },
     {
+      "name": "ARANGO_DB__HOST",
+      "value": "${arango_db__host}"
+    },
+    {
+      "name": "ARANGO_DB__PORT",
+      "value": "${arango_db__port}"
+    },
+    {
+      "name": "ARANGO_DB__USER",
+      "value": "root"
+    },
+    {
+      "name": "ARANGO_DB__PASSWORD",
+      "value": "${arango_db__password}"
+    },
+    {
       "name": "ALLOWED_HOSTS__1",
       "value": "${root_domain}"
     },
