@@ -600,6 +600,34 @@ resource "aws_security_group" "ecr_api" {
   }
 }
 
+resource "aws_security_group" "ecr_dkr_datasets" {
+  name        = "${var.prefix}-ecr-dkr-datasets"
+  description = "${var.prefix}-ecr-dkr-datasets"
+  vpc_id      = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}-ecr-dkr-datasets"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "ecr_api_datasets" {
+  name        = "${var.prefix}-ecr-api-datasets"
+  description = "${var.prefix}-ecr-api-datasets"
+  vpc_id      = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}-ecr-api-datasets"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_dns_rewrite_proxy" {
   description = "ingress-https-from-dns-rewrite-proxy"
 
@@ -725,7 +753,7 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_healthcheck" {
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango_proxy" {
   description = "ingress-https-from-arango"
 
-  security_group_id        = aws_security_group.ecr_api.id
+  security_group_id        = aws_security_group.ecr_api_datasets.id
   source_security_group_id = aws_security_group.arango_service.id
 
   type      = "ingress"
@@ -750,6 +778,18 @@ resource "aws_security_group_rule" "ecr_dkr_ingress_https_from_all" {
   description = "ingress-https-from-everywhere"
 
   security_group_id = aws_security_group.ecr_dkr.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecr_dkr_datasets_ingress_https_from_all" {
+  description = "ingress-https-from-everywhere"
+
+  security_group_id = aws_security_group.ecr_dkr_datasets.id
   cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "ingress"
