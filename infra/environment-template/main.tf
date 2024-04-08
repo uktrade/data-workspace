@@ -53,6 +53,7 @@ module "jupyterhub" {
   vpc_notebooks_cidr             = "172.17.0.0/16"
   vpc_notebooks_subnets_num_bits = "5"
   vpc_datasets_cidr              = "172.18.4.0/22"
+  vpc_datasets_subnets_num_bits  = "8"
 
   aws_availability_zones       = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
   aws_availability_zones_short = ["a", "b", "c"]
@@ -149,6 +150,10 @@ module "jupyterhub" {
     "172.18.4.0/25",
     "172.18.4.128/25",
     "172.18.5.0/25",
+    "172.18.6.0/25",
+    "172.18.6.128/25",
+    "172.18.7.0/25",
+  ]
   ]
   dataset_subnets_availability_zones = [
     "eu-west-2a",

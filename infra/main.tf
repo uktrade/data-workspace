@@ -41,6 +41,7 @@ variable "subnets_num_bits" {}
 variable "vpc_notebooks_cidr" {}
 variable "vpc_notebooks_subnets_num_bits" {}
 variable "vpc_datasets_cidr" {}
+variable "vpc_datasets_subnets_num_bits" {}
 
 variable "aws_route53_zone" {}
 variable "admin_domain" {}
