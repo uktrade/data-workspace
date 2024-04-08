@@ -126,6 +126,34 @@ resource "aws_vpc_endpoint" "ecr_api" {
   timeouts {}
 }
 
+resource "aws_vpc_endpoint" "ecr_dkr_datasets" {
+  vpc_id              = aws_vpc.datasets.id
+  service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  security_group_ids = ["${aws_security_group.ecr_dkr_datasets.id}"]
+  subnet_ids         = ["${aws_subnet.datasets.*.id[0]}"]
+
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
+
+  timeouts {}
+}
+
+resource "aws_vpc_endpoint" "ecr_api_datasets" {
+  vpc_id              = aws_vpc.datasets.id
+  service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  security_group_ids = ["${aws_security_group.ecr_api_datasets.id}"]
+  subnet_ids         = ["${aws_subnet.datasets.*.id[0]}"]
+
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
+
+  timeouts {}
+}
+
 data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   # Contains policies for both ECR and DKR endpoints, as recommended
 
