@@ -17,12 +17,6 @@
           "awslogs-stream-prefix": "${container_name}"
         }
       },
-      "environment": [],
-      "mountPoints": [
-        {
-          "sourceVolume": "arango-ebs-volume",
-          "containerPath": "/var/lib/arangodb3"
-        }
-      ]
+      "environment": []
     }
   ]
