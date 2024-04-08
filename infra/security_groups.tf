@@ -2075,6 +2075,18 @@ resource "aws_security_group_rule" "arango_lb_notebooks_egress" {
   protocol  = "-1"
 }
 
+resource "aws_security_group_rule" "arango_lb_egress_https_to_cloudwatch" {
+  description = "egress-https-to-cloudwatch"
+
+  security_group_id        = aws_security_group.arango_lb.id
+  source_security_group_id = aws_security_group.cloudwatch.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group" "arango_service" {
   name        = "${var.prefix}-arango"
   description = "${var.prefix}-arango"
