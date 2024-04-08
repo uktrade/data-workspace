@@ -1991,7 +1991,7 @@ resource "aws_security_group_rule" "notebooks_egress_http_to_mlflow_service" {
 resource "aws_security_group" "arango_lb" {
   name        = "${var.prefix}-arango_lb"
   description = "${var.prefix}-arango_lb"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = "${aws_vpc.datasets.id}"
 
   tags = {
     Name = "${var.prefix}-arango_lb"
@@ -2050,6 +2050,18 @@ resource "aws_security_group_rule" "arango_lb_notebooks_ingress" {
   protocol  = "-1"
 }
 
+resource "aws_security_group_rule" "arango_lb_ingress_vpc" {
+  description = "inbound connection from vpc CIDR"
+
+  security_group_id = aws_security_group.arango_lb.id
+  cidr_blocks       = ["${aws_vpc.datasets.cidr_block}"]
+
+  type      = "ingress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "-1"
+}
+
 resource "aws_security_group_rule" "arango_lb_notebooks_egress" {
   description = "allow outbound traffic"
 
@@ -2077,7 +2089,7 @@ resource "aws_security_group_rule" "arango_lb_egress_https_to_cloudwatch" {
 resource "aws_security_group" "arango_service" {
   name        = "${var.prefix}-arango"
   description = "${var.prefix}-arango"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = "${aws_vpc.datasets.id}"
 
   tags = {
     Name = "${var.prefix}-arango"
@@ -2093,7 +2105,7 @@ resource "aws_security_group" "arango_service" {
 resource "aws_security_group_rule" "arango_egress_ecr_api" {
   description = "egress-https-to-ecr-api"
 
-  security_group_id = aws_security_group.ecr_api.id
+  security_group_id = aws_security_group.ecr_api_datasets.id
   source_security_group_id = aws_security_group.arango_service.id
 
   type      = "egress"
@@ -2167,7 +2179,7 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango" {
   description = "ingress-https-from-arango-service"
 
   security_group_id        = aws_security_group.arango_service.id
-  source_security_group_id = aws_security_group.ecr_api.id
+  source_security_group_id = aws_security_group.ecr_api_datasets.id
 
   type      = "ingress"
   from_port = "443"
@@ -2201,7 +2213,7 @@ resource "aws_security_group_rule" "arango-ecs-egress-all" {
 resource "aws_security_group" "arango-ec2" {
   name        = "${var.prefix}-arango-ec2"
   description = "${var.prefix}-arango-ec2"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.datasets.id
 
   tags = {
     Name = "${var.prefix}-arango-ec2"
