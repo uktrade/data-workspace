@@ -2237,6 +2237,18 @@ resource "aws_security_group" "arango-ec2" {
   }
 }
 
+resource "aws_security_group_rule" "arango-ec2-egress-ecs-agent" {
+  description = "egress-ec2-agent"
+
+  security_group_id = aws_security_group.arango-ec2.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "arango-ec2-egress-all" {
   description = "egress-everything-to-everywhere"
 
@@ -2250,7 +2262,7 @@ resource "aws_security_group_rule" "arango-ec2-egress-all" {
 }
 
 resource "aws_security_group_rule" "arango-ec2-egress" {
-  description = "egress-everything-to-everywhere"
+  description = "ingress-everything-to-everywhere"
 
   security_group_id = aws_security_group.arango-ec2.id
   cidr_blocks       = ["0.0.0.0/0"]
@@ -2261,11 +2273,34 @@ resource "aws_security_group_rule" "arango-ec2-egress" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "arango-ec2-22" {
+  description = "ingress_ec2_instance"
+
+  security_group_id = aws_security_group.arango-ec2.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "ingress"
+  from_port = "22"
+  to_port   = "22"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango-ec2-ingress-ecs-agent" {
+  description = "ingress-ec2-agent"
+
+  security_group_id = aws_security_group.arango-ec2.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
 
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango_ec2" {
   description = "ingress-https-from-arango-ec2"
 
-  security_group_id        = aws_security_group.ecr_api.id
+  security_group_id        = aws_security_group.ecr_api_datasets.id
   source_security_group_id = aws_security_group.arango-ec2.id
 
   type      = "ingress"
