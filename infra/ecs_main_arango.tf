@@ -96,7 +96,7 @@ resource "aws_launch_template" "arango_service" {
 }
 
 data "template_file" "ecs_config_template" {
-  template = "${filebase64("${path.module}/arango_user_data.sh")}"
+  template = "${filebase64("${path.module}/ecs_main_arango_user_data.sh")}"
   vars     = {
     ECS_CLUSTER = "${aws_ecs_cluster.main_cluster.name}"
     EBS_REGION  = "${data.aws_region.aws_region.name}"
@@ -137,19 +137,6 @@ resource "aws_ecs_task_definition" "arango_service" {
   cpu                      = "${local.arango_container_cpu}"
   memory                   = "${local.arango_container_memory}"
   requires_compatibilities = ["EC2"]
-
-  volume {
-    name = "arango-ebs-volume"
-    docker_volume_configuration {
-      scope         = "shared"
-      autoprovision = true
-      driver        = "rexray/ebs"
-      driver_opts = {
-        volumetype = "gp2"
-        size       = 5
-      }
-    }
-  }
 
   lifecycle {
     ignore_changes = [
