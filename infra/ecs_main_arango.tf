@@ -11,7 +11,7 @@ resource "aws_ecs_service" "arango" {
  }
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+    subnets         = ["${aws_subnet.datasets.*.id[0]}"]
     security_groups = ["${aws_security_group.arango_service.id}"]
   }
 
@@ -48,10 +48,10 @@ resource "aws_autoscaling_group" "arango_service" {
   name_prefix               = "${var.prefix}-arango"
   max_size                  = 2
   min_size                  = 1
-  desired_capacity          = 1
+  desired_capacity          = 2
   health_check_grace_period = 120
   health_check_type         = "EC2"
-  vpc_zone_identifier       = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  vpc_zone_identifier       = ["${aws_subnet.datasets.*.id[0]}"]
 
   launch_template {
     id                      = aws_launch_template.arango_service.id
@@ -71,15 +71,22 @@ resource "aws_autoscaling_group" "arango_service" {
 
 resource "aws_launch_template" "arango_service" {
   name_prefix = "${var.prefix}-arango-service-"
-  image_id             = "ami-0d17f7a2768c41ccd"
+  image_id             = "ami-0c618421e207909d0"
   instance_type        = "t2.xlarge"
   key_name             = "${aws_key_pair.shared.key_name}"
-  vpc_security_group_ids = ["${aws_security_group.arango-ec2.id}",
-                            "${aws_security_group.arango_service.id}"]
 
+  metadata_options {
+    http_tokens        = "required"
+  }
+
+  network_interfaces {
+    security_groups = ["${aws_security_group.arango-ec2.id}"]
+    subnet_id       = aws_subnet.datasets.*.id[0]
+    }
+  
   iam_instance_profile {
     name = "${aws_iam_instance_profile.arango_ec2.name}"
-  }
+    }
 
   user_data = "${data.template_file.ecs_config_template.rendered}"
 
@@ -306,7 +313,7 @@ resource "aws_lb" "arango" {
   timeouts {}
 
   subnet_mapping {
-    subnet_id     = "${aws_subnet.public.*.id[0]}"
+    subnet_id     = "${aws_subnet.public_datasets.*.id[0]}"
     
   }
 
@@ -329,7 +336,7 @@ resource "aws_lb_listener" "arango" {
 resource "aws_lb_target_group" "arango" {
   name = "${var.prefix}-arango"
   port        = "8529"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = "${aws_vpc.datasets.id}"
   target_type = "ip"
   protocol    = "TCP"
   preserve_client_ip = true
