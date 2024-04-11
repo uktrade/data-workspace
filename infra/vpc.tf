@@ -19,8 +19,8 @@ resource "aws_vpc_peering_connection" "jupyterhub" {
 resource "aws_vpc" "notebooks" {
   cidr_block = var.vpc_notebooks_cidr
 
-  enable_dns_support   = false
-  enable_dns_hostnames = false
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = {
     Name = "${var.prefix}-notebooks"
@@ -397,11 +397,11 @@ resource "aws_vpc_peering_connection" "datasets_to_notebooks" {
   auto_accept = true
 
   accepter {
-    allow_remote_vpc_dns_resolution = false
+    allow_remote_vpc_dns_resolution = true
   }
 
   requester {
-    allow_remote_vpc_dns_resolution = false
+    allow_remote_vpc_dns_resolution = true
   }
 
   tags = {
@@ -452,7 +452,6 @@ resource "aws_route" "pcx_datasets_to_private_without_egress" {
   vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_notebooks.id
 }
 
-
 resource "aws_subnet" "datasets" {
   count      = length(var.aws_availability_zones)
   vpc_id     = aws_vpc.datasets.id
@@ -478,7 +477,7 @@ resource "aws_route_table_association" "datasets" {
 resource "aws_subnet" "datasets_quicksight" {
   vpc_id     = aws_vpc.datasets.id
   cidr_block = var.quicksight_cidr_block
-  
+
   availability_zone = var.quicksight_subnet_availability_zone
 
   tags = {
