@@ -154,7 +154,7 @@ module "jupyterhub" {
     "172.18.6.128/25",
     "172.18.7.0/25",
   ]
-  ]
+  
   dataset_subnets_availability_zones = [
     "eu-west-2a",
     "eu-west-2b",
