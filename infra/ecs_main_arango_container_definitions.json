@@ -17,6 +17,10 @@
           "awslogs-stream-prefix": "${container_name}"
         }
       },
-      "environment": []
+      "environment": [],
+      "mountPoints" : [{
+        "containerPath" : "/data/",
+        "sourceVolume" : "data-arango"
+     }]
     }
   ]
