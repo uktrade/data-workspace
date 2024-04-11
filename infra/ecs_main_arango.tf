@@ -69,6 +69,10 @@ resource "aws_autoscaling_group" "arango_service" {
   }
 }
 
+data "aws_autoscaling_groups" "arango_asgs" {
+  names = ["${aws_autoscaling_group.arango_service.name}"]
+}
+
 resource "aws_launch_template" "arango_service" {
   name_prefix = "${var.prefix}-arango-service-"
   image_id             = "ami-0c618421e207909d0"
@@ -100,8 +104,13 @@ data "template_file" "ecs_config_template" {
   vars     = {
     ECS_CLUSTER = "${aws_ecs_cluster.main_cluster.name}"
     EBS_REGION  = "${data.aws_region.aws_region.name}"
+    EBS_VOLUME_ID = "${aws_ebs_volume.arango.id}"
   }
   }
+
+output "rendered"  {
+  value = "${data.template_file.ecs_config_template.rendered}"
+}
 
 resource "aws_ecs_capacity_provider" "arango_capacity_provider" {
  name = "${var.prefix}-arango_service"
@@ -138,6 +147,12 @@ resource "aws_ecs_task_definition" "arango_service" {
   memory                   = "${local.arango_container_memory}"
   requires_compatibilities = ["EC2"]
 
+  volume {
+    name      = "data-arango"
+    host_path = "/data/"
+  }
+
+
   lifecycle {
     ignore_changes = [
       "revision",
@@ -156,6 +171,21 @@ data "template_file" "arango_service_container_definitions" {
     cpu             = "${local.arango_container_cpu}"
     memory          = "${local.arango_container_memory}"
     root_password   = "${random_string.aws_arangodb_root_password.result}"
+  }
+}
+
+resource "aws_ebs_volume" "arango" {
+  availability_zone = var.aws_availability_zones[0]
+  size              = 20
+  type              = "gp3"
+  encrypted         = true
+
+  lifecycle {
+    prevent_destroy = false
+  }
+
+  tags = {
+    Name = "${var.prefix}-arango"
   }
 }
 
@@ -339,14 +369,12 @@ resource "aws_iam_instance_profile" "arango_ec2" {
 
 resource "aws_lb" "arango" {
   name               = "${var.prefix}-arango"
-  load_balancer_type = "network"
+  load_balancer_type = "application"
   security_groups = ["${aws_security_group.arango_lb.id}"]
-  enable_deletion_protection = false
+  enable_deletion_protection = true
+  internal                   = true
+  subnets = aws_subnet.datasets.*.id
   timeouts {}
-
-  subnet_mapping {
-    subnet_id     = "${aws_subnet.datasets.*.id[0]}"
-  }
 
   tags = {
     name = "arango-to-notebook-lb"
@@ -356,7 +384,7 @@ resource "aws_lb" "arango" {
 resource "aws_lb_listener" "arango" {
   load_balancer_arn = "${aws_lb.arango.arn}"
   port              = "8529"
-  protocol          = "TCP"
+  protocol          = "HTTP"
 
   default_action {
     target_group_arn = "${aws_lb_target_group.arango.id}"
@@ -369,14 +397,14 @@ resource "aws_lb_target_group" "arango" {
   port        = "8529"
   vpc_id      = "${aws_vpc.datasets.id}"
   target_type = "ip"
-  protocol    = "TCP"
-  preserve_client_ip = true
+  protocol    = "HTTP"
 
   health_check {
-    protocol = "TCP"
+    protocol = "HTTP"
     interval = 10
     healthy_threshold   = 2
     unhealthy_threshold = 2
+    path = "/_db/_system/_admin/aardvark/index.html"
   }
 }
 
