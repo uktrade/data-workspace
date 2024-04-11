@@ -340,12 +340,11 @@ resource "aws_lb" "arango" {
   name               = "${var.prefix}-arango"
   load_balancer_type = "network"
   security_groups = ["${aws_security_group.arango_lb.id}"]
-  enable_deletion_protection = true
+  enable_deletion_protection = false
   timeouts {}
 
   subnet_mapping {
-    subnet_id     = "${aws_subnet.public_datasets.*.id[0]}"
-    
+    subnet_id     = "${aws_subnet.datasets.*.id[0]}"
   }
 
   tags = {
