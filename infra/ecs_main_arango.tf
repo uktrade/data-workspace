@@ -170,6 +170,7 @@ data "template_file" "arango_service_container_definitions" {
     log_region      = "${data.aws_region.aws_region.name}"
     cpu             = "${local.arango_container_cpu}"
     memory          = "${local.arango_container_memory}"
+    root_password   = "${random_string.aws_arangodb_root_password.result}"
   }
 }
 
@@ -404,5 +405,14 @@ resource "aws_lb_target_group" "arango" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
     path = "/_db/_system/_admin/aardvark/index.html"
+  }
+}
+
+resource "random_string" "aws_arangodb_root_password" {
+  length  = 64
+  special = false
+
+  lifecycle {
+    ignore_changes = all
   }
 }

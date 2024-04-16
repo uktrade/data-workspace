@@ -17,7 +17,12 @@
           "awslogs-stream-prefix": "${container_name}"
         }
       },
-      "environment": [],
+      "environment": [
+        {
+          "name": "ARANGO_ROOT_PASSWORD",
+          "value": "${root_password}"
+        }
+      ],
       "mountPoints" : [{
         "containerPath" : "/data/",
         "sourceVolume" : "data-arango"
