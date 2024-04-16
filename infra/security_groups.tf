@@ -448,6 +448,18 @@ resource "aws_security_group_rule" "notebooks_ingress_https_from_arango" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "notebooks_ingress_https_from_arango_lb" {
+  description = "ingress-https-from-arango-lb"
+
+  security_group_id        = aws_security_group.notebooks.id
+  source_security_group_id = aws_security_group.arango_lb.id
+
+  type      = "ingress"
+  from_port = local.arango_container_port
+  to_port   = local.arango_container_port
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "notebooks_ingress_http_dev_from_admin" {
   description = "ingress-http-dev-from-jupytehub"
 
@@ -537,7 +549,7 @@ resource "aws_security_group_rule" "notebooks_egress_arango_service" {
   description = "egress-to-arango"
 
   security_group_id        = aws_security_group.notebooks.id
-  source_security_group_id = aws_security_group.arango_service.id
+  source_security_group_id = aws_security_group.datasets.id
 
   type      = "egress"
   from_port = local.arango_container_port
@@ -593,6 +605,34 @@ resource "aws_security_group" "ecr_api" {
 
   tags = {
     Name = "${var.prefix}-ecr-api"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "ecr_dkr_datasets" {
+  name        = "${var.prefix}-ecr-dkr-datasets"
+  description = "${var.prefix}-ecr-dkr-datasets"
+  vpc_id      = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}-ecr-dkr-datasets"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "ecr_api_datasets" {
+  name        = "${var.prefix}-ecr-api-datasets"
+  description = "${var.prefix}-ecr-api-datasets"
+  vpc_id      = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}-ecr-api-datasets"
   }
 
   lifecycle {
@@ -725,7 +765,7 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_healthcheck" {
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango_proxy" {
   description = "ingress-https-from-arango"
 
-  security_group_id        = aws_security_group.ecr_api.id
+  security_group_id        = aws_security_group.ecr_api_datasets.id
   source_security_group_id = aws_security_group.arango_service.id
 
   type      = "ingress"
@@ -750,6 +790,18 @@ resource "aws_security_group_rule" "ecr_dkr_ingress_https_from_all" {
   description = "ingress-https-from-everywhere"
 
   security_group_id = aws_security_group.ecr_dkr.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecr_dkr_datasets_ingress_https_from_all" {
+  description = "ingress-https-from-everywhere"
+
+  security_group_id = aws_security_group.ecr_dkr_datasets.id
   cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "ingress"
@@ -1951,7 +2003,7 @@ resource "aws_security_group_rule" "notebooks_egress_http_to_mlflow_service" {
 resource "aws_security_group" "arango_lb" {
   name        = "${var.prefix}-arango_lb"
   description = "${var.prefix}-arango_lb"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = "${aws_vpc.datasets.id}"
 
   tags = {
     Name = "${var.prefix}-arango_lb"
@@ -2010,6 +2062,18 @@ resource "aws_security_group_rule" "arango_lb_notebooks_ingress" {
   protocol  = "-1"
 }
 
+resource "aws_security_group_rule" "arango_lb_ingress_vpc" {
+  description = "inbound connection from vpc CIDR"
+
+  security_group_id = aws_security_group.arango_lb.id
+  cidr_blocks       = ["${aws_vpc.datasets.cidr_block}"]
+
+  type      = "ingress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "-1"
+}
+
 resource "aws_security_group_rule" "arango_lb_notebooks_egress" {
   description = "allow outbound traffic"
 
@@ -2022,10 +2086,22 @@ resource "aws_security_group_rule" "arango_lb_notebooks_egress" {
   protocol  = "-1"
 }
 
+resource "aws_security_group_rule" "arango_lb_egress_https_to_cloudwatch" {
+  description = "egress-https-to-cloudwatch"
+
+  security_group_id        = aws_security_group.arango_lb.id
+  source_security_group_id = aws_security_group.cloudwatch.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group" "arango_service" {
   name        = "${var.prefix}-arango"
   description = "${var.prefix}-arango"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = "${aws_vpc.datasets.id}"
 
   tags = {
     Name = "${var.prefix}-arango"
@@ -2041,7 +2117,7 @@ resource "aws_security_group" "arango_service" {
 resource "aws_security_group_rule" "arango_egress_ecr_api" {
   description = "egress-https-to-ecr-api"
 
-  security_group_id = aws_security_group.ecr_api.id
+  security_group_id = aws_security_group.ecr_api_datasets.id
   source_security_group_id = aws_security_group.arango_service.id
 
   type      = "egress"
@@ -2099,6 +2175,18 @@ resource "aws_security_group_rule" "arango_service_ingress_8529_arango_lb" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "arango_service_ingress_from_notebooks" {
+  description = "ingress-notebooks-arango"
+
+  security_group_id        = "${aws_security_group.arango_service.id}"
+  source_security_group_id = "${aws_security_group.notebooks.id}"
+
+  type      = "ingress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "arango_service_egress_8529_arango_lb" {
   description = "egress-arango-lb"
 
@@ -2115,7 +2203,7 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango" {
   description = "ingress-https-from-arango-service"
 
   security_group_id        = aws_security_group.arango_service.id
-  source_security_group_id = aws_security_group.ecr_api.id
+  source_security_group_id = aws_security_group.ecr_api_datasets.id
 
   type      = "ingress"
   from_port = "443"
@@ -2149,7 +2237,7 @@ resource "aws_security_group_rule" "arango-ecs-egress-all" {
 resource "aws_security_group" "arango-ec2" {
   name        = "${var.prefix}-arango-ec2"
   description = "${var.prefix}-arango-ec2"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.datasets.id
 
   tags = {
     Name = "${var.prefix}-arango-ec2"
@@ -2160,6 +2248,18 @@ resource "aws_security_group" "arango-ec2" {
   }
 }
 
+resource "aws_security_group_rule" "arango-ec2-egress-ecs-agent" {
+  description = "egress-ec2-agent"
+
+  security_group_id = aws_security_group.arango-ec2.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "arango-ec2-egress-all" {
   description = "egress-everything-to-everywhere"
 
@@ -2168,15 +2268,15 @@ resource "aws_security_group_rule" "arango-ec2-egress-all" {
 
   type      = "egress"
   from_port = "0"
-  to_port   = "65535"
-  protocol  = "tcp"
+  to_port   = "0"
+  protocol  = "-1"
 }
 
-resource "aws_security_group_rule" "arango-ec2-egress" {
-  description = "egress-everything-to-everywhere"
+resource "aws_security_group_rule" "arango-ec2-ingress-lb" {
+  description = "ingress-everything-to-ec2"
 
   security_group_id = aws_security_group.arango-ec2.id
-  cidr_blocks       = ["0.0.0.0/0"]
+  source_security_group_id = aws_security_group.arango_lb.id
 
   type      = "ingress"
   from_port = "80"
@@ -2184,11 +2284,59 @@ resource "aws_security_group_rule" "arango-ec2-egress" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "arango8529-ec2-ingress-lb" {
+  description = "ingress-arango8529-to-ec2"
+
+  security_group_id = aws_security_group.arango-ec2.id
+  cidr_blocks = ["0.0.0.0/0"]
+
+  type      = "ingress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "tcp"
+}
+
+
+resource "aws_security_group_rule" "arango-ec2-ingress-arango-lb" {
+  description = "ingress-everything-to-arango-lb"
+
+  security_group_id = aws_security_group.arango-ec2.id
+  source_security_group_id = aws_security_group.arango_lb.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango-ingress-ec2-22" {
+  description = "ingress_ec2_instance"
+
+  security_group_id = aws_security_group.arango-ec2.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "ingress"
+  from_port = "22"
+  to_port   = "22"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango-ec2-ingress-ecs-agent" {
+  description = "ingress-ec2-agent"
+
+  security_group_id = aws_security_group.arango-ec2.id
+  source_security_group_id = aws_security_group.arango_service.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
 
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango_ec2" {
   description = "ingress-https-from-arango-ec2"
 
-  security_group_id        = aws_security_group.ecr_api.id
+  security_group_id        = aws_security_group.ecr_api_datasets.id
   source_security_group_id = aws_security_group.arango-ec2.id
 
   type      = "ingress"

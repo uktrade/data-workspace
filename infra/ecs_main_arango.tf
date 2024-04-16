@@ -11,7 +11,7 @@ resource "aws_ecs_service" "arango" {
  }
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+    subnets         = ["${aws_subnet.datasets.*.id[0]}"]
     security_groups = ["${aws_security_group.arango_service.id}"]
   }
 
@@ -48,10 +48,10 @@ resource "aws_autoscaling_group" "arango_service" {
   name_prefix               = "${var.prefix}-arango"
   max_size                  = 2
   min_size                  = 1
-  desired_capacity          = 1
+  desired_capacity          = 2
   health_check_grace_period = 120
   health_check_type         = "EC2"
-  vpc_zone_identifier       = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  vpc_zone_identifier       = ["${aws_subnet.datasets.*.id[0]}"]
 
   launch_template {
     id                      = aws_launch_template.arango_service.id
@@ -69,17 +69,28 @@ resource "aws_autoscaling_group" "arango_service" {
   }
 }
 
+data "aws_autoscaling_groups" "arango_asgs" {
+  names = ["${aws_autoscaling_group.arango_service.name}"]
+}
+
 resource "aws_launch_template" "arango_service" {
   name_prefix = "${var.prefix}-arango-service-"
-  image_id             = "ami-0d17f7a2768c41ccd"
+  image_id             = "ami-0c618421e207909d0"
   instance_type        = "t2.xlarge"
   key_name             = "${aws_key_pair.shared.key_name}"
-  vpc_security_group_ids = ["${aws_security_group.arango-ec2.id}",
-                            "${aws_security_group.arango_service.id}"]
 
+  metadata_options {
+    http_tokens        = "required"
+  }
+
+  network_interfaces {
+    security_groups = ["${aws_security_group.arango-ec2.id}"]
+    subnet_id       = aws_subnet.datasets.*.id[0]
+    }
+  
   iam_instance_profile {
     name = "${aws_iam_instance_profile.arango_ec2.name}"
-  }
+    }
 
   user_data = "${data.template_file.ecs_config_template.rendered}"
 
@@ -89,12 +100,17 @@ resource "aws_launch_template" "arango_service" {
 }
 
 data "template_file" "ecs_config_template" {
-  template = "${filebase64("${path.module}/arango_user_data.sh")}"
+  template = "${filebase64("${path.module}/ecs_main_arango_user_data.sh")}"
   vars     = {
     ECS_CLUSTER = "${aws_ecs_cluster.main_cluster.name}"
     EBS_REGION  = "${data.aws_region.aws_region.name}"
+    EBS_VOLUME_ID = "${aws_ebs_volume.arango.id}"
   }
   }
+
+output "rendered"  {
+  value = "${data.template_file.ecs_config_template.rendered}"
+}
 
 resource "aws_ecs_capacity_provider" "arango_capacity_provider" {
  name = "${var.prefix}-arango_service"
@@ -132,17 +148,10 @@ resource "aws_ecs_task_definition" "arango_service" {
   requires_compatibilities = ["EC2"]
 
   volume {
-    name = "arango-ebs-volume"
-    docker_volume_configuration {
-      scope         = "shared"
-      autoprovision = true
-      driver        = "rexray/ebs"
-      driver_opts = {
-        volumetype = "gp2"
-        size       = 5
-      }
-    }
+    name      = "data-arango"
+    host_path = "/data/"
   }
+
 
   lifecycle {
     ignore_changes = [
@@ -162,6 +171,21 @@ data "template_file" "arango_service_container_definitions" {
     cpu             = "${local.arango_container_cpu}"
     memory          = "${local.arango_container_memory}"
     root_password   = "${random_string.aws_arangodb_root_password.result}"
+  }
+}
+
+resource "aws_ebs_volume" "arango" {
+  availability_zone = var.aws_availability_zones[0]
+  size              = 20
+  type              = "gp3"
+  encrypted         = true
+
+  lifecycle {
+    prevent_destroy = false
+  }
+
+  tags = {
+    Name = "${var.prefix}-arango"
   }
 }
 
@@ -293,6 +317,51 @@ resource "aws_iam_role_policy_attachment" "arango_ec2" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
+resource "aws_iam_role_policy_attachment" "arango_ec2_ssm" {
+  role        = aws_iam_role.arango_ec2.name
+  policy_arn  = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+data "aws_iam_policy_document" "arango_ebs" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:AttachVolume",
+      "ec2:CreateVolume",
+      "ec2:CreateSnapshot",
+      "ec2:CreateTags",
+      "ec2:DeleteVolume",
+      "ec2:DeleteSnapshot",
+      "ec2:DescribeAvailabilityZones",
+      "ec2:DescribeInstances",
+      "ec2:DescribeVolumes",
+      "ec2:DescribeVolumeAttribute",
+      "ec2:DescribeVolumeStatus",
+      "ec2:DescribeSnapshots",
+      "ec2:CopySnapshot",
+      "ec2:DescribeSnapshotAttribute",
+      "ec2:DetachVolume",
+      "ec2:ModifySnapshotAttribute",
+      "ec2:ModifyVolumeAttribute",
+      "ec2:DescribeTags"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "arango_ebs" {
+  name        = "arango-ebs"
+  description = "enable-mounting-of-ebs-volume"
+  policy      = data.aws_iam_policy_document.arango_ebs.json
+}
+
+resource "aws_iam_role_policy_attachment" "arango_ec2_ebs" {
+  role        = aws_iam_role.arango_ec2.name
+  policy_arn  = aws_iam_policy.arango_ebs.arn
+}
+
 resource "aws_iam_instance_profile" "arango_ec2" {
   name  = "${var.prefix}-arango-ec2"
   role  = aws_iam_role.arango_ec2.id
@@ -300,15 +369,12 @@ resource "aws_iam_instance_profile" "arango_ec2" {
 
 resource "aws_lb" "arango" {
   name               = "${var.prefix}-arango"
-  load_balancer_type = "network"
+  load_balancer_type = "application"
   security_groups = ["${aws_security_group.arango_lb.id}"]
   enable_deletion_protection = true
+  internal                   = true
+  subnets = aws_subnet.datasets.*.id
   timeouts {}
-
-  subnet_mapping {
-    subnet_id     = "${aws_subnet.public.*.id[0]}"
-    
-  }
 
   tags = {
     name = "arango-to-notebook-lb"
@@ -318,7 +384,7 @@ resource "aws_lb" "arango" {
 resource "aws_lb_listener" "arango" {
   load_balancer_arn = "${aws_lb.arango.arn}"
   port              = "8529"
-  protocol          = "TCP"
+  protocol          = "HTTP"
 
   default_action {
     target_group_arn = "${aws_lb_target_group.arango.id}"
@@ -329,31 +395,16 @@ resource "aws_lb_listener" "arango" {
 resource "aws_lb_target_group" "arango" {
   name = "${var.prefix}-arango"
   port        = "8529"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = "${aws_vpc.datasets.id}"
   target_type = "ip"
-  protocol    = "TCP"
-  preserve_client_ip = true
+  protocol    = "HTTP"
 
   health_check {
-    protocol = "TCP"
+    protocol = "HTTP"
     interval = 10
     healthy_threshold   = 2
     unhealthy_threshold = 2
-  }
-}
-
-resource "aws_lb_target_group" "notebooks" {
-  name = "${var.prefix}-notebooks"
-  port        = "8888"
-  vpc_id      = "${aws_vpc.notebooks.id}"
-  protocol    = "TCP"
-  preserve_client_ip = true
-
-  health_check {
-    protocol = "TCP"
-    interval = 10
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
+    path = "/_db/_system/_admin/aardvark/index.html"
   }
 }
 

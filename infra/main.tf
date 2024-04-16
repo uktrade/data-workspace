@@ -35,6 +35,7 @@ variable "subnets_num_bits" {}
 variable "vpc_notebooks_cidr" {}
 variable "vpc_notebooks_subnets_num_bits" {}
 variable "vpc_datasets_cidr" {}
+variable "vpc_datasets_subnets_num_bits" {}
 
 variable "aws_route53_zone" {}
 variable "admin_domain" {}
@@ -267,7 +268,7 @@ locals {
   flower_container_cpu    = 1024
 
   arango_container_memory = 8192
-  arango_container_cpu    = 4096
+  arango_container_cpu    = 2048
   arango_container_port   = 8529
 
   mlflow_container_memory = 8192

@@ -19,8 +19,8 @@ resource "aws_vpc_peering_connection" "jupyterhub" {
 resource "aws_vpc" "notebooks" {
   cidr_block = var.vpc_notebooks_cidr
 
-  enable_dns_support   = false
-  enable_dns_hostnames = false
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = {
     Name = "${var.prefix}-notebooks"
@@ -139,7 +139,6 @@ resource "aws_subnet" "public" {
   count      = length(var.aws_availability_zones)
   vpc_id     = aws_vpc.main.id
   cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
-
   availability_zone = var.aws_availability_zones[count.index]
 
   tags = {
@@ -303,7 +302,7 @@ resource "aws_vpc" "datasets" {
   cidr_block = var.vpc_datasets_cidr
 
   enable_dns_support   = true
-  enable_dns_hostnames = false
+  enable_dns_hostnames = true
 
   tags = {
     Name = "${var.prefix}-datasets"
@@ -360,11 +359,11 @@ resource "aws_vpc_peering_connection" "datasets_to_notebooks" {
   auto_accept = true
 
   accepter {
-    allow_remote_vpc_dns_resolution = false
+    allow_remote_vpc_dns_resolution = true
   }
 
   requester {
-    allow_remote_vpc_dns_resolution = false
+    allow_remote_vpc_dns_resolution = true
   }
 
   tags = {
@@ -415,7 +414,6 @@ resource "aws_route" "pcx_datasets_to_private_without_egress" {
   vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_notebooks.id
 }
 
-
 resource "aws_subnet" "datasets" {
   count      = length(var.aws_availability_zones)
   vpc_id     = aws_vpc.datasets.id
@@ -456,4 +454,72 @@ resource "aws_subnet" "datasets_quicksight" {
 resource "aws_route_table_association" "datasets_quicksight" {
   subnet_id      = aws_subnet.datasets_quicksight.id
   route_table_id = aws_route_table.datasets.id
+}
+
+# public subnet for datasets
+resource "aws_subnet" "public_datasets" {
+  count      = length(var.aws_availability_zones)
+  vpc_id     = aws_vpc.datasets.id
+  cidr_block = var.datasets_subnet_cidr_blocks[count.index+3]
+
+  availability_zone = var.aws_availability_zones[count.index]
+
+  tags = {
+    Name = "${var.prefix}-public-datasets-${var.aws_availability_zones_short[count.index]}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+# internet gateway for public subnet
+resource "aws_internet_gateway" "main_datasets" {
+  vpc_id = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+}
+
+# elastic IP for NAT gateway
+resource "aws_eip" "nat_gateway_datasets" {
+  vpc = true
+}
+
+# NAT gateway in public datasets subnet
+resource "aws_nat_gateway" "datasets" {
+  allocation_id = aws_eip.nat_gateway_datasets.id
+  subnet_id     = aws_subnet.public_datasets.*.id[0]
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+}
+
+# Route table for public datasets subnet
+resource "aws_route_table" "public_datasets" {
+  vpc_id = aws_vpc.datasets.id
+  tags = {
+    Name = "${var.prefix}-public"
+  }
+}
+
+resource "aws_route" "public_datasets_internet_gateway_ipv4" {
+  route_table_id         = aws_route_table.public_datasets.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.main_datasets.id
+}
+
+# associate public route table with public subnet
+resource "aws_route_table_association" "public_datasets" {
+  count          = length(var.aws_availability_zones)
+  subnet_id      = aws_subnet.public_datasets.*.id[count.index]
+  route_table_id = aws_route_table.public_datasets.id
+}
+
+# associate datasets private subnet with NAT gateway
+resource "aws_route" "datasets_nat_gateway" {
+  route_table_id         = aws_route_table.datasets.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_nat_gateway.datasets.id
 }
