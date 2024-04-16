@@ -136,9 +136,9 @@ data "aws_iam_policy_document" "vpc_main_flow_log" {
 }
 
 resource "aws_subnet" "public" {
-  count      = length(var.aws_availability_zones)
-  vpc_id     = aws_vpc.main.id
-  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
+  count             = length(var.aws_availability_zones)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
   availability_zone = var.aws_availability_zones[count.index]
 
   tags = {
@@ -498,7 +498,7 @@ resource "aws_route_table_association" "datasets_quicksight" {
 resource "aws_subnet" "public_datasets" {
   count      = length(var.aws_availability_zones)
   vpc_id     = aws_vpc.datasets.id
-  cidr_block = var.datasets_subnet_cidr_blocks[count.index+3]
+  cidr_block = var.datasets_subnet_cidr_blocks[count.index + 3]
 
   availability_zone = var.aws_availability_zones[count.index]
 
