@@ -26,9 +26,9 @@ locals {
     authbroker_url           = "${var.admin_authbroker_url}"
     secret_key               = "${random_string.admin_secret_key.result}"
 
-    arango_db__host          = "${aws_ecs_service.arango.address}"
-    arango_db__password      = "${random_string.aws_arangodb_root_password.result}"
-    arango_db__port          = "${aws_ecs_service.arango.port}"
+    arango_db__host     = "http://${aws_lb.arango.dns_name}"
+    arango_db__password = "${random_string.aws_arangodb_root_password.result}"
+    arango_db__port     = "${local.arango_container_port}"
 
     environment = "${var.admin_environment}"
 

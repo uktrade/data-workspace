@@ -2003,7 +2003,7 @@ resource "aws_security_group_rule" "notebooks_egress_http_to_mlflow_service" {
 resource "aws_security_group" "arango_lb" {
   name        = "${var.prefix}-arango_lb"
   description = "${var.prefix}-arango_lb"
-  vpc_id      = "${aws_vpc.datasets.id}"
+  vpc_id      = aws_vpc.datasets.id
 
   tags = {
     Name = "${var.prefix}-arango_lb"
@@ -2018,7 +2018,7 @@ resource "aws_security_group_rule" "arango_lb_ingress_https_from_whitelist" {
   description = "ingress-https-from-whitelist"
 
   security_group_id = aws_security_group.arango_lb.id
-  cidr_blocks       = "${var.ip_whitelist}"
+  cidr_blocks       = var.ip_whitelist
 
   type      = "ingress"
   from_port = "443"
@@ -2101,7 +2101,7 @@ resource "aws_security_group_rule" "arango_lb_egress_https_to_cloudwatch" {
 resource "aws_security_group" "arango_service" {
   name        = "${var.prefix}-arango"
   description = "${var.prefix}-arango"
-  vpc_id      = "${aws_vpc.datasets.id}"
+  vpc_id      = aws_vpc.datasets.id
 
   tags = {
     Name = "${var.prefix}-arango"
@@ -2117,7 +2117,7 @@ resource "aws_security_group" "arango_service" {
 resource "aws_security_group_rule" "arango_egress_ecr_api" {
   description = "egress-https-to-ecr-api"
 
-  security_group_id = aws_security_group.ecr_api_datasets.id
+  security_group_id        = aws_security_group.ecr_api_datasets.id
   source_security_group_id = aws_security_group.arango_service.id
 
   type      = "egress"
@@ -2166,8 +2166,8 @@ resource "aws_security_group_rule" "arango_service_ingress_http_arango_lb" {
 resource "aws_security_group_rule" "arango_service_ingress_8529_arango_lb" {
   description = "ingress-arango-lb"
 
-  security_group_id        = "${aws_security_group.arango_service.id}"
-  source_security_group_id = "${aws_security_group.arango_lb.id}"
+  security_group_id        = aws_security_group.arango_service.id
+  source_security_group_id = aws_security_group.arango_lb.id
 
   type      = "ingress"
   from_port = "8529"
@@ -2178,8 +2178,8 @@ resource "aws_security_group_rule" "arango_service_ingress_8529_arango_lb" {
 resource "aws_security_group_rule" "arango_service_ingress_from_notebooks" {
   description = "ingress-notebooks-arango"
 
-  security_group_id        = "${aws_security_group.arango_service.id}"
-  source_security_group_id = "${aws_security_group.notebooks.id}"
+  security_group_id        = aws_security_group.arango_service.id
+  source_security_group_id = aws_security_group.notebooks.id
 
   type      = "ingress"
   from_port = "8529"
@@ -2190,8 +2190,8 @@ resource "aws_security_group_rule" "arango_service_ingress_from_notebooks" {
 resource "aws_security_group_rule" "arango_service_egress_8529_arango_lb" {
   description = "egress-arango-lb"
 
-  security_group_id        = "${aws_security_group.arango_service.id}"
-  source_security_group_id = "${aws_security_group.arango_lb.id}"
+  security_group_id        = aws_security_group.arango_service.id
+  source_security_group_id = aws_security_group.arango_lb.id
 
   type      = "egress"
   from_port = "8529"
@@ -2275,7 +2275,7 @@ resource "aws_security_group_rule" "arango-ec2-egress-all" {
 resource "aws_security_group_rule" "arango-ec2-ingress-lb" {
   description = "ingress-everything-to-ec2"
 
-  security_group_id = aws_security_group.arango-ec2.id
+  security_group_id        = aws_security_group.arango-ec2.id
   source_security_group_id = aws_security_group.arango_lb.id
 
   type      = "ingress"
@@ -2288,7 +2288,7 @@ resource "aws_security_group_rule" "arango8529-ec2-ingress-lb" {
   description = "ingress-arango8529-to-ec2"
 
   security_group_id = aws_security_group.arango-ec2.id
-  cidr_blocks = ["0.0.0.0/0"]
+  cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "ingress"
   from_port = "8529"
@@ -2300,7 +2300,7 @@ resource "aws_security_group_rule" "arango8529-ec2-ingress-lb" {
 resource "aws_security_group_rule" "arango-ec2-ingress-arango-lb" {
   description = "ingress-everything-to-arango-lb"
 
-  security_group_id = aws_security_group.arango-ec2.id
+  security_group_id        = aws_security_group.arango-ec2.id
   source_security_group_id = aws_security_group.arango_lb.id
 
   type      = "ingress"
@@ -2324,7 +2324,7 @@ resource "aws_security_group_rule" "arango-ingress-ec2-22" {
 resource "aws_security_group_rule" "arango-ec2-ingress-ecs-agent" {
   description = "ingress-ec2-agent"
 
-  security_group_id = aws_security_group.arango-ec2.id
+  security_group_id        = aws_security_group.arango-ec2.id
   source_security_group_id = aws_security_group.arango_service.id
 
   type      = "ingress"

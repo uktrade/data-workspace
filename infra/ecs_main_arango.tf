@@ -1,22 +1,22 @@
 resource "aws_ecs_service" "arango" {
   name            = "${var.prefix}-arango"
-  cluster         = "${aws_ecs_cluster.main_cluster.id}"
-  task_definition = "${aws_ecs_task_definition.arango_service.arn}"
+  cluster         = aws_ecs_cluster.main_cluster.id
+  task_definition = aws_ecs_task_definition.arango_service.arn
   desired_count   = 1
 
   capacity_provider_strategy {
-   capacity_provider = aws_ecs_capacity_provider.arango_capacity_provider.name
-   weight            = 100
-   base              = 1
- }
+    capacity_provider = aws_ecs_capacity_provider.arango_capacity_provider.name
+    weight            = 100
+    base              = 1
+  }
 
   network_configuration {
-    subnets         = ["${aws_subnet.datasets.*.id[0]}"]
-    security_groups = ["${aws_security_group.arango_service.id}"]
+    subnets         = [aws_subnet.datasets.*.id[0]]
+    security_groups = [aws_security_group.arango_service.id]
   }
 
   load_balancer {
-    target_group_arn = "${aws_lb_target_group.arango.arn}"
+    target_group_arn = aws_lb_target_group.arango.arn
     container_port   = "8529"
     container_name   = "arango"
   }
@@ -54,8 +54,8 @@ resource "aws_autoscaling_group" "arango_service" {
   vpc_zone_identifier       = ["${aws_subnet.datasets.*.id[0]}"]
 
   launch_template {
-    id                      = aws_launch_template.arango_service.id
-    version                 = "$Latest"
+    id      = aws_launch_template.arango_service.id
+    version = "$Latest"
   }
 
   tag {
@@ -74,25 +74,24 @@ data "aws_autoscaling_groups" "arango_asgs" {
 }
 
 resource "aws_launch_template" "arango_service" {
-  name_prefix = "${var.prefix}-arango-service-"
-  image_id             = "ami-0c618421e207909d0"
-  instance_type        = "t2.xlarge"
-  key_name             = "${aws_key_pair.shared.key_name}"
+  name_prefix   = "${var.prefix}-arango-service-"
+  image_id      = "ami-0c618421e207909d0"
+  instance_type = "t2.xlarge"
+  key_name      = aws_key_pair.shared.key_name
 
   metadata_options {
-    http_tokens        = "required"
+    http_tokens = "required"
   }
 
   network_interfaces {
-    security_groups = ["${aws_security_group.arango-ec2.id}"]
+    security_groups = [aws_security_group.arango-ec2.id]
     subnet_id       = aws_subnet.datasets.*.id[0]
-    }
-  
+  }
   iam_instance_profile {
-    name = "${aws_iam_instance_profile.arango_ec2.name}"
-    }
+    name = aws_iam_instance_profile.arango_ec2.name
+  }
 
-  user_data = "${data.template_file.ecs_config_template.rendered}"
+  user_data = data.template_file.ecs_config_template.rendered
 
   lifecycle {
     create_before_destroy = true
@@ -100,58 +99,53 @@ resource "aws_launch_template" "arango_service" {
 }
 
 data "template_file" "ecs_config_template" {
-  template = "${filebase64("${path.module}/ecs_main_arango_user_data.sh")}"
-  vars     = {
-    ECS_CLUSTER = "${aws_ecs_cluster.main_cluster.name}"
-    EBS_REGION  = "${data.aws_region.aws_region.name}"
+  template = filebase64("${path.module}/ecs_main_arango_user_data.sh")
+  vars = {
+    ECS_CLUSTER   = "${aws_ecs_cluster.main_cluster.name}"
+    EBS_REGION    = "${data.aws_region.aws_region.name}"
     EBS_VOLUME_ID = "${aws_ebs_volume.arango.id}"
   }
-  }
+}
 
-output "rendered"  {
-  value = "${data.template_file.ecs_config_template.rendered}"
+output "rendered" {
+  value = data.template_file.ecs_config_template.rendered
 }
 
 resource "aws_ecs_capacity_provider" "arango_capacity_provider" {
- name = "${var.prefix}-arango_service"
-
- auto_scaling_group_provider {
-   auto_scaling_group_arn = aws_autoscaling_group.arango_service.arn
-
-   managed_scaling {
-     maximum_scaling_step_size = 1000
-     minimum_scaling_step_size = 1
-     status                    = "ENABLED"
-     target_capacity           = 3
-   }
- }
+  name = "${var.prefix}-arango_service"
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.arango_service.arn
+    managed_scaling {
+      maximum_scaling_step_size = 1000
+      minimum_scaling_step_size = 1
+      status                    = "ENABLED"
+      target_capacity           = 3
+    }
+  }
 }
 
 resource "aws_ecs_cluster_capacity_providers" "arango" {
- cluster_name = aws_ecs_cluster.main_cluster.name
-
- capacity_providers = [aws_ecs_capacity_provider.arango_capacity_provider.name]
-
- default_capacity_provider_strategy {
-   capacity_provider = aws_ecs_capacity_provider.arango_capacity_provider.name
- }
+  cluster_name       = aws_ecs_cluster.main_cluster.name
+  capacity_providers = [aws_ecs_capacity_provider.arango_capacity_provider.name]
+  default_capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.arango_capacity_provider.name
+  }
 }
 
 resource "aws_ecs_task_definition" "arango_service" {
   family                   = "${var.prefix}-arango"
-  container_definitions    = "${data.template_file.arango_service_container_definitions.rendered}"
-  execution_role_arn       = "${aws_iam_role.arango_task_execution.arn}"
-  task_role_arn            = "${aws_iam_role.arango_task.arn}"
+  container_definitions    = data.template_file.arango_service_container_definitions.rendered
+  execution_role_arn       = aws_iam_role.arango_task_execution.arn
+  task_role_arn            = aws_iam_role.arango_task.arn
   network_mode             = "awsvpc"
-  cpu                      = "${local.arango_container_cpu}"
-  memory                   = "${local.arango_container_memory}"
+  cpu                      = local.arango_container_cpu
+  memory                   = local.arango_container_memory
   requires_compatibilities = ["EC2"]
 
   volume {
     name      = "data-arango"
     host_path = "/data/"
   }
-
 
   lifecycle {
     ignore_changes = [
@@ -161,7 +155,7 @@ resource "aws_ecs_task_definition" "arango_service" {
 }
 
 data "template_file" "arango_service_container_definitions" {
-  template = "${file("${path.module}/ecs_main_arango_container_definitions.json")}"
+  template = file("${path.module}/ecs_main_arango_container_definitions.json")
 
   vars = {
     container_image = "339713044404.dkr.ecr.eu-west-2.amazonaws.com/data-workspace-dev-a-arango:latest"
@@ -197,7 +191,7 @@ resource "aws_cloudwatch_log_group" "arango" {
 resource "aws_iam_role" "arango_task_execution" {
   name               = "${var.prefix}-arango-task-execution"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.arango_task_execution_ecs_tasks_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.arango_task_execution_ecs_tasks_assume_role.json
 }
 
 data "aws_iam_policy_document" "arango_task_execution_ecs_tasks_assume_role" {
@@ -212,14 +206,14 @@ data "aws_iam_policy_document" "arango_task_execution_ecs_tasks_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "arango_task_execution" {
-  role       = "${aws_iam_role.arango_task_execution.name}"
-  policy_arn = "${aws_iam_policy.arango_task_execution.arn}"
+  role       = aws_iam_role.arango_task_execution.name
+  policy_arn = aws_iam_policy.arango_task_execution.arn
 }
 
 resource "aws_iam_policy" "arango_task_execution" {
   name   = "${var.prefix}-arango-task-execution"
   path   = "/"
-  policy = "${data.aws_iam_policy_document.arango_task_execution.json}"
+  policy = data.aws_iam_policy_document.arango_task_execution.json
 }
 
 data "aws_iam_policy_document" "arango_task_execution" {
@@ -259,7 +253,7 @@ data "aws_iam_policy_document" "arango_task_execution" {
 resource "aws_iam_role" "arango_task" {
   name               = "${var.prefix}-arango-task"
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.arango_task_ecs_tasks_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.arango_task_ecs_tasks_assume_role.json
 }
 
 data "aws_iam_policy_document" "arango_task_ecs_tasks_assume_role" {
@@ -318,8 +312,8 @@ resource "aws_iam_role_policy_attachment" "arango_ec2" {
 }
 
 resource "aws_iam_role_policy_attachment" "arango_ec2_ssm" {
-  role        = aws_iam_role.arango_ec2.name
-  policy_arn  = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.arango_ec2.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 data "aws_iam_policy_document" "arango_ebs" {
@@ -358,53 +352,51 @@ resource "aws_iam_policy" "arango_ebs" {
 }
 
 resource "aws_iam_role_policy_attachment" "arango_ec2_ebs" {
-  role        = aws_iam_role.arango_ec2.name
-  policy_arn  = aws_iam_policy.arango_ebs.arn
+  role       = aws_iam_role.arango_ec2.name
+  policy_arn = aws_iam_policy.arango_ebs.arn
 }
 
 resource "aws_iam_instance_profile" "arango_ec2" {
-  name  = "${var.prefix}-arango-ec2"
-  role  = aws_iam_role.arango_ec2.id
+  name = "${var.prefix}-arango-ec2"
+  role = aws_iam_role.arango_ec2.id
 }
 
 resource "aws_lb" "arango" {
-  name               = "${var.prefix}-arango"
-  load_balancer_type = "application"
-  security_groups = ["${aws_security_group.arango_lb.id}"]
+  name                       = "${var.prefix}-arango"
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.arango_lb.id]
   enable_deletion_protection = true
   internal                   = true
-  subnets = aws_subnet.datasets.*.id
-  timeouts {}
-
+  subnets                    = aws_subnet.datasets.*.id
   tags = {
     name = "arango-to-notebook-lb"
   }
 }
 
 resource "aws_lb_listener" "arango" {
-  load_balancer_arn = "${aws_lb.arango.arn}"
+  load_balancer_arn = aws_lb.arango.arn
   port              = "8529"
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = "${aws_lb_target_group.arango.id}"
+    target_group_arn = aws_lb_target_group.arango.id
     type             = "forward"
   }
 }
 
 resource "aws_lb_target_group" "arango" {
-  name = "${var.prefix}-arango"
+  name        = "${var.prefix}-arango"
   port        = "8529"
-  vpc_id      = "${aws_vpc.datasets.id}"
+  vpc_id      = aws_vpc.datasets.id
   target_type = "ip"
   protocol    = "HTTP"
 
   health_check {
-    protocol = "HTTP"
-    interval = 10
+    protocol            = "HTTP"
+    interval            = 10
     healthy_threshold   = 2
     unhealthy_threshold = 2
-    path = "/_db/_system/_admin/aardvark/index.html"
+    path                = "/_db/_system/_admin/aardvark/index.html"
   }
 }
 
