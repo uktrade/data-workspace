@@ -75,8 +75,8 @@ data "aws_autoscaling_groups" "arango_asgs" {
 
 resource "aws_launch_template" "arango_service" {
   name_prefix   = "${var.prefix}-arango-service-"
-  image_id      = "ami-0c618421e207909d0"
-  instance_type = "t2.xlarge"
+  image_id      = var.arango_image_id
+  instance_type = var.arango_instance_type
   key_name      = aws_key_pair.shared.key_name
 
   metadata_options {
@@ -158,7 +158,7 @@ data "template_file" "arango_service_container_definitions" {
   template = file("${path.module}/ecs_main_arango_container_definitions.json")
 
   vars = {
-    container_image = "339713044404.dkr.ecr.eu-west-2.amazonaws.com/data-workspace-dev-a-arango:latest"
+    container_image = "${aws_ecr_repository.arango.repository_url}:latest"
     container_name  = "arango"
     log_group       = "${aws_cloudwatch_log_group.arango.name}"
     log_region      = "${data.aws_region.aws_region.name}"
@@ -170,8 +170,8 @@ data "template_file" "arango_service_container_definitions" {
 
 resource "aws_ebs_volume" "arango" {
   availability_zone = var.aws_availability_zones[0]
-  size              = 20
-  type              = "gp3"
+  size              = var.arango_ebs_volume_size
+  type              = var.arango_ebs_volume_type
   encrypted         = true
 
   lifecycle {
