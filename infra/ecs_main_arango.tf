@@ -340,7 +340,7 @@ data "aws_iam_policy_document" "arango_ebs" {
       "ec2:DescribeTags"
     ]
     resources = [
-      "*"
+      "${aws_ebs_volume.arango.arn}"
     ]
   }
 }
