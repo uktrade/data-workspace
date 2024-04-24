@@ -436,18 +436,6 @@ resource "aws_security_group_rule" "notebooks_ingress_https_from_admin" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "notebooks_ingress_https_from_arango" {
-  description = "ingress-https-from-arango"
-
-  security_group_id        = aws_security_group.notebooks.id
-  source_security_group_id = aws_security_group.arango_service.id
-
-  type      = "ingress"
-  from_port = local.arango_container_port
-  to_port   = local.arango_container_port
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "notebooks_ingress_https_from_arango_lb" {
   description = "ingress-https-from-arango-lb"
 
@@ -2023,18 +2011,6 @@ resource "aws_security_group_rule" "arango_lb_ingress_https_from_whitelist" {
   type      = "ingress"
   from_port = "443"
   to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "arangoo_service_egress_http_to_arango_lb" {
-  description = "egress-http-to-arango-lb"
-
-  security_group_id        = aws_security_group.arango_service.id
-  source_security_group_id = aws_security_group.arango_lb.id
-
-  type      = "egress"
-  from_port = "80"
-  to_port   = "80"
   protocol  = "tcp"
 }
 
