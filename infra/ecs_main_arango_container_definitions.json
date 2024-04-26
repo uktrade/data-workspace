@@ -24,7 +24,7 @@
         }
       ],
       "mountPoints" : [{
-        "containerPath" : "/data/",
+        "containerPath" : "/var/lib/arangodb3",
         "sourceVolume" : "data-arango"
      }]
     }

@@ -2,7 +2,7 @@
 # install and start ecs agent 
 
 EC2_INSTANCE_ID=$(ec2-metadata --instance-id | sed 's/instance-id: //')
-aws ec2 attach-volume --volume-id vol-0496244e683c15b0a --instance-id ${EC2_INSTANCE_ID} --device /dev/xvdf --region eu-west-2
+aws ec2 attach-volume --volume-id ${EBS_VOLUME_ID} --instance-id $EC2_INSTANCE_ID --device /dev/xvdf --region ${EBS_REGION}
 # Follow symlinks to find the real device
 device=$(sudo readlink -f /dev/xvdf)
   # Wait for the drive to be attached
@@ -16,7 +16,7 @@ sudo mkdir -p /data
 sudo mount $device /data
 
 mkdir /etc/ecs/
-echo "ECS_CLUSTER=data-workspace-dev-a" >> /etc/ecs/ecs.config
+echo "ECS_CLUSTER=${ECS_CLUSTER}" >> /etc/ecs/ecs.config
 sudo yum install -y ecs-init
 sudo systemctl restart ecs
 

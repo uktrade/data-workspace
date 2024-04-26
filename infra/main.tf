@@ -203,6 +203,11 @@ variable "mlflow_db_instance_class" {}
 variable "jwt_public_key" {}
 variable "jwt_private_key" {}
 
+variable "arango_ebs_volume_size" {}
+variable "arango_ebs_volume_type" {}
+variable "arango_instance_type" {}
+variable "arango_image_id" {}
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"
