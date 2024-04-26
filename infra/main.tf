@@ -159,6 +159,10 @@ variable "datasets_rds_cluster_cluster_identifier" {}
 variable "datasets_rds_cluster_instance_class" {}
 variable "datasets_rds_cluster_instance_performance_insights_enabled" {}
 variable "datasets_rds_cluster_instance_identifier" {}
+variable "datasets_rds_cluster_instance_monitoring_interval" {
+  type    = number
+  default = 0
+}
 
 variable "paas_cidr_block" {}
 variable "paas_vpc_id" {}
