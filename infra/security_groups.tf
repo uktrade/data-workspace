@@ -238,10 +238,11 @@ resource "aws_security_group_rule" "admin_service_egress_http_to_flower_lb" {
 }
 
 resource "aws_security_group_rule" "admin_service_egress_http_to_mlflow" {
+  count       = var.mlflow_on ? length(var.mlflow_instances) : 0
   description = "egress-http-to-mlflow-lb"
 
   security_group_id = aws_security_group.admin_service.id
-  cidr_blocks       = ["${cidrhost("${aws_subnet.private_without_egress.*.cidr_block[0]}", 7)}/32"]
+  cidr_blocks       = ["${aws_lb.mlflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]}/32"]
 
   type      = "egress"
   from_port = local.mlflow_port
