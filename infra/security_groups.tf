@@ -2058,9 +2058,33 @@ resource "aws_security_group_rule" "arango_lb_ingress_vpc" {
   cidr_blocks       = ["${aws_vpc.datasets.cidr_block}"]
 
   type      = "ingress"
-  from_port = "8529"
-  to_port   = "8529"
+  from_port = "0"
+  to_port   = "0"
   protocol  = "-1"
+}
+
+resource "aws_security_group_rule" "arango_lb_ingress_main_vpc" {
+  description = "inbound peering connection with main vpc"
+
+  security_group_id = aws_security_group.arango_lb.id
+  cidr_blocks       = ["${aws_vpc.main.cidr_block}"]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "0"
+  protocol  = "-1"
+}
+
+resource "aws_security_group_rule" "arango_egress_arango_lb" {
+  description = "egress-http-to-arango-lb"
+
+  security_group_id        = aws_security_group.arango_service.id
+  source_security_group_id = aws_security_group.arango_lb.id
+
+  type      = "egress"
+  from_port = "80"
+  to_port   = "80"
+  protocol  = "tcp"
 }
 
 resource "aws_security_group_rule" "arango_lb_notebooks_egress" {

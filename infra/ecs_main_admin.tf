@@ -26,7 +26,7 @@ locals {
     authbroker_url           = "${var.admin_authbroker_url}"
     secret_key               = "${random_string.admin_secret_key.result}"
 
-    arango_db__host     = "http://${aws_lb.arango.dns_name}"
+    arango_db__host     = "${aws_lb.arango.dns_name}"
     arango_db__password = "${random_string.aws_arangodb_root_password.result}"
     arango_db__port     = "${local.arango_container_port}"
 
@@ -189,7 +189,7 @@ resource "aws_ecs_service" "admin_celery" {
   name                       = "${var.prefix}-admin-celery"
   cluster                    = aws_ecs_cluster.main_cluster.id
   task_definition            = aws_ecs_task_definition.admin_celery.arn
-  desired_count              = 2
+  desired_count              = 1
   launch_type                = "FARGATE"
   platform_version           = "1.4.0"
   deployment_maximum_percent = 600

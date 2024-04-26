@@ -91,24 +91,16 @@ resource "aws_launch_template" "arango_service" {
     name = aws_iam_instance_profile.arango_ec2.name
   }
 
-  user_data = data.template_file.ecs_config_template.rendered
+  user_data = "${base64encode(templatefile("${path.module}/ecs_main_arango_user_data.sh",
+      {
+        ECS_CLUSTER = aws_ecs_cluster.main_cluster.name
+        EBS_REGION  = data.aws_region.aws_region.name
+        EBS_VOLUME_ID = aws_ebs_volume.arango.id
+      }))}"
 
   lifecycle {
     create_before_destroy = true
   }
-}
-
-data "template_file" "ecs_config_template" {
-  template = filebase64("${path.module}/ecs_main_arango_user_data.sh")
-  vars = {
-    ECS_CLUSTER   = "${aws_ecs_cluster.main_cluster.name}"
-    EBS_REGION    = "${data.aws_region.aws_region.name}"
-    EBS_VOLUME_ID = "${aws_ebs_volume.arango.id}"
-  }
-}
-
-output "rendered" {
-  value = data.template_file.ecs_config_template.rendered
 }
 
 resource "aws_ecs_capacity_provider" "arango_capacity_provider" {
@@ -340,7 +332,8 @@ data "aws_iam_policy_document" "arango_ebs" {
       "ec2:DescribeTags"
     ]
     resources = [
-      "${aws_ebs_volume.arango.arn}"
+        "*"
+#       "${aws_ebs_volume.arango.arn}"
     ]
   }
 }

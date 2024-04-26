@@ -23,11 +23,9 @@
           "value": "${root_password}"
         }
       ],
-      "mountPoints": [
-        {
-          "sourceVolume": "arango-ebs-volume",
-          "containerPath": "/var/lib/arangodb3"
-        }
-      ]
+      "mountPoints" : [{
+        "containerPath" : "/var/lib/arangodb3",
+        "sourceVolume" : "data-arango"
+     }]
     }
   ]
