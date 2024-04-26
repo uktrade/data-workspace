@@ -28,6 +28,7 @@ resource "aws_rds_cluster_instance" "datasets" {
   performance_insights_enabled = var.datasets_rds_cluster_instance_performance_insights_enabled
   promotion_tier               = 1
   db_parameter_group_name      = var.datasets_rds_cluster_instance_parameter_group
+  monitoring_interval          = var.datasets_rds_cluster_instance_monitoring_interval
 
   lifecycle {
     ignore_changes = ["engine_version"]
