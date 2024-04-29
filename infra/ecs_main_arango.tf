@@ -313,27 +313,11 @@ data "aws_iam_policy_document" "arango_ebs" {
     effect = "Allow"
     actions = [
       "ec2:AttachVolume",
-      "ec2:CreateVolume",
-      "ec2:CreateSnapshot",
-      "ec2:CreateTags",
-      "ec2:DeleteVolume",
-      "ec2:DeleteSnapshot",
-      "ec2:DescribeAvailabilityZones",
-      "ec2:DescribeInstances",
-      "ec2:DescribeVolumes",
-      "ec2:DescribeVolumeAttribute",
-      "ec2:DescribeVolumeStatus",
-      "ec2:DescribeSnapshots",
-      "ec2:CopySnapshot",
-      "ec2:DescribeSnapshotAttribute",
       "ec2:DetachVolume",
-      "ec2:ModifySnapshotAttribute",
-      "ec2:ModifyVolumeAttribute",
-      "ec2:DescribeTags"
     ]
     resources = [
-        "*"
-#       "${aws_ebs_volume.arango.arn}"
+        "arn:aws:ec2:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:instance/*",
+        aws_ebs_volume.arango.arn
     ]
   }
 }

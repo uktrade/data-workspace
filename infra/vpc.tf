@@ -19,7 +19,7 @@ resource "aws_vpc_peering_connection" "jupyterhub" {
 resource "aws_vpc" "notebooks" {
   cidr_block = var.vpc_notebooks_cidr
 
-  enable_dns_support   = true
+  enable_dns_support   = false
   enable_dns_hostnames = true
 
   tags = {
@@ -136,9 +136,9 @@ data "aws_iam_policy_document" "vpc_main_flow_log" {
 }
 
 resource "aws_subnet" "public" {
-  count             = length(var.aws_availability_zones)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
+  count      = length(var.aws_availability_zones)
+  vpc_id     = aws_vpc.main.id
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
   availability_zone = var.aws_availability_zones[count.index]
 
   tags = {
@@ -301,8 +301,8 @@ resource "aws_service_discovery_private_dns_namespace" "jupyterhub" {
 resource "aws_vpc" "datasets" {
   cidr_block = var.vpc_datasets_cidr
 
-  enable_dns_support   = true
-  enable_dns_hostnames = true
+  enable_dns_support   = false
+  enable_dns_hostnames = false
 
   tags = {
     Name = "${var.prefix}-datasets"
@@ -359,11 +359,11 @@ resource "aws_vpc_peering_connection" "datasets_to_notebooks" {
   auto_accept = true
 
   accepter {
-    allow_remote_vpc_dns_resolution = true
+    allow_remote_vpc_dns_resolution = false
   }
 
   requester {
-    allow_remote_vpc_dns_resolution = true
+    allow_remote_vpc_dns_resolution = false
   }
 
   tags = {
