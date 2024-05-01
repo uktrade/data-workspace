@@ -48,7 +48,7 @@ git push origin v2024.01.19
 
 ## Release tag to production
 
-1. Visit the [build job](https://jenkins.ci.uktrade.digital/view/Data/job/data-workspace/) in Jenkins
+1. Visit the [build job](https://jenkins.ci.uktrade.digital/view/Data/job/data-workspace-frontend/) in Jenkins
 
 - Click "build with parameters" and enter the new tag you have created.
 - Wait until the `release:staging` job is in a paused state
