@@ -335,6 +335,24 @@ resource "aws_vpc_peering_connection" "datasets_to_paas" {
   }
 }
 
+resource "aws_vpc_peering_connection" "datasets_to_main" {
+  peer_vpc_id = aws_vpc.datasets.id
+  vpc_id      = aws_vpc.main.id
+  auto_accept = true
+
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  tags = {
+    Name = "${var.prefix}-datasets-to-main"
+  }
+}
+
 resource "aws_vpc_peering_connection" "datasets_to_notebooks" {
   peer_vpc_id = aws_vpc.datasets.id
   vpc_id      = aws_vpc.notebooks.id
@@ -372,10 +390,22 @@ resource "aws_route" "pcx_datasets_to_paas" {
   vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_paas[0].id
 }
 
+resource "aws_route" "pcx_datasets_to_main" {
+  route_table_id            = aws_route_table.datasets.id
+  destination_cidr_block    = aws_vpc.main.cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_main.id
+}
+
 resource "aws_route" "pcx_datasets_to_notebooks" {
   route_table_id            = aws_route_table.datasets.id
   destination_cidr_block    = aws_vpc.notebooks.cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_notebooks.id
+}
+
+resource "aws_route" "pcx_private_with_egress_to_datasets" {
+  route_table_id            = aws_route_table.private_with_egress.id
+  destination_cidr_block    = aws_vpc.datasets.cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_main.id
 }
 
 resource "aws_route" "pcx_datasets_to_private_without_egress" {
@@ -435,14 +465,14 @@ resource "aws_ec2_transit_gateway" "datasets_to_main" {
 }
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "main" {
-  subnet_ids         = [aws_subnet.private_with_egress[0].id]
+  subnet_ids         = aws_subnet.private_with_egress[*].id
   transit_gateway_id = aws_ec2_transit_gateway.datasets_to_main.id
   vpc_id             = aws_vpc.main.id
   dns_support = "disable"
 }
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "datasets" {
-  subnet_ids         = [aws_subnet.datasets[0].id]
+  subnet_ids         = aws_subnet.datasets[*].id
   transit_gateway_id = aws_ec2_transit_gateway.datasets_to_main.id
   vpc_id             = aws_vpc.datasets.id
   dns_support = "disable"
@@ -476,12 +506,6 @@ resource "aws_ec2_transit_gateway_route" "transit_internet_route" {
   destination_cidr_block         = "0.0.0.0/0"
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.main.id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.datasets_to_main_route_table.id
-}
-
-resource "aws_route" "main_private_to_transit_gateway" {
-  route_table_id            = aws_route_table.private_with_egress.id
-  destination_cidr_block    = aws_vpc.datasets.cidr_block
-  transit_gateway_id = aws_ec2_transit_gateway.datasets_to_main.id
 }
 
 resource "aws_route" "main_public_to_internet_gateway" {
