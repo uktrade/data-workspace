@@ -189,7 +189,7 @@ resource "aws_ecs_service" "admin_celery" {
   name                       = "${var.prefix}-admin-celery"
   cluster                    = aws_ecs_cluster.main_cluster.id
   task_definition            = aws_ecs_task_definition.admin_celery.arn
-  desired_count              = 1
+  desired_count              = 2
   launch_type                = "FARGATE"
   platform_version           = "1.4.0"
   deployment_maximum_percent = 600
