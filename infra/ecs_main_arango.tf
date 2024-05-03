@@ -46,9 +46,9 @@ resource "aws_service_discovery_service" "arango" {
 
 resource "aws_autoscaling_group" "arango_service" {
   name_prefix               = "${var.prefix}-arango"
-  max_size                  = 2
+  max_size                  = 1
   min_size                  = 1
-  desired_capacity          = 2
+  desired_capacity          = 1
   health_check_grace_period = 120
   health_check_type         = "EC2"
   vpc_zone_identifier       = ["${aws_subnet.datasets.*.id[0]}"]
