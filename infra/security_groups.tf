@@ -2211,18 +2211,6 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "arango_ecs_ec2" {
-  description = "ingress_ec2_instance"
-
-  security_group_id = aws_security_group.arango_service.id
-  cidr_blocks       = ["0.0.0.0/0"]
-
-  type      = "ingress"
-  from_port = "22"
-  to_port   = "22"
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "arango-ecs-egress-all" {
 
   security_group_id = aws_security_group.arango_service.id
