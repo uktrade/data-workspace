@@ -16,6 +16,5 @@ fi
 sudo mkdir -p /data
 sudo mount $device /data
 
-mkdir /etc/ecs/
 echo "ECS_CLUSTER=${ECS_CLUSTER}" >> /etc/ecs/ecs.config
 systemctl start ecs
