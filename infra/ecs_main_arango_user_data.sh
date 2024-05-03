@@ -1,5 +1,6 @@
 #!/bin/bash
 # install and start ecs agent 
+sudo yum install -y awscli
 
 EC2_INSTANCE_ID=$(ec2-metadata --instance-id | sed 's/instance-id: //')
 aws ec2 attach-volume --volume-id ${EBS_VOLUME_ID} --instance-id $EC2_INSTANCE_ID --device /dev/xvdf --region ${EBS_REGION}
@@ -17,9 +18,4 @@ sudo mount $device /data
 
 mkdir /etc/ecs/
 echo "ECS_CLUSTER=${ECS_CLUSTER}" >> /etc/ecs/ecs.config
-sudo yum install -y ecs-init
-sudo systemctl restart ecs
-
-
-
-
+systemctl start ecs
