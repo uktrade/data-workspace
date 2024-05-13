@@ -385,3 +385,56 @@ resource "random_string" "aws_arangodb_root_password" {
     ignore_changes = all
   }
 }
+
+resource "aws_backup_vault" "arango_backup_vault" {
+  name        = "${var.prefix}-arangodb-backup-vault"
+}
+
+resource "aws_backup_plan" "arango_backup_plan" {
+  name = "${var.prefix}-arangodb-backup-plan"
+  rule {
+    rule_name         = "arangodb-backup-rule"
+    target_vault_name = "${var.prefix}-arangodb-backup-vault"
+    schedule          = "cron(0 0 * * ? *)"
+
+    start_window = 60
+    completion_window = 360
+    lifecycle {
+      delete_after = 8
+    }
+  }
+
+  depends_on = [aws_backup_vault.arango_backup_vault]
+}
+
+resource "aws_backup_selection" "arango_backup_resource" {
+  iam_role_arn = "arn:aws:iam::${data.aws_caller_identity.aws_caller_identity.account_id}:role/data-workspace-dev-a-arango-ebs-backup"
+  name         = "arangodb-backup-resources"
+  plan_id      = aws_backup_plan.arango_backup_plan.id
+
+  resources = [
+    "arn:aws:ec2:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:instance/*"
+  ]
+}
+
+resource "aws_iam_role" "arango_ebs_backup" {
+  name               = "${var.prefix}-arango-ebs-backup"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.arango_ebs_backup_assume_role.json
+}
+
+data "aws_iam_policy_document" "arango_ebs_backup_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["backup.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "arango_ec2_ebs_backup" {
+  role       = aws_iam_role.arango_ebs_backup.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
+}
