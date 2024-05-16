@@ -53,6 +53,10 @@ The components of Data Workspace are stored across several Git repositories.
 
 Some of the components of Data Workspace are lower level, and less Data Workspace-specific - they can at least theorically be re-used outside of Data Workspace
 
+- [pg-sync-roles](https://github.com/uktrade/pg-sync-roles)
+
+   Used to synchronise permissions between the data-workspace-frontend metadata database and users in the main PostgreSQL database.
+
 - [mobius3](https://github.com/uktrade/mobius3)
 
    Used in on-demand tools to sync user's files with S3
