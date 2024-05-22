@@ -260,6 +260,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
     resources = [
       "${aws_s3_bucket.notebooks.arn}",
       "${aws_s3_bucket.mlflow[0].arn}",
+      "${aws_s3_bucket.mlflow[1].arn}",
     ]
   }
 
@@ -278,6 +279,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
     resources = [
       "${aws_s3_bucket.notebooks.arn}/*",
       "${aws_s3_bucket.mlflow[0].arn}/*",
+      "${aws_s3_bucket.mlflow[1].arn}/*",
     ]
   }
 
@@ -294,6 +296,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
     resources = [
       "${aws_s3_bucket.mlflow[0].arn}",
+      "${aws_s3_bucket.mlflow[1].arn}",
     ]
   }
 
