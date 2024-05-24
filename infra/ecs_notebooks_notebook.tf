@@ -256,12 +256,11 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
     actions = [
       "s3:ListBucket",
     ]
-
-    resources = [
+    resources = concat([
       "${aws_s3_bucket.notebooks.arn}",
-      "${aws_s3_bucket.mlflow[0].arn}",
-      "${aws_s3_bucket.mlflow[1].arn}",
-    ]
+      ], [
+      for bucket in aws_s3_bucket.mlflow : bucket.arn
+    ])
   }
 
   statement {
@@ -276,11 +275,11 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "s3:DeleteObject"
     ]
 
-    resources = [
+    resources = concat([
       "${aws_s3_bucket.notebooks.arn}/*",
-      "${aws_s3_bucket.mlflow[0].arn}/*",
-      "${aws_s3_bucket.mlflow[1].arn}/*",
-    ]
+      ], [
+      for bucket in aws_s3_bucket.mlflow : "${bucket.arn}/*"
+    ])
   }
 
   statement {
@@ -295,8 +294,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
     ]
 
     resources = [
-      "${aws_s3_bucket.mlflow[0].arn}",
-      "${aws_s3_bucket.mlflow[1].arn}",
+      for bucket in aws_s3_bucket.mlflow : bucket.arn
     ]
   }
 
