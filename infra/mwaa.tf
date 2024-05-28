@@ -164,6 +164,16 @@ data "aws_iam_policy_document" "mwaa_execution_role_policy" {
       values   = ["sqs.${data.aws_region.aws_region.name}.amazonaws.com"]
     }
   }
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:secret:${var.mwaa_environment_name}/*"
+    ]
+  }
 }
 
 resource "aws_iam_policy" "mwaa_execution_role_policy" {
