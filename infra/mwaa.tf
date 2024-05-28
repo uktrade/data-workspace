@@ -1,5 +1,6 @@
 # SECURITY GROUP
 resource "aws_security_group" "mwaa" {
+  count       = var.mwaa_environment_name != "" ? 1 : 0
   name        = var.mwaa_environment_name
   vpc_id      = aws_vpc.main.id
   description = var.mwaa_environment_name
@@ -14,43 +15,48 @@ resource "aws_security_group" "mwaa" {
 }
 
 resource "aws_security_group_rule" "mwaa_ingress_postgres" {
+  count                    = var.mwaa_environment_name != "" ? 1 : 0
   description              = "Ingress PostgreSQL"
   type                     = "ingress"
   from_port                = "5432"
   to_port                  = "5432"
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.mwaa.id
-  security_group_id        = aws_security_group.mwaa.id
+  source_security_group_id = aws_security_group.mwaa[0].id
+  security_group_id        = aws_security_group.mwaa[0].id
 }
 
 resource "aws_security_group_rule" "mwaa_ingress_https" {
+  count                    = var.mwaa_environment_name != "" ? 1 : 0
   description              = "Ingress HTTPS"
   type                     = "ingress"
   from_port                = "443"
   to_port                  = "443"
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.mwaa.id
-  security_group_id        = aws_security_group.mwaa.id
+  source_security_group_id = aws_security_group.mwaa[0].id
+  security_group_id        = aws_security_group.mwaa[0].id
 }
 
 resource "aws_security_group_rule" "mwaa_egress_all" {
+  count             = var.mwaa_environment_name != "" ? 1 : 0
   description       = "Egress all"
   type              = "egress"
   from_port         = "0"
   to_port           = "65535"
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.mwaa.id
+  security_group_id = aws_security_group.mwaa[0].id
 }
 
 
 # IAM
 resource "aws_iam_role" "mwaa_execution_role" {
+  count              = var.mwaa_environment_name != "" ? 1 : 0
   name               = "${var.prefix}-${var.mwaa_environment_name}-mwaa-execution-role"
-  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy[0].json
 }
 
 data "aws_iam_policy_document" "assume_role_policy" {
+  count = var.mwaa_environment_name != "" ? 1 : 0
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -62,6 +68,7 @@ data "aws_iam_policy_document" "assume_role_policy" {
 }
 
 data "aws_iam_policy_document" "mwaa_execution_role_policy" {
+  count = var.mwaa_environment_name != "" ? 1 : 0
   statement {
     effect = "Allow"
     actions = [
@@ -84,8 +91,8 @@ data "aws_iam_policy_document" "mwaa_execution_role_policy" {
       "s3:List*"
     ]
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.mwaa_source_bucket.bucket}",
-      "arn:aws:s3:::${aws_s3_bucket.mwaa_source_bucket.bucket}/*"
+      "arn:aws:s3:::${aws_s3_bucket.mwaa_source_bucket[0].bucket}",
+      "arn:aws:s3:::${aws_s3_bucket.mwaa_source_bucket[0].bucket}/*"
     ]
   }
   statement {
@@ -160,23 +167,27 @@ data "aws_iam_policy_document" "mwaa_execution_role_policy" {
 }
 
 resource "aws_iam_policy" "mwaa_execution_role_policy" {
+  count  = var.mwaa_environment_name != "" ? 1 : 0
   name   = "${var.mwaa_environment_name}-execution-role-policy"
-  policy = data.aws_iam_policy_document.mwaa_execution_role_policy.json
+  policy = data.aws_iam_policy_document.mwaa_execution_role_policy[0].json
 }
 
 resource "aws_iam_role_policy_attachment" "mwaa_execution_role_policy_attachment" {
-  role       = aws_iam_role.mwaa_execution_role.name
-  policy_arn = aws_iam_policy.mwaa_execution_role_policy.arn
+  count      = var.mwaa_environment_name != "" ? 1 : 0
+  role       = aws_iam_role.mwaa_execution_role[0].name
+  policy_arn = aws_iam_policy.mwaa_execution_role_policy[0].arn
 }
 
 # S3
 resource "aws_s3_bucket" "mwaa_source_bucket" {
+  count         = var.mwaa_environment_name != "" ? 1 : 0
   bucket        = var.mwaa_source_bucket_name
   force_destroy = "false"
 }
 
 resource "aws_s3_bucket_versioning" "mwaa_source_bucket" {
-  bucket = aws_s3_bucket.mwaa_source_bucket.id
+  count  = var.mwaa_environment_name != "" ? 1 : 0
+  bucket = aws_s3_bucket.mwaa_source_bucket[0].id
   versioning_configuration {
     status = "Enabled"
   }
@@ -188,8 +199,8 @@ resource "aws_mwaa_environment" "mwaa" {
   name                 = var.mwaa_environment_name
   environment_class    = "mw1.small" # mw1.small, mw1.medium, mw1.large
   dag_s3_path          = "dags/"
-  execution_role_arn   = aws_iam_role.mwaa_execution_role.arn
-  source_bucket_arn    = aws_s3_bucket.mwaa_source_bucket.arn
+  execution_role_arn   = aws_iam_role.mwaa_execution_role[0].arn
+  source_bucket_arn    = aws_s3_bucket.mwaa_source_bucket[0].arn
   airflow_version      = "2.8.1"
   schedulers           = 2
   min_workers          = 1
@@ -235,7 +246,7 @@ resource "aws_mwaa_environment" "mwaa" {
   }
 
   network_configuration {
-    security_group_ids = ["${aws_security_group.mwaa.id}"]
+    security_group_ids = ["${aws_security_group.mwaa[0].id}"]
     subnet_ids         = slice(aws_subnet.private_with_egress.*.id, 0, 2)
   }
 }
