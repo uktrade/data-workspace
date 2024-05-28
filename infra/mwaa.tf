@@ -1,11 +1,11 @@
 # SECURITY GROUP
-resource "aws_security_group" "mwaa_dataflow" {
-  name        = "${var.prefix}-mwaa-dataflow"
+resource "aws_security_group" "mwaa" {
+  name        = var.mwaa_environment_name
   vpc_id      = aws_vpc.main.id
-  description = "${var.prefix}-mwaa-dataflow"
+  description = var.mwaa_environment_name
 
   tags = {
-    Name = "${var.prefix}-mwaa-dataflow"
+    Name = "mwaa-${var.mwaa_environment_name}"
   }
 
   lifecycle {
@@ -13,40 +13,40 @@ resource "aws_security_group" "mwaa_dataflow" {
   }
 }
 
-resource "aws_security_group_rule" "mwaa_dataflow_ingress_rule_for_first_port" {
-  description              = "${var.prefix}-ingress-private-with-egress-healthcheck"
+resource "aws_security_group_rule" "mwaa_ingress_postgres" {
+  description              = "Ingress PostgreSQL"
   type                     = "ingress"
   from_port                = "5432"
   to_port                  = "5432"
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.mwaa_dataflow.id
-  security_group_id        = aws_security_group.mwaa_dataflow.id
+  source_security_group_id = aws_security_group.mwaa.id
+  security_group_id        = aws_security_group.mwaa.id
 }
 
-resource "aws_security_group_rule" "mwaa_dataflow_ingress_rule_for_second_port" {
-  description              = "${var.prefix}-ingress-private-with-egress-healthcheck"
+resource "aws_security_group_rule" "mwaa_ingress_https" {
+  description              = "Ingress HTTPS"
   type                     = "ingress"
   from_port                = "443"
   to_port                  = "443"
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.mwaa_dataflow.id
-  security_group_id        = aws_security_group.mwaa_dataflow.id
+  source_security_group_id = aws_security_group.mwaa.id
+  security_group_id        = aws_security_group.mwaa.id
 }
 
-resource "aws_security_group_rule" "mwaa_dataflow_egress_rule" {
-  description       = "${var.prefix}-ingress-private-with-egress-healthcheck"
+resource "aws_security_group_rule" "mwaa_egress_all" {
+  description       = "Egress all"
   type              = "egress"
   from_port         = "0"
   to_port           = "65535"
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.mwaa_dataflow.id
+  security_group_id = aws_security_group.mwaa.id
 }
 
 
 # IAM
-resource "aws_iam_role" "dataflow_mwaa" {
-  name               = "dataflow-mwaa-execution-role"
+resource "aws_iam_role" "mwaa_execution_role" {
+  name               = "${var.prefix}-${var.mwaa_environment_name}-mwaa-execution-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
@@ -61,14 +61,14 @@ data "aws_iam_policy_document" "assume_role_policy" {
   }
 }
 
-data "aws_iam_policy_document" "dataflow_mwaa_execution_role_policy" {
+data "aws_iam_policy_document" "mwaa_execution_role_policy" {
   statement {
     effect = "Allow"
     actions = [
       "airflow:PublishMetrics"
     ]
     resources = [
-      "arn:aws:airflow:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:environment/${var.mwaa_name}*"
+      "arn:aws:airflow:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:environment/${var.mwaa_environment_name}*"
     ]
   }
   statement {
@@ -84,8 +84,8 @@ data "aws_iam_policy_document" "dataflow_mwaa_execution_role_policy" {
       "s3:List*"
     ]
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.mwaa_dataflow.bucket}",
-      "arn:aws:s3:::${aws_s3_bucket.mwaa_dataflow.bucket}/*"
+      "arn:aws:s3:::${aws_s3_bucket.mwaa_source_bucket.bucket}",
+      "arn:aws:s3:::${aws_s3_bucket.mwaa_source_bucket.bucket}/*"
     ]
   }
   statement {
@@ -107,7 +107,7 @@ data "aws_iam_policy_document" "dataflow_mwaa_execution_role_policy" {
       "logs:GetQueryResults"
     ]
     resources = [
-      "arn:aws:logs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:airflow-${var.mwaa_name}-*"
+      "arn:aws:logs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:airflow-${var.mwaa_environment_name}-*"
     ]
   }
   statement {
@@ -159,37 +159,37 @@ data "aws_iam_policy_document" "dataflow_mwaa_execution_role_policy" {
   }
 }
 
-resource "aws_iam_policy" "dataflow_mwaa_execution_role_policy" {
-  name   = "dataflow-mwaa-execution-role-policy"
-  policy = data.aws_iam_policy_document.dataflow_mwaa_execution_role_policy.json
+resource "aws_iam_policy" "mwaa_execution_role_policy" {
+  name   = "${var.mwaa_environment_name}-execution-role-policy"
+  policy = data.aws_iam_policy_document.mwaa_execution_role_policy.json
 }
 
-resource "aws_iam_role_policy_attachment" "dataflow_mwaa_execution_role_policy_attachment" {
-  role       = aws_iam_role.dataflow_mwaa.name
-  policy_arn = aws_iam_policy.dataflow_mwaa_execution_role_policy.arn
+resource "aws_iam_role_policy_attachment" "mwaa_execution_role_policy_attachment" {
+  role       = aws_iam_role.mwaa_execution_role.name
+  policy_arn = aws_iam_policy.mwaa_execution_role_policy.arn
 }
 
 # S3
-resource "aws_s3_bucket" "mwaa_dataflow" {
-  bucket        = "mwaa-dataflow-dbt-2024"
+resource "aws_s3_bucket" "mwaa_source_bucket" {
+  bucket        = var.mwaa_source_bucket_name
   force_destroy = "false"
 }
 
-resource "aws_s3_bucket_versioning" "mwaa_dataflow_versioning" {
-  bucket = aws_s3_bucket.mwaa_dataflow.id
+resource "aws_s3_bucket_versioning" "mwaa_source_bucket" {
+  bucket = aws_s3_bucket.mwaa_source_bucket.id
   versioning_configuration {
     status = "Enabled"
   }
 }
 
 # MWAA
-resource "aws_mwaa_environment" "dataflow" {
-  count                = var.mwaa_name == "dataflow" ? 1 : 0
-  name                 = var.mwaa_name
+resource "aws_mwaa_environment" "mwaa" {
+  count                = var.mwaa_environment_name != "" ? 1 : 0
+  name                 = var.mwaa_environment_name
   environment_class    = "mw1.small" # mw1.small, mw1.medium, mw1.large
   dag_s3_path          = "dags/"
-  execution_role_arn   = aws_iam_role.dataflow_mwaa.arn
-  source_bucket_arn    = aws_s3_bucket.mwaa_dataflow.arn
+  execution_role_arn   = aws_iam_role.mwaa_execution_role.arn
+  source_bucket_arn    = aws_s3_bucket.mwaa_source_bucket.arn
   airflow_version      = "2.8.1"
   schedulers           = 2
   min_workers          = 1
@@ -235,7 +235,7 @@ resource "aws_mwaa_environment" "dataflow" {
   }
 
   network_configuration {
-    security_group_ids = ["${aws_security_group.mwaa_dataflow.id}"]
+    security_group_ids = ["${aws_security_group.mwaa.id}"]
     subnet_ids         = slice(aws_subnet.private_with_egress.*.id, 0, 2)
   }
 }
