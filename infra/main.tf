@@ -29,8 +29,12 @@ variable "cloudwatch_namespace" {
 variable "cloudwatch_region" {
   default = "eu-west-2"
 }
-variable "mwaa_environment_name" {}
-variable "mwaa_source_bucket_name" {}
+variable "mwaa_environment_name" {
+  default = ""
+}
+variable "mwaa_source_bucket_name" {
+  default = ""
+}
 
 variable "vpc_cidr" {}
 variable "subnets_num_bits" {}
