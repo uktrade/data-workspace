@@ -243,7 +243,7 @@ resource "aws_mwaa_environment" "mwaa" {
     }
     task_logs {
       enabled   = true
-      log_level = "WARNING"
+      log_level = "INFO"
     }
     webserver_logs {
       enabled   = true
