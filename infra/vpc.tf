@@ -314,6 +314,44 @@ resource "aws_vpc" "datasets" {
   }
 }
 
+resource "aws_route53_resolver_firewall_domain_list" "datasets_amazonaws" {
+  name    = "${var.prefix}-datasets-amazonaws"
+  domains = ["*.amazonaws.com."]
+}
+
+resource "aws_route53_resolver_firewall_domain_list" "datasets_all" {
+  name    = "${var.prefix}-datasets-all-domains"
+  domains = ["*."]
+}
+
+resource "aws_route53_resolver_firewall_rule_group" "datasets_allow_amazonaws_block_otherwise" {
+  name = "${var.prefix}-datasets-allow-amazonaws-block-otherwise"
+}
+
+resource "aws_route53_resolver_firewall_rule_group_association" "datasets_allow_amazonaws_block_otherwise" {
+  name                   = "${var.prefix}-datasets-allow-amazonaws-block-otherwise"
+  firewall_rule_group_id = aws_route53_resolver_firewall_rule_group.datasets_allow_amazonaws_block_otherwise.id
+  priority               = 1000
+  vpc_id                 = aws_vpc.datasets.id
+}
+
+resource "aws_route53_resolver_firewall_rule" "datasets_allow_amazonaws" {
+  name                    = "${var.prefix}-allow-amazonaws"
+  action                  = "ALLOW"
+  firewall_domain_list_id = aws_route53_resolver_firewall_domain_list.datasets_amazonaws.id
+  firewall_rule_group_id  = aws_route53_resolver_firewall_rule_group.datasets_allow_amazonaws_block_otherwise.id
+  priority                = 100
+}
+
+resource "aws_route53_resolver_firewall_rule" "datasets_block_otherwise" {
+  name                    = "${var.prefix}-block-all"
+  action                  = "BLOCK"
+  block_response          = "NXDOMAIN"
+  firewall_domain_list_id = aws_route53_resolver_firewall_domain_list.datasets_all.id
+  firewall_rule_group_id  = aws_route53_resolver_firewall_rule_group.datasets_allow_amazonaws_block_otherwise.id
+  priority                = 200
+}
+
 resource "aws_flow_log" "datasets" {
   log_destination_type = "s3"
   log_destination      = "arn:aws:s3:::flowlog-${data.aws_caller_identity.aws_caller_identity.account_id}/${aws_vpc.datasets.id}"
