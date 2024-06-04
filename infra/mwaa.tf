@@ -216,8 +216,7 @@ resource "aws_mwaa_environment" "mwaa" {
   min_workers            = 1
   max_workers            = 10
   requirements_s3_path   = "requirements.txt"
-  startup_script_s3_path = aws_s3_object.mwaa_source_bucket_startup_script.key
-  plugins_s3_path        = "plugins.zip"
+  startup_script_s3_path = aws_s3_object.mwaa_source_bucket_startup_script[0].key
 
   webserver_access_mode = "PUBLIC_ONLY"
 
@@ -229,7 +228,6 @@ resource "aws_mwaa_environment" "mwaa" {
   lifecycle {
     ignore_changes = [
       requirements_s3_object_version,
-      plugins_s3_object_version
     ]
   }
 
@@ -265,6 +263,7 @@ resource "aws_mwaa_environment" "mwaa" {
 
 resource "aws_s3_object" "mwaa_source_bucket_startup_script" {
   key    = "startup.sh"
+  count  = var.mwaa_environment_name != "" ? 1 : 0
   bucket = aws_s3_bucket.mwaa_source_bucket[0].id
   content = templatefile(
     "${path.module}/startup.sh", {
