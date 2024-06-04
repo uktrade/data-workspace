@@ -139,7 +139,6 @@ resource "aws_subnet" "public" {
   count      = length(var.aws_availability_zones)
   vpc_id     = aws_vpc.main.id
   cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
-
   availability_zone = var.aws_availability_zones[count.index]
 
   tags = {
@@ -453,7 +452,6 @@ resource "aws_route" "pcx_datasets_to_private_without_egress" {
   vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_notebooks.id
 }
 
-
 resource "aws_subnet" "datasets" {
   count      = length(var.aws_availability_zones)
   vpc_id     = aws_vpc.datasets.id
@@ -494,4 +492,74 @@ resource "aws_subnet" "datasets_quicksight" {
 resource "aws_route_table_association" "datasets_quicksight" {
   subnet_id      = aws_subnet.datasets_quicksight.id
   route_table_id = aws_route_table.datasets.id
+}
+
+resource "aws_ec2_transit_gateway" "datasets_to_main" {
+  description = "data-workspace-dev-a-transit-gateway-datasets-to-main"
+  auto_accept_shared_attachments = "enable"
+  default_route_table_association = "disable"
+  default_route_table_propagation = "disable"
+  dns_support = "disable"
+}
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "main" {
+  subnet_ids         = aws_subnet.private_with_egress[*].id
+  transit_gateway_id = aws_ec2_transit_gateway.datasets_to_main.id
+  vpc_id             = aws_vpc.main.id
+  dns_support = "disable"
+}
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "datasets" {
+  subnet_ids         = aws_subnet.datasets[*].id
+  transit_gateway_id = aws_ec2_transit_gateway.datasets_to_main.id
+  vpc_id             = aws_vpc.datasets.id
+  dns_support = "disable"
+}
+
+resource "aws_ec2_transit_gateway_route_table" "datasets_to_main_route_table" {
+  transit_gateway_id = aws_ec2_transit_gateway.datasets_to_main.id
+}
+
+resource "aws_ec2_transit_gateway_route_table_association" "main" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.main.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.datasets_to_main_route_table.id
+}
+
+resource "aws_ec2_transit_gateway_route_table_association" "datasets" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.datasets.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.datasets_to_main_route_table.id
+}
+
+resource "aws_ec2_transit_gateway_route_table_propagation" "main" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.main.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.datasets_to_main_route_table.id
+}
+
+resource "aws_ec2_transit_gateway_route_table_propagation" "datasets" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.datasets.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.datasets_to_main_route_table.id
+}
+
+resource "aws_ec2_transit_gateway_route" "transit_internet_route" {
+  destination_cidr_block         = "0.0.0.0/0"
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.main.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.datasets_to_main_route_table.id
+}
+
+resource "aws_route" "main_public_to_internet_gateway" {
+  route_table_id            = aws_route_table.public.id
+  destination_cidr_block    = "0.0.0.0/0"
+  gateway_id = aws_internet_gateway.main.id
+}
+
+resource "aws_route" "main_public_to_transit_gateway" {
+  route_table_id            = aws_route_table.public.id
+  destination_cidr_block    = aws_vpc.datasets.cidr_block
+  transit_gateway_id = aws_ec2_transit_gateway.datasets_to_main.id
+}
+
+resource "aws_route" "datasets_private_to_transit_gateway" {
+  route_table_id            = aws_route_table.datasets.id
+  destination_cidr_block    = "0.0.0.0/0"
+  transit_gateway_id = aws_ec2_transit_gateway.datasets_to_main.id
 }
