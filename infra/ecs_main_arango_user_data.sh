@@ -17,9 +17,7 @@ sudo mount $device /data
 
 mkdir /etc/ecs/
 echo "ECS_CLUSTER=${ECS_CLUSTER}" >> /etc/ecs/ecs.config
-sudo yum install -y ecs-init
+sudo aws s3 cp s3://uploads-data-trade-dev-a-uktrade-digital/amazon-ecs-init-latest.x86_64.rpm /usr/local/bin
+sudo yum localinstall -y /usr/local/bin/amazon-ecs-init-latest.x86_64.rpm
+# sudo yum install -y ecs-init
 sudo systemctl restart ecs
-
-
-
-

@@ -19,8 +19,8 @@ resource "aws_vpc_peering_connection" "jupyterhub" {
 resource "aws_vpc" "notebooks" {
   cidr_block = var.vpc_notebooks_cidr
 
-  enable_dns_support   = true
-  enable_dns_hostnames = true
+  enable_dns_support   = false
+  enable_dns_hostnames = false
 
   tags = {
     Name = "${var.prefix}-notebooks"
@@ -302,7 +302,7 @@ resource "aws_vpc" "datasets" {
   cidr_block = var.vpc_datasets_cidr
 
   enable_dns_support   = true
-  enable_dns_hostnames = true
+  enable_dns_hostnames = false
 
   tags = {
     Name = "${var.prefix}-datasets"
@@ -397,11 +397,11 @@ resource "aws_vpc_peering_connection" "datasets_to_notebooks" {
   auto_accept = true
 
   accepter {
-    allow_remote_vpc_dns_resolution = true
+    allow_remote_vpc_dns_resolution = false
   }
 
   requester {
-    allow_remote_vpc_dns_resolution = true
+    allow_remote_vpc_dns_resolution = false
   }
 
   tags = {
@@ -494,70 +494,134 @@ resource "aws_route_table_association" "datasets_quicksight" {
   route_table_id = aws_route_table.datasets.id
 }
 
-# public subnet for datasets
-resource "aws_subnet" "public_datasets" {
-  count      = length(var.aws_availability_zones)
-  vpc_id     = aws_vpc.datasets.id
-  cidr_block = var.datasets_subnet_cidr_blocks[count.index + 3]
-
-  availability_zone = var.aws_availability_zones[count.index]
-
+resource "aws_vpc_endpoint" "datasets_s3_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.s3"
+  route_table_ids = [aws_route_table.datasets.id]
   tags = {
-    Name = "${var.prefix}-public-datasets-${var.aws_availability_zones_short[count.index]}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
+    Environment = var.prefix
+    Name = "datasets-s3-endpoint"
   }
 }
-# internet gateway for public subnet
-resource "aws_internet_gateway" "main_datasets" {
-  vpc_id = aws_vpc.datasets.id
 
+resource "aws_vpc_endpoint" "datasets_dynamodb_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.dynamodb"
+  route_table_ids = [aws_route_table.datasets.id]
   tags = {
-    Name = "${var.prefix}"
+    Environment = var.prefix
+    Name = "datasets-dynamodb-endpoint"
   }
 }
 
-# elastic IP for NAT gateway
-resource "aws_eip" "nat_gateway_datasets" {
-  vpc = true
-}
-
-# NAT gateway in public datasets subnet
-resource "aws_nat_gateway" "datasets" {
-  allocation_id = aws_eip.nat_gateway_datasets.id
-  subnet_id     = aws_subnet.public_datasets.*.id[0]
-
+resource "aws_vpc_endpoint" "datasets_ec2_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ec2"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
-    Name = "${var.prefix}"
+    Environment = var.prefix
+    Name = "datasets-ec2-endpoint"
   }
 }
 
-# Route table for public datasets subnet
-resource "aws_route_table" "public_datasets" {
-  vpc_id = aws_vpc.datasets.id
+resource "aws_vpc_endpoint" "datasets_ec2messages_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ec2messages"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
-    Name = "${var.prefix}-public"
+    Environment = var.prefix
+    Name = "datasets-ec2messages-endpoint"
   }
 }
 
-resource "aws_route" "public_datasets_internet_gateway_ipv4" {
-  route_table_id         = aws_route_table.public_datasets.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.main_datasets.id
+resource "aws_vpc_endpoint" "datasets_ssm_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ssm"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ssm-endpoint"
+  }
 }
 
-# associate public route table with public subnet
-resource "aws_route_table_association" "public_datasets" {
-  count          = length(var.aws_availability_zones)
-  subnet_id      = aws_subnet.public_datasets.*.id[count.index]
-  route_table_id = aws_route_table.public_datasets.id
+resource "aws_vpc_endpoint" "datasets_ssmmessages_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ssmmessages"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ssmmessages-endpoint"
+  }
 }
 
-# associate datasets private subnet with NAT gateway
-resource "aws_route" "datasets_nat_gateway" {
-  route_table_id         = aws_route_table.datasets.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_nat_gateway.datasets.id
+resource "aws_vpc_endpoint" "datasets_ecs_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ecs"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecs-endpoint"
+  }
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ecs-agent"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecs-agent-endpoint"
+  }
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "datasets_ecs_telemetry_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ecs-telemetry"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecs-telemetry-endpoint"
+  }
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "datasets_ecr_api_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ecr.api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecr-api-endpoint"
+  }
+}
+
+
+resource "aws_vpc_endpoint" "datasets_ecr_dkr_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecr-dkr-endpoint"
+  }
 }
