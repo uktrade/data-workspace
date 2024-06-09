@@ -94,6 +94,10 @@ resource "aws_ecr_repository" "mlflow" {
   name = "${var.prefix}-mlflow"
 }
 
+resource "aws_ecr_repository" "arango" {
+  name = "${var.prefix}-arango"
+}
+
 resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.dkr"
@@ -116,6 +120,34 @@ resource "aws_vpc_endpoint" "ecr_api" {
 
   security_group_ids = ["${aws_security_group.ecr_api.id}"]
   subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
+
+  timeouts {}
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr_datasets" {
+  vpc_id              = aws_vpc.datasets.id
+  service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  security_group_ids = ["${aws_security_group.ecr_dkr_datasets.id}"]
+  subnet_ids         = ["${aws_subnet.datasets.*.id[0]}"]
+
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
+
+  timeouts {}
+}
+
+resource "aws_vpc_endpoint" "ecr_api_datasets" {
+  vpc_id              = aws_vpc.datasets.id
+  service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  security_group_ids = ["${aws_security_group.ecr_api_datasets.id}"]
+  subnet_ids         = ["${aws_subnet.datasets.*.id[0]}"]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
 
@@ -271,6 +303,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
       "${aws_ecr_repository.superset.arn}",
       "${aws_ecr_repository.flower.arn}",
       "${aws_ecr_repository.mlflow.arn}",
+      "${aws_ecr_repository.arango.arn}"
     ]
   }
 

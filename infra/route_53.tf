@@ -190,6 +190,38 @@ resource "aws_acm_certificate_validation" "superset_internal" {
   certificate_arn = aws_acm_certificate.superset_internal[count.index].arn
 }
 
+resource "aws_route53_record" "arango" {
+  provider = "aws.route53"
+  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
+  name     = "arango"
+  type     = "A"
+
+  alias {
+    name                   = aws_lb.arango.dns_name
+    zone_id                = aws_lb.arango.zone_id
+    evaluate_target_health = false
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_acm_certificate" "arango" {
+  domain_name       = aws_route53_record.arango.name
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_acm_certificate_validation" "arango" {
+  certificate_arn = aws_acm_certificate.arango.arn
+}
+
+
+
 # resource "aws_route53_record" "jupyterhub" {
 #   zone_id = "${data.aws_route53_zone.aws_route53_zone.zone_id}"
 #   name    = "${var.jupyterhub_domain}."
@@ -222,3 +254,79 @@ resource "aws_acm_certificate_validation" "superset_internal" {
 # resource "aws_acm_certificate_validation" "jupyterhub" {
 #   certificate_arn = "${aws_acm_certificate.jupyterhub.arn}"
 # }
+
+resource "aws_route53_zone" "main_ec2messages_endpoint_hosted_zone" {
+  name  = "ec2messages.eu-west-2.amazonaws.com"
+  vpc {
+    vpc_id = aws_vpc.main.id
+  }
+}
+
+resource "aws_route53_record" "ec2messages_endpoint_record" {
+        zone_id  = aws_route53_zone.main_ec2messages_endpoint_hosted_zone.zone_id
+        name    = "ec2messages.eu-west-2.amazonaws.com"
+        type    = "A"
+
+         alias {
+             name = aws_vpc_endpoint.main_ec2messages_endpoint.dns_entry[0].dns_name
+             zone_id = aws_vpc_endpoint.main_ec2messages_endpoint.dns_entry[0].hosted_zone_id
+             evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_zone" "main_ssm_endpoint_hosted_zone" {
+  name  = "ssm.eu-west-2.amazonaws.com"
+  vpc {
+    vpc_id = aws_vpc.main.id
+  }
+}
+
+resource "aws_route53_record" "ssm_endpoint_record" {
+        zone_id  = aws_route53_zone.main_ssm_endpoint_hosted_zone.zone_id
+        name    = "ssm.eu-west-2.amazonaws.com"
+        type    = "A"
+
+         alias {
+             name = aws_vpc_endpoint.main_ssm_endpoint.dns_entry[0].dns_name
+             zone_id = aws_vpc_endpoint.main_ssm_endpoint.dns_entry[0].hosted_zone_id
+             evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_zone" "main_ssmmessages_endpoint_hosted_zone" {
+  name  = "ssmmessages.eu-west-2.amazonaws.com"
+  vpc {
+    vpc_id = aws_vpc.main.id
+  }
+}
+
+resource "aws_route53_record" "ssmmessages_endpoint_record" {
+        zone_id  = aws_route53_zone.main_ssmmessages_endpoint_hosted_zone.zone_id
+        name    = "ssmmessages.eu-west-2.amazonaws.com"
+        type    = "A"
+
+         alias {
+             name = aws_vpc_endpoint.main_ssmmessages_endpoint.dns_entry[0].dns_name
+             zone_id = aws_vpc_endpoint.main_ssmmessages_endpoint.dns_entry[0].hosted_zone_id
+             evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_zone" "main_ec2_endpoint_hosted_zone" {
+  name  = "ec2.eu-west-2.amazonaws.com"
+  vpc {
+    vpc_id = aws_vpc.main.id
+  }
+}
+
+resource "aws_route53_record" "ec2_endpoint_record" {
+        zone_id  = aws_route53_zone.main_ec2_endpoint_hosted_zone.zone_id
+        name    = "ec2.eu-west-2.amazonaws.com"
+        type    = "A"
+
+         alias {
+             name = aws_vpc_endpoint.main_ec2_endpoint.dns_entry[0].dns_name
+             zone_id = aws_vpc_endpoint.main_ec2_endpoint.dns_entry[0].hosted_zone_id
+             evaluate_target_health = true
+  }
+}

@@ -136,10 +136,9 @@ data "aws_iam_policy_document" "vpc_main_flow_log" {
 }
 
 resource "aws_subnet" "public" {
-  count      = length(var.aws_availability_zones)
-  vpc_id     = aws_vpc.main.id
-  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
-
+  count             = length(var.aws_availability_zones)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
   availability_zone = var.aws_availability_zones[count.index]
 
   tags = {
@@ -453,7 +452,6 @@ resource "aws_route" "pcx_datasets_to_private_without_egress" {
   vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_notebooks.id
 }
 
-
 resource "aws_subnet" "datasets" {
   count      = length(var.aws_availability_zones)
   vpc_id     = aws_vpc.datasets.id
@@ -494,4 +492,136 @@ resource "aws_subnet" "datasets_quicksight" {
 resource "aws_route_table_association" "datasets_quicksight" {
   subnet_id      = aws_subnet.datasets_quicksight.id
   route_table_id = aws_route_table.datasets.id
+}
+
+resource "aws_vpc_endpoint" "main_s3_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.s3"
+  route_table_ids = [aws_route_table.private_with_egress.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-s3-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "main_dynamodb_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.dynamodb"
+  route_table_ids = [aws_route_table.private_with_egress.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-dynamodb-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "main_ec2_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ec2"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ec2-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "main_ec2messages_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ec2messages"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ec2messages-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "main_ssm_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ssm"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ssm-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "main_ssmmessages_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ssmmessages"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ssmmessages-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "main_ecs_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ecs"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ecs-endpoint"
+  }
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "main_ecs_agent_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ecs-agent"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ecs-agent-endpoint"
+  }
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "main_ecs_telemetry_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ecs-telemetry"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ecs-telemetry-endpoint"
+  }
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "main_ecr_api_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ecr.api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ecr-api-endpoint"
+  }
+}
+
+
+resource "aws_vpc_endpoint" "main_ecr_dkr_endpoint" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.eu-west-2.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.main_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "main-ecr-dkr-endpoint"
+  }
 }
