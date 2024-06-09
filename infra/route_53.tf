@@ -255,78 +255,78 @@ resource "aws_acm_certificate_validation" "arango" {
 #   certificate_arn = "${aws_acm_certificate.jupyterhub.arn}"
 # }
 
-resource "aws_route53_zone" "datasets_ec2messages_endpoint_hosted_zone" {
+resource "aws_route53_zone" "main_ec2messages_endpoint_hosted_zone" {
   name  = "ec2messages.eu-west-2.amazonaws.com"
   vpc {
-    vpc_id = aws_vpc.datasets.id
+    vpc_id = aws_vpc.main.id
   }
 }
 
 resource "aws_route53_record" "ec2messages_endpoint_record" {
-        zone_id  = aws_route53_zone.datasets_ec2messages_endpoint_hosted_zone.zone_id
+        zone_id  = aws_route53_zone.main_ec2messages_endpoint_hosted_zone.zone_id
         name    = "ec2messages.eu-west-2.amazonaws.com"
         type    = "A"
 
          alias {
-             name = aws_vpc_endpoint.datasets_ec2messages_endpoint.dns_entry[0].dns_name
-             zone_id = aws_vpc_endpoint.datasets_ec2messages_endpoint.dns_entry[0].hosted_zone_id
+             name = aws_vpc_endpoint.main_ec2messages_endpoint.dns_entry[0].dns_name
+             zone_id = aws_vpc_endpoint.main_ec2messages_endpoint.dns_entry[0].hosted_zone_id
              evaluate_target_health = true
   }
 }
 
-resource "aws_route53_zone" "datasets_ssm_endpoint_hosted_zone" {
+resource "aws_route53_zone" "main_ssm_endpoint_hosted_zone" {
   name  = "ssm.eu-west-2.amazonaws.com"
   vpc {
-    vpc_id = aws_vpc.datasets.id
+    vpc_id = aws_vpc.main.id
   }
 }
 
 resource "aws_route53_record" "ssm_endpoint_record" {
-        zone_id  = aws_route53_zone.datasets_ssm_endpoint_hosted_zone.zone_id
+        zone_id  = aws_route53_zone.main_ssm_endpoint_hosted_zone.zone_id
         name    = "ssm.eu-west-2.amazonaws.com"
         type    = "A"
 
          alias {
-             name = aws_vpc_endpoint.datasets_ssm_endpoint.dns_entry[0].dns_name
-             zone_id = aws_vpc_endpoint.datasets_ssm_endpoint.dns_entry[0].hosted_zone_id
+             name = aws_vpc_endpoint.main_ssm_endpoint.dns_entry[0].dns_name
+             zone_id = aws_vpc_endpoint.main_ssm_endpoint.dns_entry[0].hosted_zone_id
              evaluate_target_health = true
   }
 }
 
-resource "aws_route53_zone" "datasets_ssmmessages_endpoint_hosted_zone" {
+resource "aws_route53_zone" "main_ssmmessages_endpoint_hosted_zone" {
   name  = "ssmmessages.eu-west-2.amazonaws.com"
   vpc {
-    vpc_id = aws_vpc.datasets.id
+    vpc_id = aws_vpc.main.id
   }
 }
 
 resource "aws_route53_record" "ssmmessages_endpoint_record" {
-        zone_id  = aws_route53_zone.datasets_ssmmessages_endpoint_hosted_zone.zone_id
+        zone_id  = aws_route53_zone.main_ssmmessages_endpoint_hosted_zone.zone_id
         name    = "ssmmessages.eu-west-2.amazonaws.com"
         type    = "A"
 
          alias {
-             name = aws_vpc_endpoint.datasets_ssmmessages_endpoint.dns_entry[0].dns_name
-             zone_id = aws_vpc_endpoint.datasets_ssmmessages_endpoint.dns_entry[0].hosted_zone_id
+             name = aws_vpc_endpoint.main_ssmmessages_endpoint.dns_entry[0].dns_name
+             zone_id = aws_vpc_endpoint.main_ssmmessages_endpoint.dns_entry[0].hosted_zone_id
              evaluate_target_health = true
   }
 }
 
-resource "aws_route53_zone" "datasets_ec2_endpoint_hosted_zone" {
+resource "aws_route53_zone" "main_ec2_endpoint_hosted_zone" {
   name  = "ec2.eu-west-2.amazonaws.com"
   vpc {
-    vpc_id = aws_vpc.datasets.id
+    vpc_id = aws_vpc.main.id
   }
 }
 
 resource "aws_route53_record" "ec2_endpoint_record" {
-        zone_id  = aws_route53_zone.datasets_ec2_endpoint_hosted_zone.zone_id
+        zone_id  = aws_route53_zone.main_ec2_endpoint_hosted_zone.zone_id
         name    = "ec2.eu-west-2.amazonaws.com"
         type    = "A"
 
          alias {
-             name = aws_vpc_endpoint.datasets_ec2_endpoint.dns_entry[0].dns_name
-             zone_id = aws_vpc_endpoint.datasets_ec2_endpoint.dns_entry[0].hosted_zone_id
+             name = aws_vpc_endpoint.main_ec2_endpoint.dns_entry[0].dns_name
+             zone_id = aws_vpc_endpoint.main_ec2_endpoint.dns_entry[0].hosted_zone_id
              evaluate_target_health = true
   }
 }
