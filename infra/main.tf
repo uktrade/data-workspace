@@ -166,7 +166,10 @@ variable "airflow_on" {
 
 variable "airflow_db_instance_class" {}
 variable "airflow_domain" {}
-variable "airflow_dag_processors" {}
+variable "airflow_dag_processors" {
+  type    = list(any)
+  default = []
+}
 
 variable "datasets_rds_cluster_database_engine" {}
 variable "datasets_rds_cluster_instance_parameter_group" {}
@@ -287,7 +290,7 @@ locals {
   superset_container_cpu    = 1024
 
   airflow_container_memory = 8192
-  airflow_container_cpu    = 1024
+  airflow_container_cpu    = 4096
 
   flower_container_memory = 8192
   flower_container_cpu    = 1024

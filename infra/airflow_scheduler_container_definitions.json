@@ -1,5 +1,6 @@
 [
   {
+    "command": ${command},
     "environment": [{
       "name": "DB_HOST",
       "value": "${db_host}"
@@ -25,6 +26,15 @@
       "name": "SENTRY_ENVIRONMENT",
       "value": "${sentry_environment}"
     },{
+      "name": "AUTHBROKER_URL",
+      "value": "${authbroker_url}"
+    },{
+      "name": "AUTHBROKER_CLIENT_ID",
+      "value": "${authbroker_client_id}"
+    },{
+      "name": "AUTHBROKER_CLIENT_SECRET",
+      "value": "${authbroker_client_secret}"
+    },{
       "name": "DATASETS_DB_HOST",
       "value": "${datasets_db_host}"
     },{
@@ -40,8 +50,26 @@
       "name": "DATASETS_DB_USER",
       "value": "${datasets_db_user}"
     },{
-      "name": "TEAM",
-      "value": "${team}"
+      "name": "AIRFLOW__AWS_ECS_EXECUTOR__REGION_NAME",
+      "value": "eu-west-2"
+    },{
+      "name": "AIRFLOW__AWS_ECS_EXECUTOR__SUBNETS",
+      "value": "${subnets}"
+    },{
+      "name": "AIRFLOW__AWS_ECS_EXECUTOR__SECURITY_GROUPS",
+      "value": "${security_groups}"
+    },{
+      "name": "AIRFLOW__AWS_ECS_EXECUTOR__TASK_DEFINITION",
+      "value": "${task_definition}"
+    },{
+      "name": "AIRFLOW__AWS_ECS_EXECUTOR__CLUSTER",
+      "value": "${cluster}"
+    },{
+      "name": "AIRFLOW__AWS_ECS_EXECUTOR__CONTAINER_NAME",
+      "value": "airflow"
+    },{
+      "name": "AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER",
+      "value": "cloudwatch://${cloudwatch_log_group_arn}"
     }
   ],
     "essential": true,

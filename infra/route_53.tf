@@ -190,7 +190,7 @@ resource "aws_acm_certificate_validation" "superset_internal" {
   certificate_arn = aws_acm_certificate.superset_internal[count.index].arn
 }
 
-resource "aws_route53_record" "airflow" {
+resource "aws_route53_record" "airflow_webserver" {
   count    = var.airflow_on ? 1 : 0
   provider = aws.route53
   zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
@@ -198,8 +198,8 @@ resource "aws_route53_record" "airflow" {
   type     = "A"
 
   alias {
-    name                   = aws_lb.airflow[count.index].dns_name
-    zone_id                = aws_lb.airflow[count.index].zone_id
+    name                   = aws_lb.airflow_webserver[count.index].dns_name
+    zone_id                = aws_lb.airflow_webserver[count.index].zone_id
     evaluate_target_health = false
   }
 
@@ -208,9 +208,9 @@ resource "aws_route53_record" "airflow" {
   }
 }
 
-resource "aws_acm_certificate" "airflow" {
+resource "aws_acm_certificate" "airflow_webserver" {
   count             = var.airflow_on ? 1 : 0
-  domain_name       = aws_route53_record.airflow[count.index].name
+  domain_name       = aws_route53_record.airflow_webserver[count.index].name
   validation_method = "DNS"
 
   lifecycle {
@@ -218,9 +218,9 @@ resource "aws_acm_certificate" "airflow" {
   }
 }
 
-resource "aws_acm_certificate_validation" "airflow" {
+resource "aws_acm_certificate_validation" "airflow_webserver" {
   count           = var.airflow_on ? 1 : 0
-  certificate_arn = aws_acm_certificate.airflow[count.index].arn
+  certificate_arn = aws_acm_certificate.airflow_webserver[count.index].arn
 }
 
 # resource "aws_route53_record" "jupyterhub" {
