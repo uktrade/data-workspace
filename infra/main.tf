@@ -166,6 +166,7 @@ variable "airflow_on" {
 
 variable "airflow_db_instance_class" {}
 variable "airflow_domain" {}
+variable "airflow_dag_processors" {}
 
 variable "datasets_rds_cluster_database_engine" {}
 variable "datasets_rds_cluster_instance_parameter_group" {}

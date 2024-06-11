@@ -1,0 +1,68 @@
+[
+  {
+    "environment": [{
+      "name": "DB_HOST",
+      "value": "${db_host}"
+    },{
+      "name": "DB_NAME",
+      "value": "${db_name}"
+    },{
+      "name": "DB_PASSWORD",
+      "value": "${db_password}"
+    },{
+      "name": "DB_PORT",
+      "value": "${db_port}"
+    },{
+      "name": "DB_USER",
+      "value": "${db_user}"
+    },{
+      "name": "SECRET_KEY",
+      "value": "${secret_key}"
+    },{
+      "name": "SENTRY_DSN",
+      "value": "${sentry_dsn}"
+    },{
+      "name": "SENTRY_ENVIRONMENT",
+      "value": "${sentry_environment}"
+    },{
+      "name": "DATASETS_DB_HOST",
+      "value": "${datasets_db_host}"
+    },{
+      "name": "DATASETS_DB_NAME",
+      "value": "${datasets_db_name}"
+    },{
+      "name": "DATASETS_DB_PASSWORD",
+      "value": "${datasets_db_password}"
+    },{
+      "name": "DATASETS_DB_PORT",
+      "value": "${datasets_db_port}"
+    },{
+      "name": "DATASETS_DB_USER",
+      "value": "${datasets_db_user}"
+    },{
+      "name": "TEAM",
+      "value": "${team}"
+    }
+  ],
+    "essential": true,
+    "image": "${container_image}",
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${log_group}",
+        "awslogs-region": "${log_region}",
+        "awslogs-stream-prefix": "${container_name}"
+      }
+    },
+    "networkMode": "awsvpc",
+    "memoryReservation": ${memory},
+    "cpu": ${cpu},
+    "mountPoints" : [],
+    "name": "${container_name}",
+    "portMappings": [{
+        "containerPort": 8080,
+        "hostPort": 8080,
+        "protocol": "tcp"
+    }]
+  }
+]
