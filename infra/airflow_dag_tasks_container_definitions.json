@@ -39,6 +39,9 @@
     },{
       "name": "AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER",
       "value": "cloudwatch://${cloudwatch_log_group_arn}"
+    },{
+      "name": "DAG_SYNC_GITHUB_KEY",
+      "value": "${dag_sync_github_key}"
     }
   ],
     "essential": true,

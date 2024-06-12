@@ -1582,6 +1582,30 @@ resource "aws_security_group_rule" "airflow_dag_processor_egress_https_all" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "airflow_dag_processor_egress_ssh_to_github" {
+  description = "egress-ssh-to-github"
+
+  security_group_id = aws_security_group.airflow_dag_processor_service.id
+  cidr_blocks       = var.github_ip_addresses
+
+  type      = "egress"
+  from_port = "22"
+  to_port   = "22"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_egress_ssh_to_github" {
+  description = "egress-ssh-to-github"
+
+  security_group_id = aws_security_group.airflow_webserver.id
+  cidr_blocks       = var.github_ip_addresses
+
+  type      = "egress"
+  from_port = "22"
+  to_port   = "22"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_airflow_dag_processor" {
   description = "ingress-https-from-airflow"
 

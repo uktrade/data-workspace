@@ -26,6 +26,8 @@ resource "aws_ecs_task_definition" "airflow_dag_tasks" {
       sentry_environment = "${var.sentry_environment}"
 
       cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
+
+      dag_sync_github_key = "${var.dag_sync_github_key}"
     }
   )
   execution_role_arn       = aws_iam_role.airflow_webserver_execution[count.index].arn
