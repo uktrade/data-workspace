@@ -1558,6 +1558,80 @@ resource "aws_security_group" "airflow_service" {
   }
 }
 
+resource "aws_security_group_rule" "airflow_dag_processor_service_egress_https_to_cloudwatch" {
+  description = "egress-https-to-cloudwatch"
+
+  security_group_id        = aws_security_group.airflow_dag_processor_service.id
+  source_security_group_id = aws_security_group.cloudwatch.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_dag_processor_egress_https_all" {
+  description = "egress-https-to-all"
+
+  security_group_id = aws_security_group.airflow_dag_processor_service.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecr_api_ingress_https_from_airflow_dag_processor" {
+  description = "ingress-https-from-airflow"
+
+  security_group_id        = aws_security_group.ecr_api.id
+  source_security_group_id = aws_security_group.airflow_dag_processor_service.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_dag_processor_service_egress_postgres_airflow_db" {
+  description = "egress-postgres-airflow-db"
+
+  security_group_id        = aws_security_group.airflow_dag_processor_service.id
+  source_security_group_id = aws_security_group.airflow_db.id
+
+  type      = "egress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_dag_processor_service" {
+  description = "ingress-airflow-dag-processor-service"
+
+  security_group_id        = aws_security_group.airflow_db.id
+  source_security_group_id = aws_security_group.airflow_dag_processor_service.id
+
+  type      = "ingress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "airflow_dag_processor_service" {
+  name        = "${var.prefix}-airflow-dag-processor-service"
+  description = "${var.prefix}-airflow-dag-processor-service"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-airflow-dag-processor-service"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_security_group" "airflow_lb" {
   name        = "${var.prefix}-airflow-lb"
   description = "${var.prefix}-airflow-lb"
