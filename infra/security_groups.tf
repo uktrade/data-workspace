@@ -1423,10 +1423,10 @@ resource "aws_security_group_rule" "superset_lb_egress_http_superset_service" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_service_egress_https_to_cloudwatch" {
+resource "aws_security_group_rule" "airflow_webserver_egress_https_to_cloudwatch" {
   description = "egress-https-to-cloudwatch"
 
-  security_group_id        = aws_security_group.airflow_service.id
+  security_group_id        = aws_security_group.airflow_webserver.id
   source_security_group_id = aws_security_group.cloudwatch.id
 
   type      = "egress"
@@ -1435,11 +1435,11 @@ resource "aws_security_group_rule" "airflow_service_egress_https_to_cloudwatch" 
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_service_ingress_http_airflow_lb" {
+resource "aws_security_group_rule" "airflow_webserver_ingress_http_airflow_webserver_lb" {
   description = "ingress-airflow-lb"
 
-  security_group_id        = aws_security_group.airflow_service.id
-  source_security_group_id = aws_security_group.airflow_lb.id
+  security_group_id        = aws_security_group.airflow_webserver.id
+  source_security_group_id = aws_security_group.airflow_webserver_lb.id
 
   type      = "ingress"
   from_port = "8080"
@@ -1447,10 +1447,10 @@ resource "aws_security_group_rule" "airflow_service_ingress_http_airflow_lb" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_service_egress_postgres_airflow_db" {
+resource "aws_security_group_rule" "airflow_webserver_egress_postgres_airflow_db" {
   description = "egress-postgres-airflow-db"
 
-  security_group_id        = aws_security_group.airflow_service.id
+  security_group_id        = aws_security_group.airflow_webserver.id
   source_security_group_id = aws_security_group.airflow_db.id
 
   type      = "egress"
@@ -1459,11 +1459,11 @@ resource "aws_security_group_rule" "airflow_service_egress_postgres_airflow_db" 
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_service" {
+resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_webserver" {
   description = "ingress-airflow-service"
 
   security_group_id        = aws_security_group.airflow_db.id
-  source_security_group_id = aws_security_group.airflow_service.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
 
   type      = "ingress"
   from_port = "5432"
@@ -1471,10 +1471,10 @@ resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_service"
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_service_egress_postgres_datasets_db" {
+resource "aws_security_group_rule" "airflow_webserver_egress_postgres_datasets_db" {
   description = "egress-postgres-datasets-db"
 
-  security_group_id        = aws_security_group.airflow_service.id
+  security_group_id        = aws_security_group.airflow_webserver.id
   source_security_group_id = aws_security_group.datasets.id
 
   type      = "egress"
@@ -1483,11 +1483,11 @@ resource "aws_security_group_rule" "airflow_service_egress_postgres_datasets_db"
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_lb_egress_http_airflow_service" {
+resource "aws_security_group_rule" "airflow_webserver_lb_egress_http_airflow_webserver" {
   description = "egress-http-airflow-service"
 
-  security_group_id        = aws_security_group.airflow_lb.id
-  source_security_group_id = aws_security_group.airflow_service.id
+  security_group_id        = aws_security_group.airflow_webserver_lb.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
 
   type      = "egress"
   from_port = "8080"
@@ -1498,7 +1498,7 @@ resource "aws_security_group_rule" "airflow_lb_egress_http_airflow_service" {
 resource "aws_security_group_rule" "airflow_egress_https_all" {
   description = "egress-https-to-all"
 
-  security_group_id = aws_security_group.airflow_service.id
+  security_group_id = aws_security_group.airflow_webserver.id
   cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "egress"
@@ -1511,7 +1511,7 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_airflow" {
   description = "ingress-https-from-airflow"
 
   security_group_id        = aws_security_group.ecr_api.id
-  source_security_group_id = aws_security_group.airflow_service.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
 
   type      = "ingress"
   from_port = "443"
@@ -1523,7 +1523,7 @@ resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_airflow" {
   description = "ingress-postgres-from-airflow"
 
   security_group_id        = aws_security_group.datasets.id
-  source_security_group_id = aws_security_group.airflow_service.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
 
   type      = "ingress"
   from_port = aws_rds_cluster_instance.datasets.port
@@ -1531,11 +1531,11 @@ resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_airflow" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_lb_ingress_http_from_whitelist" {
+resource "aws_security_group_rule" "airflow_webserver_lb_ingress_http_from_whitelist" {
   count       = var.airflow_on ? 1 : 0
   description = "ingress-http-from-whitelist"
 
-  security_group_id = aws_security_group.airflow_lb.id
+  security_group_id = aws_security_group.airflow_webserver_lb.id
   cidr_blocks       = var.gitlab_ip_whitelist
 
   type      = "ingress"
@@ -1544,13 +1544,13 @@ resource "aws_security_group_rule" "airflow_lb_ingress_http_from_whitelist" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group" "airflow_service" {
-  name        = "${var.prefix}-airflow-service"
-  description = "${var.prefix}-airflow-service"
+resource "aws_security_group" "airflow_webserver" {
+  name        = "${var.prefix}-airflow-webserver"
+  description = "${var.prefix}-airflow-webserver"
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "${var.prefix}-airflow-service"
+    Name = "${var.prefix}-airflow-webserver"
   }
 
   lifecycle {
@@ -1632,13 +1632,13 @@ resource "aws_security_group" "airflow_dag_processor_service" {
   }
 }
 
-resource "aws_security_group" "airflow_lb" {
-  name        = "${var.prefix}-airflow-lb"
-  description = "${var.prefix}-airflow-lb"
+resource "aws_security_group" "airflow_webserver_lb" {
+  name        = "${var.prefix}-airflow-webserver-lb"
+  description = "${var.prefix}-airflow-webserver-lb"
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "${var.prefix}-airflow-lb"
+    Name = "${var.prefix}-airflow-webserver-lb"
   }
 
   lifecycle {
