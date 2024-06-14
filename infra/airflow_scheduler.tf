@@ -51,7 +51,7 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
       subnets         = "${aws_subnet.private_with_egress.*.id[0]}"
       security_groups = "${aws_security_group.airflow_webserver.id}"
       task_definition = "${aws_ecs_task_definition.airflow_dag_tasks[0].arn}"
-      cluster         = "${aws_ecs_cluster.notebooks.name}"
+      cluster         = "${aws_ecs_cluster.airflow_dag_tasks.name}"
 
       cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
     }
