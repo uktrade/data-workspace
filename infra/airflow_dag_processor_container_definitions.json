@@ -46,6 +46,9 @@
     },{
       "name": "TEAM",
       "value": "${team}"
+    },{
+      "name": "DAG_SYNC_GITHUB_KEY",
+      "value": "${dag_sync_github_key}"
     }
   ],
     "essential": true,

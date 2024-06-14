@@ -171,6 +171,12 @@ variable "airflow_dag_processors" {
   default = []
 }
 
+variable "dag_sync_github_key" {}
+variable "github_ip_addresses" {
+  type    = list(any)
+  default = []
+}
+
 variable "datasets_rds_cluster_database_engine" {}
 variable "datasets_rds_cluster_instance_parameter_group" {}
 variable "datasets_rds_cluster_backup_retention_period" {}
