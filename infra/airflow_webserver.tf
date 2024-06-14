@@ -110,7 +110,7 @@ resource "aws_ecs_task_definition" "airflow_webserver" {
       subnets         = "${aws_subnet.private_with_egress.*.id[0]}"
       security_groups = "${aws_security_group.airflow_webserver.id}"
       task_definition = "${aws_ecs_task_definition.airflow_dag_tasks[0].arn}"
-      cluster         = "${aws_ecs_cluster.notebooks.name}"
+      cluster         = "${aws_ecs_cluster.airflow_dag_tasks.name}"
 
       cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
     }
@@ -277,7 +277,7 @@ data "aws_iam_policy_document" "airflow_webserver_task" {
     ]
 
     resources = [
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.notebooks.name}",
+      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.airflow_dag_tasks.name}",
     ]
   }
 
@@ -290,7 +290,7 @@ data "aws_iam_policy_document" "airflow_webserver_task" {
       test     = "ArnEquals"
       variable = "ecs:cluster"
       values = [
-        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.notebooks.name}",
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.airflow_dag_tasks.name}",
       ]
     }
 
@@ -309,7 +309,7 @@ data "aws_iam_policy_document" "airflow_webserver_task" {
       test     = "ArnEquals"
       variable = "ecs:cluster"
       values = [
-        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.notebooks.name}",
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.airflow_dag_tasks.name}",
       ]
     }
 
@@ -327,7 +327,7 @@ data "aws_iam_policy_document" "airflow_webserver_task" {
       test     = "ArnEquals"
       variable = "ecs:cluster"
       values = [
-        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.notebooks.name}",
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.airflow_dag_tasks.name}",
       ]
     }
 

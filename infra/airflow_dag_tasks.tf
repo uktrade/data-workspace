@@ -1,3 +1,7 @@
+resource "aws_ecs_cluster" "airflow_dag_tasks" {
+  name = "${var.prefix}-airflow-dag-tasks"
+}
+
 resource "aws_ecs_task_definition" "airflow_dag_tasks" {
   count  = var.airflow_on ? 1 : 0
   family = "${var.prefix}-airflow-dag-tasks"
