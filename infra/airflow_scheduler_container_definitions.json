@@ -73,6 +73,9 @@
     },{
       "name": "DAG_SYNC_GITHUB_KEY",
       "value": "${dag_sync_github_key}"
+    },{
+      "name": "CUSTOM_ECS_EXECUTOR__TASK_ROLE_ARN_PREFIX",
+      "value": "${task_role_arn_prefix}"
     }
   ],
     "essential": true,

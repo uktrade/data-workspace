@@ -342,10 +342,9 @@ data "aws_iam_policy_document" "airflow_webserver_task" {
     actions = [
       "iam:PassRole"
     ]
-    resources = [
+    resources = concat([
       "${aws_iam_role.airflow_webserver_execution[count.index].arn}",
-      "${aws_iam_role.airflow_webserver_task[count.index].arn}",
-    ]
+    ], [for team_role in aws_iam_role.airflow_team : team_role.arn])
   }
 
   # For viewing logs (webserver)
@@ -355,29 +354,6 @@ data "aws_iam_policy_document" "airflow_webserver_task" {
     ]
 
     # Should be tighter
-    resources = [
-      "*"
-    ]
-  }
-
-  # For the tasks
-  statement {
-    actions = [
-      "logs:CreateLogGroup"
-    ]
-
-    # Should be tighter
-    resources = [
-      "*"
-    ]
-  }
-
-  statement {
-    actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-    ]
-
     resources = [
       "*"
     ]
