@@ -11,8 +11,6 @@ resource "aws_ecs_task_definition" "airflow_dag_tasks" {
       container_name  = "airflow"
       log_group       = "${aws_cloudwatch_log_group.airflow_webserver[count.index].name}"
       log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.airflow_container_cpu}"
-      memory          = "${local.airflow_container_memory}"
 
       db_host     = "${aws_rds_cluster.airflow[count.index].endpoint}"
       db_name     = "${aws_rds_cluster.airflow[count.index].database_name}"

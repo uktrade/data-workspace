@@ -55,8 +55,6 @@
       }
     },
     "networkMode": "awsvpc",
-    "memoryReservation": ${memory},
-    "cpu": ${cpu},
     "mountPoints" : [],
     "name": "${container_name}",
     "portMappings": [{
