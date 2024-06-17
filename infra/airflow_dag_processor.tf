@@ -16,6 +16,7 @@ resource "aws_ecs_service" "airflow_dag_processor" {
 }
 
 locals {
+  airflow_team_role_prefix = "${var.prefix}-airflow-team-"
   airflow_dag_processor_container_vars = [
     for i, v in var.airflow_dag_processors : {
       command = "[\"/home/vcap/app/dataflow/bin/aws-dag-processor.sh\"]"
@@ -59,7 +60,7 @@ resource "aws_ecs_task_definition" "airflow_dag_processor_service" {
     local.airflow_dag_processor_container_vars[count.index]
   )
   execution_role_arn       = aws_iam_role.airflow_dag_processor_execution[count.index].arn
-  task_role_arn            = aws_iam_role.airflow_dag_processor_task[count.index].arn
+  task_role_arn            = aws_iam_role.airflow_team[count.index].arn
   network_mode             = "awsvpc"
   cpu                      = local.airflow_container_cpu
   memory                   = local.airflow_container_memory
@@ -157,11 +158,24 @@ data "aws_iam_policy_document" "airflow_dag_processor_execution" {
   }
 }
 
-resource "aws_iam_role" "airflow_dag_processor_task" {
+resource "aws_iam_role" "airflow_team" {
   count              = var.airflow_on ? length(var.airflow_dag_processors) : 0
-  name               = "${var.prefix}-airflow-dp-task-${var.airflow_dag_processors[count.index]}"
+  name               = "${local.airflow_team_role_prefix}${var.airflow_dag_processors[count.index]}"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.airflow_dag_processor_task_ecs_tasks_assume_role[count.index].json
+}
+
+resource "aws_iam_policy" "airflow_team" {
+  count  = var.airflow_on ? length(var.airflow_dag_processors) : 0
+  name   = "${local.airflow_team_role_prefix}${var.airflow_dag_processors[count.index]}"
+  path   = "/"
+  policy = data.aws_iam_policy_document.airflow_team[count.index].json
+}
+
+resource "aws_iam_role_policy_attachment" "airflow_team" {
+  count      = var.airflow_on ? length(var.airflow_dag_processors) : 0
+  role       = aws_iam_role.airflow_team[count.index].name
+  policy_arn = aws_iam_policy.airflow_team[count.index].arn
 }
 
 data "aws_iam_policy_document" "airflow_dag_processor_task_ecs_tasks_assume_role" {
@@ -173,5 +187,31 @@ data "aws_iam_policy_document" "airflow_dag_processor_task_ecs_tasks_assume_role
       type        = "Service"
       identifiers = ["ecs-tasks.amazonaws.com"]
     }
+  }
+}
+
+data "aws_iam_policy_document" "airflow_team" {
+  count = var.airflow_on ? length(var.airflow_dag_processors) : 0
+  statement {
+    actions = [
+      "logs:CreateLogGroup"
+    ]
+
+    # Should be tighter
+    resources = [
+      "*"
+    ]
+  }
+
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    # Should be tighter
+    resources = [
+      "*"
+    ]
   }
 }

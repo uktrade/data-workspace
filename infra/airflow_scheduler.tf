@@ -53,6 +53,8 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
       task_definition = "${aws_ecs_task_definition.airflow_dag_tasks[0].arn}"
       cluster         = "${aws_ecs_cluster.airflow_dag_tasks.name}"
 
+      task_role_arn_prefix = "arn:aws:iam::${data.aws_caller_identity.aws_caller_identity.account_id}:role/${local.airflow_team_role_prefix}"
+
       cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
 
       dag_sync_github_key = "${var.dag_sync_github_key}"
