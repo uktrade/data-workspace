@@ -214,4 +214,14 @@ data "aws_iam_policy_document" "airflow_team" {
       "*"
     ]
   }
+
+  statement {
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      "arn:aws:secretsmanager:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:secret:${var.prefix}/airflow/${var.airflow_dag_processors[count.index]}-*"
+    ]
+  }
 }
