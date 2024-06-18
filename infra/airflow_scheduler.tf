@@ -58,6 +58,7 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
       cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
 
       dag_sync_github_key = "${var.dag_sync_github_key}"
+      prefix              = "${var.prefix}"
     }
   )
   execution_role_arn       = aws_iam_role.airflow_webserver_execution[count.index].arn

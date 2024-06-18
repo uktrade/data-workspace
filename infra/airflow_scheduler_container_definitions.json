@@ -76,6 +76,9 @@
     },{
       "name": "CUSTOM_ECS_EXECUTOR__TASK_ROLE_ARN_PREFIX",
       "value": "${task_role_arn_prefix}"
+    },{
+      "name": "PREFIX",
+      "value": "${prefix}"
     }
   ],
     "essential": true,
