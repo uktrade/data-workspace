@@ -47,6 +47,7 @@ locals {
       cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
 
       team                = "${v}"
+      team_secret_id      = "${var.prefix}/airflow/${v}"
       dag_sync_github_key = "${var.dag_sync_github_key}"
     }
   ]
