@@ -295,8 +295,8 @@ locals {
   superset_container_memory = 8192
   superset_container_cpu    = 1024
 
-  airflow_container_memory = 8192
-  airflow_container_cpu    = 4096
+  airflow_container_memory = 2048
+  airflow_container_cpu    = 1024
 
   flower_container_memory = 8192
   flower_container_cpu    = 1024
