@@ -1,5 +1,5 @@
 #!/bin/bash
-# install and start ecs agent 
+# install and start ecs agent
 
 EC2_INSTANCE_ID=$(ec2-metadata --instance-id | sed 's/instance-id: //')
 aws ec2 attach-volume --volume-id ${EBS_VOLUME_ID} --instance-id $EC2_INSTANCE_ID --device /dev/xvdf --region ${EBS_REGION}
@@ -15,9 +15,6 @@ fi
 sudo mkdir -p /data
 sudo mount $device /data
 
-mkdir /etc/ecs/
+mkdir -p /etc/ecs/
 echo "ECS_CLUSTER=${ECS_CLUSTER}" >> /etc/ecs/ecs.config
-sudo aws s3 cp s3://uploads-data-trade-dev-a-uktrade-digital/amazon-ecs-init-latest.x86_64.rpm /usr/local/bin
-sudo yum localinstall -y /usr/local/bin/amazon-ecs-init-latest.x86_64.rpm
-# sudo yum install -y ecs-init
-sudo systemctl restart ecs
+sudo systemctl enable --now --no-block ecs

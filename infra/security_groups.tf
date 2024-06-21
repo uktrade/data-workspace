@@ -2372,11 +2372,24 @@ resource "aws_security_group" "main_endpoints" {
   }
 }
 
-resource "aws_security_group_rule" "main_endpoint_ingress" {
-  description = "endpoint-ingress-from-main-vpc"
+resource "aws_security_group" "datasets_endpoints" {
+  name        = "${var.prefix}-datasets-endpoints"
+  description = "${var.prefix}-datasets-endpoints"
+  vpc_id      = aws_vpc.datasets.id
 
-  security_group_id        = aws_security_group.main_endpoints.id
-#   cidr_blocks       = [aws_vpc.main.cidr_block]
+  tags = {
+    Name = "${var.prefix}-datasets-endpoints"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "datasets_endpoint_ingress" {
+  description = "endpoint-ingress-from-datasets-vpc"
+
+  security_group_id        = aws_security_group.datasets_endpoints.id
   cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "ingress"
@@ -2385,10 +2398,10 @@ resource "aws_security_group_rule" "main_endpoint_ingress" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "main_endpoint_engress" {
+resource "aws_security_group_rule" "datasets_endpoint_engress" {
   description = "engress-https-to-everywhere"
 
-  security_group_id        = aws_security_group.main_endpoints.id
+  security_group_id        = aws_security_group.datasets_endpoints.id
   cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "egress"

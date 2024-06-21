@@ -136,6 +136,10 @@ resource "aws_vpc_endpoint" "ecr_dkr_datasets" {
   subnet_ids         = ["${aws_subnet.datasets.*.id[0]}"]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecr-dkr-endpoint"
+  }
 
   timeouts {}
 }
@@ -150,6 +154,10 @@ resource "aws_vpc_endpoint" "ecr_api_datasets" {
   subnet_ids         = ["${aws_subnet.datasets.*.id[0]}"]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecr-api-endpoint"
+  }
 
   timeouts {}
 }
