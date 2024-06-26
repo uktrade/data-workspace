@@ -169,7 +169,7 @@ module "jupyterhub" {
   jwt_private_key = "-----BEGIN PRIVATE KEY-----\\REPLACE_ME\\n-----END PRIVATE KEY-----\\n"
   jwt_public_key  = "-----BEGIN PUBLIC KEY-----\\REPLACE_ME\\n-----END PUBLIC KEY-----\\n"
 
-  arango_image_id        = "ami-0c618421e207909d0"
+  arango_image_id        = "ami-093b9bbd71042c2d4"
   arango_instance_type   = "t2.xlarge"
   arango_ebs_volume_size = 20
   arango_ebs_volume_type = "gp3"

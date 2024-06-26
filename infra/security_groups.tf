@@ -2358,20 +2358,6 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_arango_ec2" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group" "main_endpoints" {
-  name        = "${var.prefix}-main-endpoints"
-  description = "${var.prefix}-main-endpoints"
-  vpc_id      = aws_vpc.main.id
-
-  tags = {
-    Name = "${var.prefix}-main-endpoints"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_security_group" "datasets_endpoints" {
   name        = "${var.prefix}-datasets-endpoints"
   description = "${var.prefix}-datasets-endpoints"

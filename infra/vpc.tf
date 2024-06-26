@@ -607,3 +607,30 @@ resource "aws_vpc_endpoint" "datasets_logs_endpoint" {
   }
   private_dns_enabled = true
 }
+
+
+resource "aws_vpc_endpoint" "datasets_ecr_api_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ecr.api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecr-api-endpoint"
+  }
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "datasets_ecr_dkr_endpoint" {
+  vpc_id       = aws_vpc.datasets.id
+  service_name = "com.amazonaws.eu-west-2.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+  subnet_ids = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name = "datasets-ecr-dkr-endpoint"
+  }
+  private_dns_enabled = true
+}
