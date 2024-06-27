@@ -61,8 +61,8 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
       prefix              = "${var.prefix}"
     }
   )
-  execution_role_arn       = aws_iam_role.airflow_webserver_execution[count.index].arn
-  task_role_arn            = aws_iam_role.airflow_webserver_task[count.index].arn
+  execution_role_arn       = aws_iam_role.airflow_scheduler_execution[count.index].arn
+  task_role_arn            = aws_iam_role.airflow_scheduler_task[count.index].arn
   network_mode             = "awsvpc"
   cpu                      = local.airflow_container_cpu
   memory                   = local.airflow_container_memory
@@ -79,4 +79,42 @@ resource "aws_cloudwatch_log_group" "airflow_scheduler" {
   count             = var.airflow_on ? 1 : 0
   name              = "${var.prefix}-airflow-scheduler"
   retention_in_days = "3653"
+}
+
+resource "aws_iam_role" "airflow_scheduler_execution" {
+  count              = var.airflow_on ? 1 : 0
+  name               = "${var.prefix}-airflow-scheduler-execution"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.airflow_scheduler_execution_ecs_tasks_assume_role[count.index].json
+}
+
+resource "aws_iam_role" "airflow_scheduler_task" {
+  count              = var.airflow_on ? 1 : 0
+  name               = "${var.prefix}-airflow-scheduler-task"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.airflow_scheduler_task_ecs_tasks_assume_role[count.index].json
+}
+
+data "aws_iam_policy_document" "airflow_scheduler_execution_ecs_tasks_assume_role" {
+  count = var.airflow_on != "" ? 1 : 0
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["airflow-env.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "airflow_scheduler_task_ecs_tasks_assume_role" {
+  count = var.airflow_on != "" ? 1 : 0
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["airflow-env.amazonaws.com"]
+    }
+  }
 }
