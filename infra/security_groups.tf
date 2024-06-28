@@ -1558,6 +1558,142 @@ resource "aws_security_group" "airflow_webserver" {
   }
 }
 
+resource "aws_security_group" "airflow_scheduler" {
+  name        = "${var.prefix}-airflow-scheduler"
+  description = "${var.prefix}-airflow-scheduler"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-airflow-scheduler"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "airflow_scheduler_egress_https_to_ecr_api" {
+  description = "egress-https-to-ecr-api"
+
+  security_group_id        = aws_security_group.airflow_scheduler.id
+  source_security_group_id = aws_security_group.ecr_api.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecr_api_ingress_https_from_airflow_scheduler" {
+  description = "ingress-https-from-airflow-scheduler"
+
+  security_group_id        = aws_security_group.ecr_api.id
+  source_security_group_id = aws_security_group.airflow_scheduler.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_scheduler_egress_https_to_ecs" {
+  description = "egress-https-to-ecs"
+
+  security_group_id        = aws_security_group.airflow_scheduler.id
+  source_security_group_id = aws_security_group.ecs.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecs_ingress_https_from_airflow_scheduler" {
+  description = "ingress-https-from-airflow-scheduler"
+
+  security_group_id        = aws_security_group.ecs.id
+  source_security_group_id = aws_security_group.airflow_scheduler.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_scheduler_egress_https_to_ecr_dkr" {
+  description = "egress-https-to-ecr-dkr"
+
+  security_group_id        = aws_security_group.airflow_scheduler.id
+  source_security_group_id = aws_security_group.ecr_dkr.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+# S3 is used by ecr-dkr. However, S3 is a gateway endpoint that doesn't have a private IP address
+# as interface endpoints. However, there is still a "prefix list" mechanism to restrict egress
+resource "aws_security_group_rule" "airflow_scheduler_egress_https_to_s3" {
+  description = "egress-https-to-s3"
+
+  security_group_id = aws_security_group.airflow_scheduler.id
+  prefix_list_ids   = [aws_vpc_endpoint.main_s3.prefix_list_id]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecr_dkr_ingress_https_from_airflow_scheduler" {
+  description = "ingress-https-airflow-scheduler"
+
+  security_group_id        = aws_security_group.ecr_dkr.id
+  source_security_group_id = aws_security_group.airflow_scheduler.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_scheduler_egress_https_to_cloudwatch" {
+  description = "egress-https-to-cloudwatch"
+
+  security_group_id        = aws_security_group.airflow_scheduler.id
+  source_security_group_id = aws_security_group.cloudwatch.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_scheduler_egress_postgres_airflow_db" {
+  description = "egress-postgres-to-airflow-db"
+
+  security_group_id        = aws_security_group.airflow_scheduler.id
+  source_security_group_id = aws_security_group.airflow_db.id
+
+  type      = "egress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_scheduler" {
+  description = "ingress-postgres-from-airflow-service"
+
+  security_group_id        = aws_security_group.airflow_db.id
+  source_security_group_id = aws_security_group.airflow_scheduler.id
+
+  type      = "ingress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "airflow_dag_processor_service_egress_https_to_cloudwatch" {
   description = "egress-https-to-cloudwatch"
 
@@ -2169,5 +2305,27 @@ resource "aws_security_group_rule" "notebooks_egress_http_to_mlflow_service" {
   type      = "egress"
   from_port = local.mlflow_port
   to_port   = local.mlflow_port
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "ecs" {
+  name   = "${var.prefix}-ecs"
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-ecs"
+  }
+}
+
+resource "aws_security_group_rule" "ecs_ingress_https_from_gitlab_ec2" {
+  count       = var.gitlab_on ? 1 : 0
+  description = "ingress-https-from-gitlab-ec2"
+
+  security_group_id        = aws_security_group.ecs.id
+  source_security_group_id = aws_security_group.gitlab-ec2[count.index].id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
   protocol  = "tcp"
 }
