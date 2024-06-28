@@ -495,3 +495,10 @@ resource "aws_route_table_association" "datasets_quicksight" {
   subnet_id      = aws_subnet.datasets_quicksight.id
   route_table_id = aws_route_table.datasets.id
 }
+
+resource "aws_vpc_endpoint" "main_s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.s3"
+  vpc_endpoint_type = "Gateway"
+  # policy = data.aws_iam_policy_document.aws_vpc_endpoint_s3_notebooks.json
+}
