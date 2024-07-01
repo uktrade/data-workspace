@@ -17,7 +17,7 @@
       "name": "DB_USER",
       "value": "${db_user}"
     },{
-      "name": "AIRFLOW_WEBSERVER_SECRET_KEY",
+      "name": "AIRFLOW__WEBSERVER__SECRET_KEY",
       "value": "${secret_key}"
     },{
       "name": "SENTRY_DSN",
