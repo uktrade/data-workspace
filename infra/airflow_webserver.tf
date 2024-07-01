@@ -3,7 +3,7 @@ resource "aws_ecs_service" "airflow_webserver" {
   name                              = "${var.prefix}-airflow-webserver"
   cluster                           = aws_ecs_cluster.main_cluster.id
   task_definition                   = aws_ecs_task_definition.airflow_webserver[count.index].arn
-  desired_count                     = 1
+  desired_count                     = 2
   launch_type                       = "FARGATE"
   deployment_maximum_percent        = 200
   platform_version                  = "1.4.0"
@@ -75,7 +75,7 @@ resource "aws_lb_target_group" "airflow_webserver_8080" {
 
 resource "aws_ecs_task_definition" "airflow_webserver" {
   count  = var.airflow_on ? 1 : 0
-  family = "${var.prefix}-airflow"
+  family = "${var.prefix}-airflow-webserver"
   container_definitions = templatefile(
     "${path.module}/airflow_webserver_container_definitions.json", {
       command = "[\"airflow\",\"webserver\",\"-p 8080\"]"
