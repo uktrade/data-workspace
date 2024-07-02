@@ -10,7 +10,7 @@ resource "aws_ecs_service" "airflow_scheduler" {
 
   network_configuration {
     subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.airflow_webserver.id}"]
+    security_groups = ["${aws_security_group.airflow_scheduler.id}"]
   }
 }
 
