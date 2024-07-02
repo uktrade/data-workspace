@@ -23,7 +23,7 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
 
       container_image = "${aws_ecr_repository.airflow.repository_url}:master"
       container_name  = "airflow"
-      log_group       = "${aws_cloudwatch_log_group.airflow_webserver[count.index].name}"
+      log_group       = "${aws_cloudwatch_log_group.airflow_scheduler[count.index].name}"
       log_region      = "${data.aws_region.aws_region.name}"
       cpu             = "${local.airflow_container_cpu}"
       memory          = "${local.airflow_container_memory}"
@@ -88,11 +88,149 @@ resource "aws_iam_role" "airflow_scheduler_execution" {
   assume_role_policy = data.aws_iam_policy_document.airflow_scheduler_execution_ecs_tasks_assume_role[count.index].json
 }
 
+resource "aws_iam_policy" "airflow_scheduler_execution" {
+  count  = var.airflow_on ? 1 : 0
+  name   = "${var.prefix}-airflow-scheduler-execution"
+  path   = "/"
+  policy = data.aws_iam_policy_document.airflow_scheduler_execution[count.index].json
+}
+
+resource "aws_iam_role_policy_attachment" "airflow_scheduler_execution" {
+  count      = var.airflow_on ? 1 : 0
+  role       = aws_iam_role.airflow_scheduler_execution[count.index].name
+  policy_arn = aws_iam_policy.airflow_scheduler_execution[count.index].arn
+}
+
+data "aws_iam_policy_document" "airflow_scheduler_execution" {
+  count = var.airflow_on ? 1 : 0
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = [
+      "${aws_cloudwatch_log_group.airflow_scheduler[count.index].arn}:*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+    ]
+
+    resources = [
+      "${aws_ecr_repository.airflow.arn}",
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecr:GetAuthorizationToken",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+}
+
 resource "aws_iam_role" "airflow_scheduler_task" {
   count              = var.airflow_on ? 1 : 0
   name               = "${var.prefix}-airflow-scheduler-task"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.airflow_scheduler_task_ecs_tasks_assume_role[count.index].json
+}
+
+resource "aws_iam_policy" "airflow_scheduler_task" {
+  count  = var.airflow_on ? 1 : 0
+  name   = "${var.prefix}-airflow-scheduler-task"
+  path   = "/"
+  policy = data.aws_iam_policy_document.airflow_scheduler_task[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "airflow_scheduler_task" {
+  count      = var.airflow_on ? 1 : 0
+  role       = aws_iam_role.airflow_scheduler_task[count.index].name
+  policy_arn = aws_iam_policy.airflow_scheduler_task[0].arn
+}
+
+data "aws_iam_policy_document" "airflow_scheduler_task" {
+  count = var.airflow_on ? 1 : 0
+
+  statement {
+    actions = [
+      "ecs:DescribeClusters"
+    ]
+
+    resources = [
+      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.airflow_dag_tasks.name}",
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecs:RunTask",
+    ]
+
+    condition {
+      test     = "ArnEquals"
+      variable = "ecs:cluster"
+      values = [
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.airflow_dag_tasks.name}",
+      ]
+    }
+
+    resources = [
+      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.airflow_dag_tasks[0].family}:*"
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecs:DescribeTasks",
+    ]
+
+    condition {
+      test     = "ArnEquals"
+      variable = "ecs:cluster"
+      values = [
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.airflow_dag_tasks.name}",
+      ]
+    }
+
+    resources = [
+      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task/*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecs:StopTask",
+    ]
+
+    condition {
+      test     = "ArnEquals"
+      variable = "ecs:cluster"
+      values = [
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.airflow_dag_tasks.name}",
+      ]
+    }
+
+    resources = [
+      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task/*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "iam:PassRole"
+    ]
+    resources = concat([
+      "${aws_iam_role.airflow_webserver_execution[count.index].arn}",
+    ], [for team_role in aws_iam_role.airflow_team : team_role.arn])
+  }
 }
 
 data "aws_iam_policy_document" "airflow_scheduler_execution_ecs_tasks_assume_role" {
@@ -102,7 +240,7 @@ data "aws_iam_policy_document" "airflow_scheduler_execution_ecs_tasks_assume_rol
 
     principals {
       type        = "Service"
-      identifiers = ["airflow-env.amazonaws.com"]
+      identifiers = ["ecs-tasks.amazonaws.com"]
     }
   }
 }
@@ -114,7 +252,7 @@ data "aws_iam_policy_document" "airflow_scheduler_task_ecs_tasks_assume_role" {
 
     principals {
       type        = "Service"
-      identifiers = ["airflow-env.amazonaws.com"]
+      identifiers = ["ecs-tasks.amazonaws.com"]
     }
   }
 }
