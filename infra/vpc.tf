@@ -515,6 +515,27 @@ resource "aws_vpc_endpoint" "datasets_ec2_endpoint" {
     Name = "datasets-ec2-endpoint"
   }
   private_dns_enabled = true
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ec2.json
+}
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_ec2" {
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_ec2.arn}"]
+    }
+
+    actions = [
+      "ec2:attachVolume",
+    ]
+
+    resources = [
+      "arn:aws:sts::${data.aws_caller_identity.aws_caller_identity.account_id}:assumed-role/data-workspace-dev-a-arango-ec2/*",
+      "arn:aws:ec2:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:instance/*",
+      "${aws_ebs_volume.arango.arn}"
+    ]
+  }
 }
 
 resource "aws_vpc_endpoint" "datasets_ec2messages_endpoint" {
@@ -528,6 +549,7 @@ resource "aws_vpc_endpoint" "datasets_ec2messages_endpoint" {
     Name = "datasets-ec2messages-endpoint"
   }
   private_dns_enabled = true
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ssm.json
 }
 
 resource "aws_vpc_endpoint" "datasets_ssm_endpoint" {
@@ -541,6 +563,7 @@ resource "aws_vpc_endpoint" "datasets_ssm_endpoint" {
     Name = "datasets-ssm-endpoint"
   }
   private_dns_enabled = true
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ssm.json
 }
 
 resource "aws_vpc_endpoint" "datasets_ssmmessages_endpoint" {
@@ -554,6 +577,25 @@ resource "aws_vpc_endpoint" "datasets_ssmmessages_endpoint" {
     Name = "datasets-ssmmessages-endpoint"
   }
   private_dns_enabled = true
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ssm.json
+}
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_ssm" {
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_ec2.arn}"]
+    }
+
+    actions = [
+      "*"
+    ]
+
+    resources = [
+      "arn:aws:*:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:*"
+    ]
+  }
 }
 
 resource "aws_vpc_endpoint" "datasets_ecs_endpoint" {
@@ -567,6 +609,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_endpoint" {
     Name = "datasets-ecs-endpoint"
   }
   private_dns_enabled = true
+#   policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
 }
 
 resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
@@ -580,6 +623,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
     Name = "datasets-ecs-agent-endpoint"
   }
   private_dns_enabled = true
+#   policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
 }
 
 resource "aws_vpc_endpoint" "datasets_ecs_telemetry_endpoint" {
@@ -593,7 +637,47 @@ resource "aws_vpc_endpoint" "datasets_ecs_telemetry_endpoint" {
     Name = "datasets-ecs-telemetry-endpoint"
   }
   private_dns_enabled = true
+#   policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
 }
+
+# data "aws_iam_policy_document" "aws_datasets_endpoint_ecs" {
+#
+#   statement {
+#     principals {
+#       type        = "AWS"
+#       identifiers = ["*"]
+#     }
+#
+#     actions = [
+#       "*"
+#     ]
+#
+#     resources = [
+#       "*"
+#     ]
+#     condition {
+#       test     = "ArnEquals"
+#       variable = "ecs:cluster"
+#       values = [
+#         "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.main_cluster.name}"
+#       ]
+#     }
+#   }
+#
+#   statement {
+#     principals {
+#       type        = "AWS"
+#       identifiers = ["*"]
+#     }
+#     actions = [
+#       "ecs:RegisterContainerInstance"
+#     ]
+#
+#     resources = [
+#       "*"
+#     ]
+#   }
+# }
 
 resource "aws_vpc_endpoint" "datasets_logs_endpoint" {
   vpc_id       = aws_vpc.datasets.id
@@ -620,6 +704,7 @@ resource "aws_vpc_endpoint" "datasets_ecr_api_endpoint" {
     Name = "datasets-ecr-api-endpoint"
   }
   private_dns_enabled = true
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecr.json
 }
 
 resource "aws_vpc_endpoint" "datasets_ecr_dkr_endpoint" {
@@ -633,4 +718,138 @@ resource "aws_vpc_endpoint" "datasets_ecr_dkr_endpoint" {
     Name = "datasets-ecr-dkr-endpoint"
   }
   private_dns_enabled = true
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecr.json
+}
+
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_ecr" {
+  # Contains policies for both ECR and DKR endpoints, as recommended
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_task.arn}"]
+    }
+
+    actions = [
+      "ecr:DescribeImages",
+      "ecr:BatchGetImage",
+      "ecr:PutImage",
+    ]
+
+    resources = [
+      "${aws_ecr_repository.user_provided.arn}",
+    ]
+  }
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_task.arn}"]
+    }
+
+    actions = [
+      "ecs:DescribeTaskDefinition",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_task.arn}"]
+    }
+
+    actions = [
+      "ecs:RegisterTaskDefinition",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_task.arn}"]
+    }
+
+    actions = [
+      "ecs:StopTask",
+    ]
+
+    condition {
+      test     = "ArnEquals"
+      variable = "ecs:cluster"
+      values = [
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.main_cluster.name}",
+      ]
+    }
+
+    resources = [
+      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task/*",
+    ]
+  }
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_task.arn}"]
+    }
+
+    actions = [
+      "ecs:DescribeTasks",
+    ]
+
+    condition {
+      test     = "ArnEquals"
+      variable = "ecs:cluster"
+      values = [
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.main_cluster.name}",
+      ]
+    }
+
+    resources = [
+      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task/*",
+    ]
+  }
+
+  # For Fargate to start tasks
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer"
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+    ]
+
+    resources = [
+      "${aws_ecr_repository.arango.arn}"
+    ]
+  }
 }
