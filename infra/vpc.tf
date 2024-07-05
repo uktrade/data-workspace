@@ -609,7 +609,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_endpoint" {
     Name = "datasets-ecs-endpoint"
   }
   private_dns_enabled = true
-#   policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
 }
 
 resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
@@ -623,7 +623,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
     Name = "datasets-ecs-agent-endpoint"
   }
   private_dns_enabled = true
-#   policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
 }
 
 resource "aws_vpc_endpoint" "datasets_ecs_telemetry_endpoint" {
@@ -637,47 +637,47 @@ resource "aws_vpc_endpoint" "datasets_ecs_telemetry_endpoint" {
     Name = "datasets-ecs-telemetry-endpoint"
   }
   private_dns_enabled = true
-#   policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
 }
 
-# data "aws_iam_policy_document" "aws_datasets_endpoint_ecs" {
-#
-#   statement {
-#     principals {
-#       type        = "AWS"
-#       identifiers = ["*"]
-#     }
-#
-#     actions = [
-#       "*"
-#     ]
-#
-#     resources = [
-#       "*"
-#     ]
-#     condition {
-#       test     = "ArnEquals"
-#       variable = "ecs:cluster"
-#       values = [
-#         "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.main_cluster.name}"
-#       ]
-#     }
-#   }
-#
-#   statement {
-#     principals {
-#       type        = "AWS"
-#       identifiers = ["*"]
-#     }
-#     actions = [
-#       "ecs:RegisterContainerInstance"
-#     ]
-#
-#     resources = [
-#       "*"
-#     ]
-#   }
-# }
+data "aws_iam_policy_document" "aws_datasets_endpoint_ecs" {
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_ec2.arn}"]
+    }
+
+    actions = [
+      "*"
+    ]
+
+    resources = [
+      "*"
+    ]
+    condition {
+      test     = "ArnEquals"
+      variable = "ecs:cluster"
+      values = [
+        "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.main_cluster.name}"
+      ]
+    }
+  }
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_ec2.arn}"]
+    }
+    actions = [
+      "*"
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
 
 resource "aws_vpc_endpoint" "datasets_logs_endpoint" {
   vpc_id       = aws_vpc.datasets.id
