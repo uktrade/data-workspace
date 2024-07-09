@@ -690,8 +690,26 @@ resource "aws_vpc_endpoint" "datasets_logs_endpoint" {
     Name = "datasets-logs-endpoint"
   }
   private_dns_enabled = true
+  policy = data.aws_iam_policy_document.aws_datasets_endpoint_logs.json
 }
 
+data "aws_iam_policy_document" "aws_datasets_endpoint_logs" {
+
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_iam_role.arango_task_execution.arn}"]
+    }
+
+    actions = [
+      "*",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
 
 resource "aws_vpc_endpoint" "datasets_ecr_api_endpoint" {
   vpc_id       = aws_vpc.datasets.id
