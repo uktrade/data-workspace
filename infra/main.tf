@@ -90,6 +90,10 @@ variable "sentry_dsn" {}
 variable "sentry_notebooks_dsn" {}
 variable "sentry_environment" {}
 
+variable "airflow_authbroker_client_id" {}
+variable "airflow_authbroker_client_secret" {}
+variable "airflow_authbroker_url" {}
+
 variable "notebook_task_role_prefix" {}
 variable "notebook_task_role_policy_name" {}
 
@@ -155,6 +159,24 @@ variable "superset_internal_domain" {}
 
 variable "superset_dw_user_username" {}
 variable "superset_dw_user_password" {}
+
+variable "airflow_on" {
+  type    = bool
+  default = true
+}
+
+variable "airflow_db_instance_class" {}
+variable "airflow_domain" {}
+variable "airflow_dag_processors" {
+  type    = list(any)
+  default = []
+}
+
+variable "dag_sync_github_key" {}
+variable "github_ip_addresses" {
+  type    = list(any)
+  default = []
+}
 
 variable "datasets_rds_cluster_database_engine" {}
 variable "datasets_rds_cluster_instance_parameter_group" {}
@@ -278,6 +300,9 @@ locals {
 
   superset_container_memory = 8192
   superset_container_cpu    = 1024
+
+  airflow_container_memory = 2048
+  airflow_container_cpu    = 1024
 
   flower_container_memory = 8192
   flower_container_cpu    = 1024

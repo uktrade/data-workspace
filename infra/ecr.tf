@@ -86,6 +86,10 @@ resource "aws_ecr_repository" "superset" {
   name = "${var.prefix}-superset"
 }
 
+resource "aws_ecr_repository" "airflow" {
+  name = "${var.prefix}-airflow"
+}
+
 resource "aws_ecr_repository" "flower" {
   name = "${var.prefix}-flower"
 }
@@ -273,6 +277,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
       "${aws_ecr_repository.mirrors_sync.arn}",
       "${aws_ecr_repository.mirrors_sync_cran_binary.arn}",
       "${aws_ecr_repository.superset.arn}",
+      "${aws_ecr_repository.airflow.arn}",
       "${aws_ecr_repository.flower.arn}",
       "${aws_ecr_repository.mlflow.arn}",
       "${aws_ecr_repository.arango.arn}"

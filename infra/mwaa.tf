@@ -205,17 +205,18 @@ resource "aws_s3_bucket_versioning" "mwaa_source_bucket" {
 
 # MWAA
 resource "aws_mwaa_environment" "mwaa" {
-  count                = var.mwaa_environment_name != "" ? 1 : 0
-  name                 = var.mwaa_environment_name
-  environment_class    = "mw1.small" # mw1.small, mw1.medium, mw1.large
-  dag_s3_path          = "dags/"
-  execution_role_arn   = aws_iam_role.mwaa_execution_role[0].arn
-  source_bucket_arn    = aws_s3_bucket.mwaa_source_bucket[0].arn
-  airflow_version      = "2.8.1"
-  schedulers           = 2
-  min_workers          = 1
-  max_workers          = 10
-  requirements_s3_path = "requirements.txt"
+  count                  = var.mwaa_environment_name != "" ? 1 : 0
+  name                   = var.mwaa_environment_name
+  environment_class      = "mw1.small" # mw1.small, mw1.medium, mw1.large
+  dag_s3_path            = "dags/"
+  execution_role_arn     = aws_iam_role.mwaa_execution_role[0].arn
+  source_bucket_arn      = aws_s3_bucket.mwaa_source_bucket[0].arn
+  airflow_version        = "2.8.1"
+  schedulers             = 2
+  min_workers            = 1
+  max_workers            = 10
+  requirements_s3_path   = "requirements.txt"
+  startup_script_s3_path = aws_s3_object.mwaa_source_bucket_startup_script[0].key
 
   webserver_access_mode = "PUBLIC_ONLY"
 
@@ -227,7 +228,6 @@ resource "aws_mwaa_environment" "mwaa" {
   lifecycle {
     ignore_changes = [
       requirements_s3_object_version,
-      plugins_s3_object_version
     ]
   }
 
@@ -259,4 +259,15 @@ resource "aws_mwaa_environment" "mwaa" {
     security_group_ids = ["${aws_security_group.mwaa[0].id}"]
     subnet_ids         = slice(aws_subnet.private_with_egress.*.id, 0, 2)
   }
+}
+
+resource "aws_s3_object" "mwaa_source_bucket_startup_script" {
+  key    = "startup.sh"
+  count  = var.mwaa_environment_name != "" ? 1 : 0
+  bucket = aws_s3_bucket.mwaa_source_bucket[0].id
+  content = templatefile(
+    "${path.module}/startup.sh", {
+      secret_name = var.mwaa_environment_name
+    }
+  )
 }

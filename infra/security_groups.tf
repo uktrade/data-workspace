@@ -1449,8 +1449,6 @@ resource "aws_security_group_rule" "sentryproxy_service_egress_https_to_ecr_api"
   protocol  = "tcp"
 }
 
-
-
 resource "aws_security_group_rule" "superset_service_egress_https_to_cloudwatch" {
   description = "egress-https-to-cloudwatch"
 
@@ -1511,6 +1509,267 @@ resource "aws_security_group_rule" "superset_lb_egress_http_superset_service" {
   from_port = "8000"
   to_port   = "8000"
   protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_egress_https_to_cloudwatch" {
+  description = "egress-https-to-cloudwatch"
+
+  security_group_id        = aws_security_group.airflow_webserver.id
+  source_security_group_id = aws_security_group.cloudwatch.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_ingress_http_airflow_webserver_lb" {
+  description = "ingress-airflow-lb"
+
+  security_group_id        = aws_security_group.airflow_webserver.id
+  source_security_group_id = aws_security_group.airflow_webserver_lb.id
+
+  type      = "ingress"
+  from_port = "8080"
+  to_port   = "8080"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_egress_postgres_airflow_db" {
+  description = "egress-postgres-airflow-db"
+
+  security_group_id        = aws_security_group.airflow_webserver.id
+  source_security_group_id = aws_security_group.airflow_db.id
+
+  type      = "egress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_webserver" {
+  description = "ingress-airflow-service"
+
+  security_group_id        = aws_security_group.airflow_db.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
+
+  type      = "ingress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_egress_postgres_datasets_db" {
+  description = "egress-postgres-datasets-db"
+
+  security_group_id        = aws_security_group.airflow_webserver.id
+  source_security_group_id = aws_security_group.datasets.id
+
+  type      = "egress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_lb_egress_http_airflow_webserver" {
+  description = "egress-http-airflow-service"
+
+  security_group_id        = aws_security_group.airflow_webserver_lb.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
+
+  type      = "egress"
+  from_port = "8080"
+  to_port   = "8080"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_egress_https_all" {
+  description = "egress-https-to-all"
+
+  security_group_id = aws_security_group.airflow_webserver.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecr_api_ingress_https_from_airflow" {
+  description = "ingress-https-from-airflow"
+
+  security_group_id        = aws_security_group.ecr_api.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_airflow" {
+  description = "ingress-postgres-from-airflow"
+
+  security_group_id        = aws_security_group.datasets.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
+
+  type      = "ingress"
+  from_port = aws_rds_cluster_instance.datasets.port
+  to_port   = aws_rds_cluster_instance.datasets.port
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_lb_ingress_http_from_whitelist" {
+  count       = var.airflow_on ? 1 : 0
+  description = "ingress-http-from-whitelist"
+
+  security_group_id = aws_security_group.airflow_webserver_lb.id
+  cidr_blocks       = var.gitlab_ip_whitelist
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "airflow_webserver" {
+  name        = "${var.prefix}-airflow-webserver"
+  description = "${var.prefix}-airflow-webserver"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-airflow-webserver"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "airflow_dag_processor_service_egress_https_to_cloudwatch" {
+  description = "egress-https-to-cloudwatch"
+
+  security_group_id        = aws_security_group.airflow_dag_processor_service.id
+  source_security_group_id = aws_security_group.cloudwatch.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_dag_processor_egress_https_all" {
+  description = "egress-https-to-all"
+
+  security_group_id = aws_security_group.airflow_dag_processor_service.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_dag_processor_egress_ssh_to_github" {
+  description = "egress-ssh-to-github"
+
+  security_group_id = aws_security_group.airflow_dag_processor_service.id
+  cidr_blocks       = var.github_ip_addresses
+
+  type      = "egress"
+  from_port = "22"
+  to_port   = "22"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_egress_ssh_to_github" {
+  description = "egress-ssh-to-github"
+
+  security_group_id = aws_security_group.airflow_webserver.id
+  cidr_blocks       = var.github_ip_addresses
+
+  type      = "egress"
+  from_port = "22"
+  to_port   = "22"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ecr_api_ingress_https_from_airflow_dag_processor" {
+  description = "ingress-https-from-airflow"
+
+  security_group_id        = aws_security_group.ecr_api.id
+  source_security_group_id = aws_security_group.airflow_dag_processor_service.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_dag_processor_service_egress_postgres_airflow_db" {
+  description = "egress-postgres-airflow-db"
+
+  security_group_id        = aws_security_group.airflow_dag_processor_service.id
+  source_security_group_id = aws_security_group.airflow_db.id
+
+  type      = "egress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_dag_processor_service" {
+  description = "ingress-airflow-dag-processor-service"
+
+  security_group_id        = aws_security_group.airflow_db.id
+  source_security_group_id = aws_security_group.airflow_dag_processor_service.id
+
+  type      = "ingress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "airflow_dag_processor_service" {
+  name        = "${var.prefix}-airflow-dag-processor-service"
+  description = "${var.prefix}-airflow-dag-processor-service"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-airflow-dag-processor-service"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "airflow_webserver_lb" {
+  name        = "${var.prefix}-airflow-webserver-lb"
+  description = "${var.prefix}-airflow-webserver-lb"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-airflow-webserver-lb"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "airflow_db" {
+  name        = "${var.prefix}-airflow-db"
+  description = "${var.prefix}-airflow-db"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-airflow-db"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_security_group" "flower_lb" {
