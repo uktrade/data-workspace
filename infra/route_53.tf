@@ -190,6 +190,23 @@ resource "aws_acm_certificate_validation" "superset_internal" {
   certificate_arn = aws_acm_certificate.superset_internal[count.index].arn
 }
 
+resource "aws_route53_record" "arango" {
+  provider = "aws.route53"
+  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
+  name     = "arango"
+  type     = "A"
+
+  alias {
+    name                   = aws_lb.arango.dns_name
+    zone_id                = aws_lb.arango.zone_id
+    evaluate_target_health = false
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+    
 resource "aws_route53_record" "airflow_webserver" {
   count    = var.airflow_on ? 1 : 0
   provider = aws.route53
@@ -208,6 +225,16 @@ resource "aws_route53_record" "airflow_webserver" {
   }
 }
 
+resource "aws_acm_certificate" "arango" {
+  domain_name       = aws_route53_record.arango.name
+
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+    
 resource "aws_acm_certificate" "airflow_webserver" {
   count             = var.airflow_on ? 1 : 0
   domain_name       = aws_route53_record.airflow_webserver[count.index].name
@@ -216,6 +243,10 @@ resource "aws_acm_certificate" "airflow_webserver" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+resource "aws_acm_certificate_validation" "arango" {
+  certificate_arn = aws_acm_certificate.arango.arn
 }
 
 resource "aws_acm_certificate_validation" "airflow_webserver" {

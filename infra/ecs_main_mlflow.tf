@@ -1,17 +1,19 @@
 locals {
-  mlflow_container_vars = [for i, v in var.mlflow_instances : {
-    container_image      = "${aws_ecr_repository.mlflow.repository_url}:master"
-    container_name       = "mlflow"
-    log_group            = "${aws_cloudwatch_log_group.mlflow[i].name}"
-    log_region           = "${data.aws_region.aws_region.name}"
-    cpu                  = "${local.mlflow_container_cpu}"
-    memory               = "${local.mlflow_container_memory}"
-    artifact_bucket_name = "${aws_s3_bucket.mlflow[i].bucket}"
-    jwt_public_key       = "${var.jwt_public_key}"
-    mlflow_hostname      = "http://mlflow--${var.mlflow_instances_long[i]}.${var.admin_domain}"
-    database_uri         = "postgresql://${aws_rds_cluster.mlflow[i].master_username}:${random_string.aws_db_instance_mlflow_password[i].result}@${aws_rds_cluster.mlflow[i].endpoint}:5432/${aws_rds_cluster.mlflow[i].database_name}"
-    proxy_port           = "${local.mlflow_port}"
-  }]
+  mlflow_container_vars = var.mlflow_on ? {
+    "0" = {
+      container_image      = "${aws_ecr_repository.mlflow.repository_url}:master"
+      container_name       = "mlflow"
+      log_group            = "${aws_cloudwatch_log_group.mlflow[0].name}"
+      log_region           = "${data.aws_region.aws_region.name}"
+      cpu                  = "${local.mlflow_container_cpu}"
+      memory               = "${local.mlflow_container_memory}"
+      artifact_bucket_name = "${aws_s3_bucket.mlflow[0].bucket}"
+      jwt_public_key       = "${var.jwt_public_key}"
+      mlflow_hostname      = "http://mlflow--${var.mlflow_instances_long[0]}.${var.admin_domain}"
+      database_uri         = "postgresql://${aws_rds_cluster.mlflow[0].master_username}:${random_string.aws_db_instance_mlflow_password[0].result}@${aws_rds_cluster.mlflow[0].endpoint}:5432/${aws_rds_cluster.mlflow[0].database_name}"
+      proxy_port           = "${local.mlflow_port}"
+    }
+  } : {}
 }
 
 resource "aws_ecs_service" "mlflow" {

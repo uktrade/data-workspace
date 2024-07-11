@@ -53,6 +53,7 @@ module "jupyterhub" {
   vpc_notebooks_cidr             = "172.17.0.0/16"
   vpc_notebooks_subnets_num_bits = "5"
   vpc_datasets_cidr              = "172.18.4.0/22"
+  vpc_datasets_subnets_num_bits  = "8"
 
   aws_availability_zones       = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
   aws_availability_zones_short = ["a", "b", "c"]
@@ -141,21 +142,12 @@ module "jupyterhub" {
   datasets_rds_cluster_instance_performance_insights_enabled = "true"
   datasets_rds_cluster_instance_identifier                   = "REPLACE_ME"
 
-  paas_cidr_block       = "10.0.0.0/16"
-  paas_vpc_id           = "REPLACE_ME"
-  quicksight_cidr_block = "172.18.5.128/25"
-  quicksight_vpc_arn    = "REPLACE_ME"
-  datasets_subnet_cidr_blocks = [
-    "172.18.4.0/25",
-    "172.18.4.128/25",
-    "172.18.5.0/25",
-  ]
-  dataset_subnets_availability_zones = [
-    "eu-west-2a",
-    "eu-west-2b",
-    "eu-west-2b",
-  ] # The second and third subnet on the live environment are both in the same az
-
+  paas_cidr_block                       = "10.0.0.0/16"
+  paas_vpc_id                           = "REPLACE_ME"
+  quicksight_cidr_block                 = "172.18.5.128/25"
+  quicksight_vpc_arn                    = "REPLACE_ME"
+  datasets_subnet_cidr_blocks           = ["172.18.4.0/25", "172.18.4.128/25", "172.18.5.0/25", "172.18.6.0/25", "172.18.6.128/25", "172.18.7.0/25"]
+  dataset_subnets_availability_zones    = ["eu-west-2a", "eu-west-2b", "eu-west-2b"] # The second and third subnet on the live environment are both in the same az
   quicksight_security_group_name        = "jupyterhub-quicksight"
   quicksight_security_group_description = "Allow quicksight to connect to data workspace datasets DB"
   quicksight_subnet_availability_zone   = "eu-west-2b"
@@ -176,6 +168,11 @@ module "jupyterhub" {
 
   jwt_private_key = "-----BEGIN PRIVATE KEY-----\\REPLACE_ME\\n-----END PRIVATE KEY-----\\n"
   jwt_public_key  = "-----BEGIN PUBLIC KEY-----\\REPLACE_ME\\n-----END PUBLIC KEY-----\\n"
+
+  arango_image_id        = "ami-093b9bbd71042c2d4"
+  arango_instance_type   = "t2.xlarge"
+  arango_ebs_volume_size = 20
+  arango_ebs_volume_type = "gp3"
 
   mlflow_artifacts_bucket  = "REPLACE_ME"
   mlflow_instances         = ["REPLACE_ME"]

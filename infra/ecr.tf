@@ -98,6 +98,10 @@ resource "aws_ecr_repository" "mlflow" {
   name = "${var.prefix}-mlflow"
 }
 
+resource "aws_ecr_repository" "arango" {
+  name = "${var.prefix}-arango"
+}
+
 resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.dkr"
@@ -276,6 +280,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
       "${aws_ecr_repository.airflow.arn}",
       "${aws_ecr_repository.flower.arn}",
       "${aws_ecr_repository.mlflow.arn}",
+      "${aws_ecr_repository.arango.arn}"
     ]
   }
 
