@@ -136,10 +136,9 @@ data "aws_iam_policy_document" "vpc_main_flow_log" {
 }
 
 resource "aws_subnet" "public" {
-  count      = length(var.aws_availability_zones)
-  vpc_id     = aws_vpc.main.id
-  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
-
+  count             = length(var.aws_availability_zones)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
   availability_zone = var.aws_availability_zones[count.index]
 
   tags = {
@@ -303,7 +302,7 @@ resource "aws_vpc" "datasets" {
   cidr_block = var.vpc_datasets_cidr
 
   enable_dns_support   = true
-  enable_dns_hostnames = false
+  enable_dns_hostnames = true
 
   tags = {
     Name = "${var.prefix}-datasets"
@@ -509,4 +508,311 @@ resource "aws_vpc_endpoint" "ecs" {
   security_group_ids  = ["${aws_security_group.ecs.id}"]
   subnet_ids          = ["${aws_subnet.private_with_egress.*.id[0]}"]
   private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "datasets_s3_endpoint" {
+  vpc_id          = aws_vpc.datasets.id
+  service_name    = "com.amazonaws.eu-west-2.s3"
+  route_table_ids = [aws_route_table.datasets.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-s3-endpoint"
+  }
+  policy = data.aws_iam_policy_document.datasets_s3_endpoint.json
+}
+
+data "aws_iam_policy_document" "datasets_s3_endpoint" {
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["*"]
+      }
+
+      actions = [
+        "s3:GetObject",
+      ]
+
+      resources = [
+        "arn:aws:s3:::prod-${data.aws_region.aws_region.name}-starport-layer-bucket/*",
+      ]
+    }
+  }
+}
+
+resource "aws_vpc_endpoint" "datasets_ec2_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ec2"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ec2-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ec2.json
+}
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_ec2" {
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.arango_ec2[0].arn}"]
+      }
+
+      actions = [
+        "ec2:attachVolume",
+      ]
+
+      resources = [
+        "arn:aws:ec2:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:instance/*",
+        "${aws_ebs_volume.arango[0].arn}"
+      ]
+    }
+  }
+}
+
+resource "aws_vpc_endpoint" "datasets_ec2messages_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ec2messages"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ec2messages-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ssm.json
+}
+
+resource "aws_vpc_endpoint" "datasets_ssm_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ssm"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ssm-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ssm.json
+}
+
+resource "aws_vpc_endpoint" "datasets_ssmmessages_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ssmmessages"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ssmmessages-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ssm.json
+}
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_ssm" {
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.arango_ec2[0].arn}"]
+      }
+
+      actions = [
+        "*"
+      ]
+
+      resources = [
+        "arn:aws:*:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:*"
+      ]
+    }
+  }
+}
+
+resource "aws_vpc_endpoint" "datasets_ecs_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ecs"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ecs-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
+}
+
+resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ecs-agent"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ecs-agent-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
+}
+
+resource "aws_vpc_endpoint" "datasets_ecs_telemetry_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ecs-telemetry"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ecs-telemetry-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ecs.json
+}
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_ecs" {
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.arango_ec2[0].arn}"]
+      }
+
+      actions = [
+        "*"
+      ]
+
+      resources = [
+        "*"
+      ]
+      condition {
+        test     = "ArnEquals"
+        variable = "ecs:cluster"
+        values = [
+          "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:cluster/${aws_ecs_cluster.main_cluster.name}"
+        ]
+      }
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.arango_ec2[0].arn}"]
+      }
+      actions = [
+        "*"
+      ]
+
+      resources = [
+        "*"
+      ]
+    }
+  }
+}
+
+resource "aws_vpc_endpoint" "datasets_logs_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.logs"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-logs-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_logs.json
+}
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_logs" {
+
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.arango_task_execution[0].arn}"]
+      }
+
+      actions = [
+        "*",
+      ]
+
+      resources = [
+        "*"
+      ]
+    }
+  }
+}
+
+resource "aws_vpc_endpoint" "datasets_ecr_api_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ecr.api"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ecr-api-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ecr.json
+}
+
+resource "aws_vpc_endpoint" "datasets_ecr_dkr_endpoint" {
+  vpc_id             = aws_vpc.datasets.id
+  service_name       = "com.amazonaws.eu-west-2.ecr.dkr"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.datasets.*.id
+  security_group_ids = [aws_security_group.datasets_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "datasets-ecr-dkr-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ecr.json
+}
+
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_ecr" {
+  # Contains policies for both ECR and DKR endpoints, as recommended
+
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["*"]
+      }
+
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.arango_task_execution[0].arn}"]
+      }
+
+      actions = [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
+      ]
+
+      resources = [
+        "*",
+      ]
+    }
+  }
 }
