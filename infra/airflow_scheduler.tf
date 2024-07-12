@@ -231,6 +231,17 @@ data "aws_iam_policy_document" "airflow_scheduler_task" {
       "${aws_iam_role.airflow_webserver_execution[count.index].arn}",
     ], [for team_role in aws_iam_role.airflow_team : team_role.arn])
   }
+
+  statement {
+    actions = [
+      "logs:CreateLogGroup"
+    ]
+
+    # Should be tighter
+    resources = [
+      "*"
+    ]
+  }
 }
 
 data "aws_iam_policy_document" "airflow_scheduler_execution_ecs_tasks_assume_role" {
