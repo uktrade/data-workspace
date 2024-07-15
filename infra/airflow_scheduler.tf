@@ -10,7 +10,7 @@ resource "aws_ecs_service" "airflow_scheduler" {
 
   network_configuration {
     subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.airflow_webserver.id}"]
+    security_groups = ["${aws_security_group.airflow_scheduler.id}"]
   }
 }
 
@@ -230,6 +230,17 @@ data "aws_iam_policy_document" "airflow_scheduler_task" {
     resources = concat([
       "${aws_iam_role.airflow_webserver_execution[count.index].arn}",
     ], [for team_role in aws_iam_role.airflow_team : team_role.arn])
+  }
+
+  statement {
+    actions = [
+      "logs:CreateLogGroup"
+    ]
+
+    # Should be tighter
+    resources = [
+      "*"
+    ]
   }
 }
 

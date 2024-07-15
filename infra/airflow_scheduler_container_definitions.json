@@ -1,6 +1,7 @@
 [
   {
     "command": ${command},
+    "entryPoint": ["/home/vcap/app/dataflow/bin/aws-wrapper-no-git-sync.sh"],
     "environment": [{
       "name": "DB_HOST",
       "value": "${db_host}"
