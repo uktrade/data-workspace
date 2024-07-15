@@ -2329,3 +2329,15 @@ resource "aws_security_group_rule" "ecs_ingress_https_from_gitlab_ec2" {
   to_port   = "443"
   protocol  = "tcp"
 }
+
+resource "aws_security_group_rule" "ecs_ingress_https_from_admin_service" {
+  description = "ingress-https-from-admin-service"
+
+  security_group_id        = aws_security_group.ecs.id
+  source_security_group_id = aws_security_group.admin_service.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
