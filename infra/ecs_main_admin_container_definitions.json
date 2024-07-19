@@ -1008,7 +1008,6 @@
         "awslogs-stream-prefix": "${container_name}"
       }
     },
-    "memoryReservation": ${container_memory},
     "mountPoints": [],
     "name": "${container_name}",
     "portMappings": [{

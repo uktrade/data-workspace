@@ -1,10 +1,9 @@
 locals {
   admin_container_vars = {
-    container_image  = "${aws_ecr_repository.admin.repository_url}:${data.external.admin_current_tag.result.tag}"
-    container_name   = "${local.admin_container_name}"
-    container_port   = "${local.admin_container_port}"
-    container_cpu    = "${local.admin_container_cpu}"
-    container_memory = "${local.admin_container_memory}"
+    container_image = "${aws_ecr_repository.admin.repository_url}:${data.external.admin_current_tag.result.tag}"
+    container_name  = "${local.admin_container_name}"
+    container_port  = "${local.admin_container_port}"
+    container_cpu   = "${local.admin_container_cpu}"
 
     log_group  = "${aws_cloudwatch_log_group.admin.name}"
     log_region = "${data.aws_region.aws_region.name}"

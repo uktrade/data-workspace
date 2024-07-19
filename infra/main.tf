@@ -242,7 +242,7 @@ locals {
   admin_alb_port         = "443"
   admin_api_path         = "/api/v1/databases"
 
-  celery_container_memory = 4096
+  celery_container_memory = 8192
   celery_container_cpu    = 1024
 
   notebook_container_name     = "jupyterhub-notebook"
