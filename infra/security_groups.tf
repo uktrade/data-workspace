@@ -373,6 +373,19 @@ resource "aws_security_group_rule" "admin_service_egress_postgres_to_datasets_db
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "admin_service_egress_arango_to_aranglo_lb" {
+  count       = var.arango_on ? 1 : 0
+  description = "egress-arango-to-arango-lb"
+
+  security_group_id        = aws_security_group.admin_service.id
+  source_security_group_id = aws_security_group.arango_lb[0].id
+
+  type      = "egress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group" "admin_db" {
   name        = "${var.prefix}-admin-db"
   description = "${var.prefix}-admin-db"
@@ -519,6 +532,19 @@ resource "aws_security_group_rule" "notebooks_egress_postgres_to_datasets_db" {
   type      = "egress"
   from_port = aws_rds_cluster_instance.datasets.port
   to_port   = aws_rds_cluster_instance.datasets.port
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "notebooks_egress_arango_lb" {
+  count       = var.arango_on ? 1 : 0
+  description = "egress-to-arango-lb"
+
+  security_group_id        = aws_security_group.notebooks.id
+  source_security_group_id = aws_security_group.arango_lb[0].id
+
+  type      = "egress"
+  from_port = local.arango_container_port
+  to_port   = local.arango_container_port
   protocol  = "tcp"
 }
 
@@ -2335,6 +2361,197 @@ resource "aws_security_group_rule" "ecs_ingress_https_from_admin_service" {
 
   security_group_id        = aws_security_group.ecs.id
   source_security_group_id = aws_security_group.admin_service.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "arango_lb" {
+  count       = var.arango_on ? 1 : 0
+  name        = "${var.prefix}-arango_lb"
+  description = "${var.prefix}-arango_lb"
+  vpc_id      = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}-arango_lb"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "arango_lb_egress_https_to_arango_service" {
+  count       = var.arango_on ? 1 : 0
+  description = "egress-https-to-arango-service"
+
+  security_group_id        = aws_security_group.arango_lb[0].id
+  source_security_group_id = aws_security_group.arango_service[0].id
+
+  type      = "egress"
+  from_port = local.arango_container_port
+  to_port   = local.arango_container_port
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango_lb_notebooks_ingress" {
+  count       = var.arango_on ? 1 : 0
+  description = "inbound peering connection with notebooks vpc"
+
+  security_group_id        = aws_security_group.arango_lb[0].id
+  source_security_group_id = aws_security_group.notebooks.id
+
+  type      = "ingress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango_lb_ingress_arango_from_admin-service" {
+  count       = var.arango_on ? 1 : 0
+  description = "ingress-arrango-from-admin_service"
+
+  security_group_id        = aws_security_group.arango_lb[0].id
+  source_security_group_id = aws_security_group.admin_service.id
+
+  type      = "ingress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango_lb_egress_https_to_cloudwatch" {
+  count       = var.arango_on ? 1 : 0
+  description = "egress-https-to-cloudwatch"
+
+  security_group_id        = aws_security_group.arango_lb[0].id
+  source_security_group_id = aws_security_group.cloudwatch.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "arango_service" {
+  count       = var.arango_on ? 1 : 0
+  name        = "${var.prefix}-arango"
+  description = "${var.prefix}-arango"
+  vpc_id      = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}-arango"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# S3 is used by ecr-dkr. However, S3 is a gateway endpoint that doesn't have a private IP address
+# as interface endpoints. However, there is still a "prefix list" mechanism to restrict egress
+resource "aws_security_group_rule" "arango_ec2_egress_https_to_s3" {
+  count       = var.arango_on ? 1 : 0
+  description = "egress-https-to-s3"
+
+  security_group_id = aws_security_group.arango-ec2[0].id
+  prefix_list_ids   = [aws_vpc_endpoint.datasets_s3_endpoint.prefix_list_id]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango_service_egress_https_datasets_endpoints" {
+  count       = var.arango_on ? 1 : 0
+  description = "egress-ec2-agent"
+
+  security_group_id        = aws_security_group.arango_service[0].id
+  source_security_group_id = aws_security_group.datasets_endpoints.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "arango_service_ingress_arango_lb" {
+  count       = var.arango_on ? 1 : 0
+  description = "ingress-arango-lb"
+
+  security_group_id        = aws_security_group.arango_service[0].id
+  source_security_group_id = aws_security_group.arango_lb[0].id
+
+  type      = "ingress"
+  from_port = "8529"
+  to_port   = "8529"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "arango-ec2" {
+  count       = var.arango_on ? 1 : 0
+  name        = "${var.prefix}-arango-ec2"
+  description = "${var.prefix}-arango-ec2"
+  vpc_id      = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}-arango-ec2"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "arango_ec2_egress_https_datasets_endpoints" {
+  count       = var.arango_on ? 1 : 0
+  description = "egress-ec2-agent"
+
+  security_group_id        = aws_security_group.arango-ec2[0].id
+  source_security_group_id = aws_security_group.datasets_endpoints.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "datasets_endpoints" {
+  name        = "${var.prefix}-datasets-endpoints"
+  description = "${var.prefix}-datasets-endpoints"
+  vpc_id      = aws_vpc.datasets.id
+
+  tags = {
+    Name = "${var.prefix}-datasets-endpoints"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "datasets_endpoint_ingress_arango_ec2" {
+  count       = var.arango_on ? 1 : 0
+  description = "endpoint-ingress-from-datasets-vpc"
+
+  security_group_id        = aws_security_group.datasets_endpoints.id
+  source_security_group_id = aws_security_group.arango-ec2[0].id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "datasets_endpoint_ingress_arango_service" {
+  count       = var.arango_on ? 1 : 0
+  description = "endpoint-ingress-from-datasets-vpc"
+
+  security_group_id        = aws_security_group.datasets_endpoints.id
+  source_security_group_id = aws_security_group.arango_service[0].id
 
   type      = "ingress"
   from_port = "443"

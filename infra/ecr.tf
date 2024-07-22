@@ -98,6 +98,11 @@ resource "aws_ecr_repository" "mlflow" {
   name = "${var.prefix}-mlflow"
 }
 
+resource "aws_ecr_repository" "arango" {
+  count = var.arango_on ? 1 : 0
+  name  = "${var.prefix}-arango"
+}
+
 resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.dkr"
