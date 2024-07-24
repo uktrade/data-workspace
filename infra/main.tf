@@ -239,10 +239,10 @@ variable "arango_on" {
   default = false
 }
 
-variable "arango_ebs_volume_size" {}
-variable "arango_ebs_volume_type" {}
-variable "arango_instance_type" {}
-variable "arango_image_id" {}
+variable "arango_ebs_volume_size" { default = "" }
+variable "arango_ebs_volume_type" { default = "" }
+variable "arango_instance_type" { default = "" }
+variable "arango_image_id" { default = "" }
 
 locals {
   admin_container_name   = "jupyterhub-admin"
