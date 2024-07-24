@@ -20,26 +20,8 @@
       "name": "SECRET_KEY",
       "value": "${secret_key}"
     },{
-      "name": "SENTRY_DSN",
-      "value": "${sentry_dsn}"
-    },{
       "name": "SENTRY_ENVIRONMENT",
       "value": "${sentry_environment}"
-    },{
-      "name": "DATASETS_DB_HOST",
-      "value": "${datasets_db_host}"
-    },{
-      "name": "DATASETS_DB_NAME",
-      "value": "${datasets_db_name}"
-    },{
-      "name": "DATASETS_DB_PASSWORD",
-      "value": "${datasets_db_password}"
-    },{
-      "name": "DATASETS_DB_PORT",
-      "value": "${datasets_db_port}"
-    },{
-      "name": "DATASETS_DB_USER",
-      "value": "${datasets_db_user}"
     },{
       "name": "AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER",
       "value": "cloudwatch://${cloudwatch_log_group_arn}"
