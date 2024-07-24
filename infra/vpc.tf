@@ -511,6 +511,7 @@ resource "aws_vpc_endpoint" "ecs" {
 }
 
 resource "aws_vpc_endpoint" "datasets_s3_endpoint" {
+  count           = var.arango_on ? 1 : 0
   vpc_id          = aws_vpc.datasets.id
   service_name    = "com.amazonaws.eu-west-2.s3"
   route_table_ids = [aws_route_table.datasets.id]
@@ -542,6 +543,7 @@ data "aws_iam_policy_document" "datasets_s3_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ec2_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ec2"
   vpc_endpoint_type  = "Interface"
@@ -577,6 +579,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ec2" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ec2messages_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ec2messages"
   vpc_endpoint_type  = "Interface"
@@ -591,6 +594,7 @@ resource "aws_vpc_endpoint" "datasets_ec2messages_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ssm_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ssm"
   vpc_endpoint_type  = "Interface"
@@ -605,6 +609,7 @@ resource "aws_vpc_endpoint" "datasets_ssm_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ssmmessages_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ssmmessages"
   vpc_endpoint_type  = "Interface"
@@ -639,6 +644,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ssm" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ecs_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecs"
   vpc_endpoint_type  = "Interface"
@@ -653,6 +659,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecs-agent"
   vpc_endpoint_type  = "Interface"
@@ -667,6 +674,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ecs_telemetry_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecs-telemetry"
   vpc_endpoint_type  = "Interface"
@@ -725,6 +733,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ecs" {
 }
 
 resource "aws_vpc_endpoint" "datasets_logs_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.logs"
   vpc_endpoint_type  = "Interface"
@@ -760,6 +769,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_logs" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ecr_api_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecr.api"
   vpc_endpoint_type  = "Interface"
@@ -774,6 +784,7 @@ resource "aws_vpc_endpoint" "datasets_ecr_api_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "datasets_ecr_dkr_endpoint" {
+  count              = var.arango_on ? 1 : 0
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecr.dkr"
   vpc_endpoint_type  = "Interface"

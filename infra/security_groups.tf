@@ -2457,7 +2457,7 @@ resource "aws_security_group_rule" "arango_ec2_egress_https_to_s3" {
   description = "egress-https-to-s3"
 
   security_group_id = aws_security_group.arango-ec2[0].id
-  prefix_list_ids   = [aws_vpc_endpoint.datasets_s3_endpoint.prefix_list_id]
+  prefix_list_ids   = [aws_vpc_endpoint.datasets_s3_endpoint[0].prefix_list_id]
 
   type      = "egress"
   from_port = "443"
