@@ -225,4 +225,27 @@ data "aws_iam_policy_document" "airflow_team" {
       "arn:aws:secretsmanager:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:secret:${var.prefix}/airflow/${var.airflow_dag_processors[count.index]}-*"
     ]
   }
+
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.airflow[count.index].arn}/*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.airflow[count.index].arn}",
+    ]
+  }
 }
