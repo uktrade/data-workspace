@@ -170,6 +170,7 @@ variable "airflow_dag_processors" {
   type    = list(any)
   default = []
 }
+variable "airflow_bucket_infix" {}
 
 variable "dag_sync_github_key" {}
 variable "github_ip_addresses" {
