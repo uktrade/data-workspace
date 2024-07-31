@@ -795,11 +795,11 @@ resource "aws_iam_policy" "celery_access_uploads_bucket" {
 data "aws_iam_policy_document" "celery_access_uploads_bucket" {
   statement {
     actions = [
-      "s3:ListObjects",
+      "s3:ListBucket",
     ]
 
     resources = [
-      "${aws_s3_bucket.uploads.arn}/*",
+      "${aws_s3_bucket.uploads.arn}",
     ]
   }
 }
