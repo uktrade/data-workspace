@@ -780,3 +780,26 @@ data "aws_iam_policy_document" "admin_list_ecs_tasks" {
     }
   }
 }
+
+resource "aws_iam_role_policy_attachment" "celery_access_uploads_bucket" {
+  role       = aws_iam_role.admin_task.name
+  policy_arn = aws_iam_policy.celery_access_uploads_bucket.arn
+}
+
+resource "aws_iam_policy" "celery_access_uploads_bucket" {
+  name   = "${var.prefix}-celery-access-uploads-bucket"
+  path   = "/"
+  policy = data.aws_iam_policy_document.celery_access_uploads_bucket.json
+}
+
+data "aws_iam_policy_document" "celery_access_uploads_bucket" {
+  statement {
+    actions = [
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.uploads.arn}",
+    ]
+  }
+}
