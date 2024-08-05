@@ -49,7 +49,7 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
       authbroker_client_secret = "${var.airflow_authbroker_client_secret}"
 
       subnets         = "${aws_subnet.private_with_egress.*.id[0]}"
-      security_groups = "${aws_security_group.airflow_webserver.id}"
+      security_groups = "${aws_security_group.airflow_dag_processor_service.id}"
       task_definition = "${aws_ecs_task_definition.airflow_dag_tasks[0].arn}"
       cluster         = "${aws_ecs_cluster.airflow_dag_tasks.name}"
 

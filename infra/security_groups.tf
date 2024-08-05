@@ -1497,18 +1497,6 @@ resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_webserve
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_webserver_egress_postgres_datasets_db" {
-  description = "egress-postgres-datasets-db"
-
-  security_group_id        = aws_security_group.airflow_webserver.id
-  source_security_group_id = aws_security_group.datasets.id
-
-  type      = "egress"
-  from_port = "5432"
-  to_port   = "5432"
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "airflow_webserver_lb_egress_http_airflow_webserver" {
   description = "egress-http-airflow-service"
 
@@ -1542,18 +1530,6 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_airflow" {
   type      = "ingress"
   from_port = "443"
   to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_airflow" {
-  description = "ingress-postgres-from-airflow"
-
-  security_group_id        = aws_security_group.datasets.id
-  source_security_group_id = aws_security_group.airflow_webserver.id
-
-  type      = "ingress"
-  from_port = aws_rds_cluster_instance.datasets.port
-  to_port   = aws_rds_cluster_instance.datasets.port
   protocol  = "tcp"
 }
 
@@ -1744,6 +1720,18 @@ resource "aws_security_group_rule" "airflow_dag_processor_egress_https_all" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "airflow_dag_processor_egress_postgres_all" {
+  description = "egress-https-to-all"
+
+  security_group_id = aws_security_group.airflow_dag_processor_service.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "airflow_dag_processor_egress_ssh_to_github" {
   description = "egress-ssh-to-github"
 
@@ -1756,15 +1744,15 @@ resource "aws_security_group_rule" "airflow_dag_processor_egress_ssh_to_github" 
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_webserver_egress_ssh_to_github" {
-  description = "egress-ssh-to-github"
+resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_airflow_dag_processor" {
+  description = "ingress-postgres-from-airflow"
 
-  security_group_id = aws_security_group.airflow_webserver.id
-  cidr_blocks       = var.github_ip_addresses
+  security_group_id        = aws_security_group.datasets.id
+  source_security_group_id = aws_security_group.airflow_dag_processor_service.id
 
-  type      = "egress"
-  from_port = "22"
-  to_port   = "22"
+  type      = "ingress"
+  from_port = aws_rds_cluster_instance.datasets.port
+  to_port   = aws_rds_cluster_instance.datasets.port
   protocol  = "tcp"
 }
 
