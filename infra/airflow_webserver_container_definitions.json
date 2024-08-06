@@ -74,6 +74,12 @@
     },{
       "name": "DAG_SYNC_GITHUB_KEY",
       "value": "${dag_sync_github_key}"
+    },{
+      "name": "DATA_WORKSPACE_S3_IMPORT_HAWK_ID",
+      "value": "${data_workspace_s3_import_hawk_id}"
+    },{
+      "name": "DATA_WORKSPACE_S3_IMPORT_HAWK_KEY",
+      "value": "${data_workspace_s3_import_hawk_key}"
     }],
     "essential": true,
     "image": "${container_image}",
