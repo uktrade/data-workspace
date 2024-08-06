@@ -325,6 +325,18 @@ resource "aws_security_group_rule" "admin_service_egress_https_to_everywhere" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "admin_service_egress_http_airflow_webserver" {
+  description = "egress-http-to-airflow-webserver"
+
+  security_group_id        = aws_security_group.admin_service.id
+  source_security_group_id = aws_security_group.airflow_webserver.id
+
+  type      = "egress"
+  from_port = "8080"
+  to_port   = "8080"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "admin_service_egress_http_to_notebooks" {
   description = "egress-https-to-everywhere"
 
@@ -1458,6 +1470,18 @@ resource "aws_security_group_rule" "airflow_webserver_egress_https_to_cloudwatch
   type      = "egress"
   from_port = "443"
   to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_webserver_ingress_http_admin_service" {
+  description = "ingress-airflow-lb"
+
+  security_group_id        = aws_security_group.airflow_webserver.id
+  source_security_group_id = aws_security_group.admin_service.id
+
+  type      = "ingress"
+  from_port = "8080"
+  to_port   = "8080"
   protocol  = "tcp"
 }
 
