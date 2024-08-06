@@ -92,6 +92,14 @@ variable "sentry_environment" {}
 variable "airflow_authbroker_client_id" {}
 variable "airflow_authbroker_client_secret" {}
 variable "airflow_authbroker_url" {}
+variable "airflow_data_workspace_s3_import_hawk_id" {
+  type    = string
+  default = ""
+}
+variable "airflow_data_workspace_s3_import_hawk_key" {
+  type    = string
+  default = ""
+}
 
 variable "notebook_task_role_prefix" {}
 variable "notebook_task_role_policy_name" {}
