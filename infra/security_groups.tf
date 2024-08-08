@@ -1646,6 +1646,18 @@ resource "aws_security_group_rule" "ecs_ingress_https_from_airflow_scheduler" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "ecs_ingress_https_from_airflow_dag_processor" {
+  description = "ingress-https-from-airflow-dag-processor"
+
+  security_group_id        = aws_security_group.ecs.id
+  source_security_group_id = aws_security_group.airflow_dag_processor_service.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "airflow_scheduler_egress_https_to_ecr_dkr" {
   description = "egress-https-to-ecr-dkr"
 
