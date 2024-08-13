@@ -1732,53 +1732,19 @@ resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_schedule
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_dag_processor_service_egress_https_to_cloudwatch" {
-  description = "egress-https-to-cloudwatch"
 
-  security_group_id        = aws_security_group.airflow_dag_processor_service.id
-  source_security_group_id = aws_security_group.cloudwatch.id
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "airflow_dag_processor_egress_https_all" {
-  description = "egress-https-to-all"
+resource "aws_security_group_rule" "airflow_dag_processor_egress_all" {
+  description = "egress-to-all"
 
   security_group_id = aws_security_group.airflow_dag_processor_service.id
   cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "egress"
-  from_port = "443"
-  to_port   = "443"
+  from_port = "0"
+  to_port   = "65535"
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_dag_processor_egress_postgres_all" {
-  description = "egress-https-to-all"
-
-  security_group_id = aws_security_group.airflow_dag_processor_service.id
-  cidr_blocks       = ["0.0.0.0/0"]
-
-  type      = "egress"
-  from_port = "5432"
-  to_port   = "5432"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "airflow_dag_processor_egress_ssh_to_github" {
-  description = "egress-ssh-to-github"
-
-  security_group_id = aws_security_group.airflow_dag_processor_service.id
-  cidr_blocks       = var.github_ip_addresses
-
-  type      = "egress"
-  from_port = "22"
-  to_port   = "22"
-  protocol  = "tcp"
-}
 
 resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_airflow_dag_processor" {
   description = "ingress-postgres-from-airflow"
@@ -1804,17 +1770,6 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_airflow_dag_proce
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "airflow_dag_processor_service_egress_postgres_airflow_db" {
-  description = "egress-postgres-airflow-db"
-
-  security_group_id        = aws_security_group.airflow_dag_processor_service.id
-  source_security_group_id = aws_security_group.airflow_db.id
-
-  type      = "egress"
-  from_port = "5432"
-  to_port   = "5432"
-  protocol  = "tcp"
-}
 
 resource "aws_security_group_rule" "postgres_airflow_db_ingress_airflow_dag_processor_service" {
   description = "ingress-airflow-dag-processor-service"
