@@ -72,6 +72,10 @@
       "value": "${arango_db__password}"
     },
     {
+      "name": "ARANGO_DB__PROTOCOL",
+      "value": "https"
+    },
+    {
       "name": "ALLOWED_HOSTS__1",
       "value": "${root_domain}"
     },
