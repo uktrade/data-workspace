@@ -357,7 +357,7 @@ data "aws_iam_policy_document" "arango_ebs" {
 
 resource "aws_iam_policy" "arango_ebs" {
   count       = var.arango_on ? 1 : 0
-  name        = "arango-ebs"
+  name        = "${var.prefix}-arango-ebs"
   description = "enable-mounting-of-ebs-volume"
   policy      = data.aws_iam_policy_document.arango_ebs[0].json
 }
