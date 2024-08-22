@@ -99,7 +99,7 @@ locals {
     jwt_private_key = "${var.jwt_private_key}"
     mlflow_port     = "${local.mlflow_port}"
     }, var.arango_on ? {
-    arango_db__host     = "${aws_lb.arango[0].dns_name}"
+    arango_db__host     = "${aws_route53_record.arango[0].name}"
     arango_db__password = "${random_string.aws_arangodb_root_password[0].result}"
     arango_db__port     = "${local.arango_container_port}"
     } : {
