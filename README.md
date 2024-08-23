@@ -48,6 +48,10 @@ The components of Data Workspace are stored across several Git repositories.
 
   Contains the definitions of GitLab, which stores code and run CI pipelines.
 
+- [data-workspace-arangodb](https://github.com/uktrade/data-workspace-arangodb)
+
+  Contains the definitions of ArangoDB, a graph database
+
 
 #### Low level
 
