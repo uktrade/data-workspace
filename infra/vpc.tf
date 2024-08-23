@@ -454,7 +454,7 @@ resource "aws_route" "pcx_datasets_to_private_without_egress" {
 
 
 resource "aws_subnet" "datasets" {
-  count      = length(var.aws_availability_zones)
+  count      = length(var.dataset_subnets_availability_zones)
   vpc_id     = aws_vpc.datasets.id
   cidr_block = var.datasets_subnet_cidr_blocks[count.index]
 
@@ -470,7 +470,7 @@ resource "aws_subnet" "datasets" {
 }
 
 resource "aws_route_table_association" "datasets" {
-  count          = length(var.aws_availability_zones)
+  count          = length(var.dataset_subnets_availability_zones)
   subnet_id      = aws_subnet.datasets.*.id[count.index]
   route_table_id = aws_route_table.datasets.id
 }
