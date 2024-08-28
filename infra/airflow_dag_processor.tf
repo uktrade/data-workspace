@@ -49,6 +49,8 @@ locals {
       team                = "${v}"
       team_secret_id      = "${var.prefix}/airflow/${v}"
       dag_sync_github_key = "${var.dag_sync_github_key}"
+
+      aws_s3_bucket = "${aws_s3_bucket.airflow[i].id}"
     }
   ]
 }

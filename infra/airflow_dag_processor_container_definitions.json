@@ -34,6 +34,9 @@
     },{
       "name": "TEAM_SECRET_ID",
       "value": "${team_secret_id}"
+    },{
+      "name": "S3_IMPORT_DATA_BUCKET",
+      "value": "${aws_s3_bucket}"
     }
   ],
     "essential": true,
