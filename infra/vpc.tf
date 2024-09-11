@@ -501,6 +501,11 @@ resource "aws_vpc_endpoint" "main_s3" {
   vpc_endpoint_type = "Gateway"
 }
 
+resource "aws_vpc_endpoint_route_table_association" "main_s3" {
+  vpc_endpoint_id = aws_vpc_endpoint.main_s3.id
+  route_table_id  = aws_route_table.private_with_egress.id
+}
+
 resource "aws_vpc_endpoint" "ecs" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecs"
