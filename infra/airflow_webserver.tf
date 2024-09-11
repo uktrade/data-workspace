@@ -138,6 +138,8 @@ resource "aws_ecs_task_definition" "airflow_webserver" {
       sentry_dsn         = "${var.sentry_notebooks_dsn}"
       sentry_environment = "${var.sentry_environment}"
 
+      base_url           = "https://${var.airflow_domain}"
+
       authbroker_url           = "${var.airflow_authbroker_url}"
       authbroker_client_id     = "${var.airflow_authbroker_client_id}"
       authbroker_client_secret = "${var.airflow_authbroker_client_secret}"

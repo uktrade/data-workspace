@@ -21,6 +21,9 @@
       "name": "AIRFLOW__WEBSERVER__SECRET_KEY",
       "value": "${secret_key}"
     },{
+      "name": "AIRFLOW__WEBSERVER__BASE_URL",
+      "value": "${base_url}"
+    },{
       "name": "SENTRY_DSN",
       "value": "${sentry_dsn}"
     },{
