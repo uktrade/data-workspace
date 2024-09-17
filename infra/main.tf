@@ -252,6 +252,7 @@ variable "arango_ebs_volume_size" { default = "" }
 variable "arango_ebs_volume_type" { default = "" }
 variable "arango_instance_type" { default = "" }
 variable "arango_image_id" { default = "" }
+variable "arango_container_memory" { default = 1024 }
 
 locals {
   admin_container_name   = "jupyterhub-admin"
@@ -320,9 +321,7 @@ locals {
   flower_container_memory = 8192
   flower_container_cpu    = 1024
 
-  arango_container_memory = 1024
-  arango_container_cpu    = 2048
-  arango_container_port   = 8529
+  arango_container_port = 8529
 
   mlflow_container_memory = 8192
   mlflow_container_cpu    = 1024
