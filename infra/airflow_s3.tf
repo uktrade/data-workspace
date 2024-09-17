@@ -67,7 +67,7 @@ data "aws_iam_policy_document" "airflow" {
       }
 
       resources = [
-        "arn:aws:s3:::${aws_s3_bucket.airflow[count.index].id}/*",
+        "arn:aws:s3:::${aws_s3_bucket.airflow[count.index].id}/${var.s3_prefix_for_external_role_copy}/*",
       ]
 
       actions = [

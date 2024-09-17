@@ -253,7 +253,7 @@ variable "arango_ebs_volume_type" { default = "" }
 variable "arango_instance_type" { default = "" }
 variable "arango_image_id" { default = "" }
 
-
+variable "s3_prefix_for_external_role_copy" { default = "export-data" }
 
 locals {
   admin_container_name   = "jupyterhub-admin"
