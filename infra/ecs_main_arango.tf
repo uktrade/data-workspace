@@ -139,16 +139,13 @@ resource "aws_ecs_task_definition" "arango_service" {
     container_name  = "arango"
     log_group       = "${aws_cloudwatch_log_group.arango[0].name}"
     log_region      = "${data.aws_region.aws_region.name}"
-    cpu             = "${local.arango_container_cpu}"
-    memory          = "${local.arango_container_memory}"
     root_password   = "${random_string.aws_arangodb_root_password[0].result}"
   })
 
   execution_role_arn       = aws_iam_role.arango_task_execution[0].arn
   task_role_arn            = aws_iam_role.arango_task[0].arn
   network_mode             = "awsvpc"
-  cpu                      = local.arango_container_cpu
-  memory                   = local.arango_container_memory
+  memory                   = var.arango_container_memory
   requires_compatibilities = ["EC2"]
 
   volume {
@@ -412,7 +409,8 @@ resource "aws_lb_target_group" "arango" {
 
   health_check {
     protocol            = "HTTP"
-    interval            = 10
+    interval            = 45
+    timeout             = 30
     healthy_threshold   = 2
     unhealthy_threshold = 2
     path                = "/_db/_system/_admin/aardvark/index.html"
