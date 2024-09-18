@@ -379,6 +379,7 @@ resource "aws_lb" "arango" {
   enable_deletion_protection = true
   internal                   = true
   subnets                    = aws_subnet.datasets.*.id
+  idle_timeout               = 360
   tags = {
     name = "arango-to-notebook-lb"
   }
