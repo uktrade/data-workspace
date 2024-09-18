@@ -1,6 +1,6 @@
 resource "aws_ecs_service" "airflow_dag_processor" {
   count                      = var.airflow_on ? length(var.airflow_dag_processors) : 0
-  name                       = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index]}"
+  name                       = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index].name}"
   cluster                    = aws_ecs_cluster.main_cluster.id
   task_definition            = aws_ecs_task_definition.airflow_dag_processor_service[count.index].arn
   desired_count              = 1
@@ -46,8 +46,8 @@ locals {
 
       cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
 
-      team                = "${v}"
-      team_secret_id      = "${var.prefix}/airflow/${v}"
+      team                = "${v.name}"
+      team_secret_id      = "${var.prefix}/airflow/${v.name}"
       dag_sync_github_key = "${var.dag_sync_github_key}"
     }
   ]
@@ -55,7 +55,7 @@ locals {
 
 resource "aws_ecs_task_definition" "airflow_dag_processor_service" {
   count  = var.airflow_on ? length(var.airflow_dag_processors) : 0
-  family = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index]}"
+  family = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index].name}"
   container_definitions = templatefile(
     "${path.module}/airflow_dag_processor_container_definitions.json",
     local.airflow_dag_processor_container_vars[count.index]
@@ -74,13 +74,13 @@ resource "aws_ecs_task_definition" "airflow_dag_processor_service" {
 
 resource "aws_cloudwatch_log_group" "airflow_dag_processor" {
   count             = var.airflow_on ? length(var.airflow_dag_processors) : 0
-  name              = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index]}"
+  name              = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index].name}"
   retention_in_days = "3653"
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "airflow_dag_processor" {
   count           = var.cloudwatch_subscription_filter && var.airflow_on ? length(var.airflow_dag_processors) : 0
-  name            = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index]}"
+  name            = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index].name}"
   log_group_name  = aws_cloudwatch_log_group.airflow_dag_processor[count.index].name
   filter_pattern  = ""
   destination_arn = var.cloudwatch_destination_arn
@@ -94,7 +94,7 @@ resource "aws_cloudwatch_log_group" "airflow" {
 
 resource "aws_iam_role" "airflow_dag_processor_execution" {
   count              = var.airflow_on ? length(var.airflow_dag_processors) : 0
-  name               = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index]}"
+  name               = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index].name}"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.airflow_dag_processor_execution_ecs_tasks_assume_role[count.index].json
 }
@@ -119,7 +119,7 @@ resource "aws_iam_role_policy_attachment" "airflow_dag_processor_execution" {
 
 resource "aws_iam_policy" "airflow_dag_processor_execution" {
   count  = var.airflow_on ? length(var.airflow_dag_processors) : 0
-  name   = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index]}"
+  name   = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index].name}"
   path   = "/"
   policy = data.aws_iam_policy_document.airflow_dag_processor_execution[count.index].json
 }
@@ -161,14 +161,14 @@ data "aws_iam_policy_document" "airflow_dag_processor_execution" {
 
 resource "aws_iam_role" "airflow_team" {
   count              = var.airflow_on ? length(var.airflow_dag_processors) : 0
-  name               = "${local.airflow_team_role_prefix}${var.airflow_dag_processors[count.index]}"
+  name               = "${local.airflow_team_role_prefix}${var.airflow_dag_processors[count.index].name}"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.airflow_dag_processor_task_ecs_tasks_assume_role[count.index].json
 }
 
 resource "aws_iam_policy" "airflow_team" {
   count  = var.airflow_on ? length(var.airflow_dag_processors) : 0
-  name   = "${local.airflow_team_role_prefix}${var.airflow_dag_processors[count.index]}"
+  name   = "${local.airflow_team_role_prefix}${var.airflow_dag_processors[count.index].name}"
   path   = "/"
   policy = data.aws_iam_policy_document.airflow_team[count.index].json
 }
@@ -193,6 +193,19 @@ data "aws_iam_policy_document" "airflow_dag_processor_task_ecs_tasks_assume_role
 
 data "aws_iam_policy_document" "airflow_team" {
   count = var.airflow_on ? length(var.airflow_dag_processors) : 0
+
+  dynamic "statement" {
+    for_each = length(var.airflow_dag_processors[count.index].assume_roles) > 0 ? [1] : []
+    content {
+      actions = [
+        "sts:AssumeRole",
+      ]
+
+      resources = var.airflow_dag_processors[count.index].assume_roles
+    }
+
+  }
+
   statement {
     actions = [
       "logs:CreateLogGroup"
@@ -222,7 +235,7 @@ data "aws_iam_policy_document" "airflow_team" {
     ]
 
     resources = [
-      "arn:aws:secretsmanager:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:secret:${var.prefix}/airflow/${var.airflow_dag_processors[count.index]}-*"
+      "arn:aws:secretsmanager:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:secret:${var.prefix}/airflow/${var.airflow_dag_processors[count.index].name}-*"
     ]
   }
 

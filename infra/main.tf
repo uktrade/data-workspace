@@ -175,7 +175,7 @@ variable "airflow_on" {
 variable "airflow_db_instance_class" {}
 variable "airflow_domain" {}
 variable "airflow_dag_processors" {
-  type    = list(any)
+  type    = list(object({ name = string, assume_roles = list(string) }))
   default = []
 }
 variable "airflow_bucket_infix" {}
@@ -253,6 +253,8 @@ variable "arango_ebs_volume_type" { default = "" }
 variable "arango_instance_type" { default = "" }
 variable "arango_image_id" { default = "" }
 variable "arango_container_memory" { default = 1024 }
+
+variable "s3_prefix_for_external_role_copy" { default = "export-data" }
 
 locals {
   admin_container_name   = "jupyterhub-admin"
