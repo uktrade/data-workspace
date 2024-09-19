@@ -254,7 +254,10 @@ variable "arango_instance_type" { default = "" }
 variable "arango_image_id" { default = "" }
 variable "arango_container_memory" { default = 1024 }
 
-variable "s3_prefix_for_external_role_copy" { default = "export-data" }
+variable "s3_prefixes_for_external_role_copy" {
+  type    = list(string)
+  default = ["import-data", "export-data"]
+}
 
 locals {
   admin_container_name   = "jupyterhub-admin"

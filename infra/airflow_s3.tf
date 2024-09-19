@@ -66,9 +66,7 @@ data "aws_iam_policy_document" "airflow" {
         identifiers = var.airflow_dag_processors[count.index].assume_roles
       }
 
-      resources = [
-        "arn:aws:s3:::${aws_s3_bucket.airflow[count.index].id}/${var.s3_prefix_for_external_role_copy}/*",
-      ]
+      resources = [for prefix in var.s3_prefixes_for_external_role_copy : "arn:aws:s3:::${aws_s3_bucket.airflow[count.index].id}/${prefix}/*"]
 
       actions = [
         "s3:GetObject",
