@@ -151,6 +151,7 @@ variable "gitlab_rds_cluster_instance_identifier" {
 variable "gitlab_runner_visualisations_deployment_project_token" {}
 variable "gitlab_runner_tap_project_token" {}
 variable "gitlab_runner_data_science_project_token" {}
+variable "gitlab_runner_ag_data_science_project_token" {}
 
 variable "gitlab_sso_id" {}
 variable "gitlab_sso_secret" {}
