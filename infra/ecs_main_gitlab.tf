@@ -862,6 +862,17 @@ resource "aws_launch_configuration" "gitlab_runner_data_science" {
     --access-level "not_protected" \
     --run-untagged="true" \
     --locked="true"
+
+  gitlab-runner register \
+    --non-interactive \
+    --url "http://${var.gitlab_domain}/" \
+    --clone-url "http://${var.gitlab_domain}/" \
+    --registration-token "${var.gitlab_runner_ag_data_science_project_token}" \
+    --executor "shell" \
+    --description "ag data science" \
+    --access-level "not_protected" \
+    --run-untagged="true" \
+    --locked="true"
   EOF
 }
 
