@@ -1,11 +1,12 @@
 resource "aws_db_instance" "admin" {
   identifier = "${var.prefix}-admin"
 
-  allocated_storage = var.admin_db_instance_allocated_storage
-  storage_type      = "gp2"
-  engine            = "postgres"
-  engine_version    = var.admin_db_instance_version
-  instance_class    = var.admin_db_instance_class
+  allocated_storage     = var.admin_db_instance_allocated_storage
+  max_allocated_storage = var.admin_db_instance_max_allocated_storage
+  storage_type          = "gp2"
+  engine                = "postgres"
+  engine_version        = var.admin_db_instance_version
+  instance_class        = var.admin_db_instance_class
 
   apply_immediately = true
 
