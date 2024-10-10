@@ -55,6 +55,10 @@ variable "admin_db_instance_allocated_storage" {
   type    = number
   default = 200
 }
+variable "admin_db_instance_max_allocated_storage" {
+  type    = number
+  default = 400
+}
 variable "admin_authbroker_client_id" {}
 variable "admin_authbroker_client_secret" {}
 variable "admin_authbroker_url" {}
