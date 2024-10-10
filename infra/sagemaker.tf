@@ -1,10 +1,13 @@
 resource "aws_sagemaker_domain" "sagemaker" {
   domain_name = "SageMaker"
   auth_mode = "IAM"
-  vpc_id = aws_vpc.datasets.id
-  subnet_ids  = [aws_subnet.datasets.*.id]
+  vpc_id = aws_vpc.main.id
+  subnet_ids  = aws_subnet.private_with_egress.*.id
+  app_network_access_type = "VpcOnly"
 
-  app_network_access_type = aws_vpc.datasets.id
+  default_user_settings {
+    execution_role = aws_iam_role.sagemaker.arn
+  }
 }
 
 resource "aws_iam_role" "sagemaker" {
@@ -24,11 +27,11 @@ data "aws_iam_policy_document" "sagemaker_assume_role" {
   }
 }
 
-data "aws_iam_policy" "sagemaker_full_access_policy" {
-  name = "AmazonSageMakerFullAccess"
+data "aws_iam_policy" "sagemaker_access_policy" {
+  name = "AmazonSageMakerReadOnly"
 }
 
 resource "aws_iam_role_policy_attachment" "sagemaker_managed_policy" {
   role = aws_iam_role.sagemaker.name
-  policy_arn = data.aws_iam_policy.sagemaker_assume_role.arn
+  policy_arn = data.aws_iam_policy.sagemaker_access_policy.arn
 }

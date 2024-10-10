@@ -38,6 +38,6 @@ resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuratio
     variant_name           = "variant-1"
     model_name             = aws_sagemaker_model.example_model.name
     initial_instance_count = 1
-    instance_type          = "t2.micro"
+    instance_type          = "ml.t2.medium"
   }
 }
