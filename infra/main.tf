@@ -264,6 +264,8 @@ variable "s3_prefixes_for_external_role_copy" {
   default = ["import-data", "export-data"]
 }
 
+variable "sagemaker_example_inference_image" { default = "" }
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"

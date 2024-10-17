@@ -234,6 +234,18 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
       "${aws_efs_file_system.notebooks.arn}",
     ]
   }
+
+  statement {
+    actions = [
+      "sagemaker:InvokeEndpoint",
+      "sagemaker:InvokeEndpointAsync",
+      "sagemaker:InvokeEndpointWithResponseStream",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
 }
 
 resource "aws_vpc_endpoint" "s3" {

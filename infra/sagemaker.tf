@@ -1,8 +1,8 @@
 resource "aws_sagemaker_domain" "sagemaker" {
   domain_name = "SageMaker"
   auth_mode = "IAM"
-  vpc_id = aws_vpc.main.id
-  subnet_ids  = aws_subnet.private_with_egress.*.id
+  vpc_id = aws_vpc.notebooks.id
+  subnet_ids  = aws_subnet.private_without_egress.*.id
   app_network_access_type = "VpcOnly"
 
   default_user_settings {
@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "sagemaker_assume_role" {
 }
 
 data "aws_iam_policy" "sagemaker_access_policy" {
-  name = "AmazonSageMakerReadOnly"
+  name = "AmazonSageMakerFullAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "sagemaker_managed_policy" {

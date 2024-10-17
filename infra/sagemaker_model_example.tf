@@ -3,7 +3,7 @@ resource "aws_sagemaker_model" "example_model" {
   execution_role_arn = aws_iam_role.inference.arn
 
   primary_container {
-    image = data.aws_sagemaker_prebuilt_ecr_image.example_model_image.registry_path
+    image = var.sagemaker_example_inference_image
   }
 }
 
@@ -22,8 +22,13 @@ data "aws_iam_policy_document" "assume_inference_role" {
   }
 }
 
-data "aws_sagemaker_prebuilt_ecr_image" "example_model_image" {
-  repository_name = "kmeans"
+resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
+  role = aws_iam_role.inference.name
+  policy_arn = data.aws_iam_policy.sagemaker_ro_access_policy.arn
+}
+
+data "aws_iam_policy" "sagemaker_ro_access_policy" {
+  name = "AmazonSageMakerFullAccess"
 }
 
 resource "aws_sagemaker_endpoint" "inference_endpoint" {
@@ -35,9 +40,14 @@ resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuratio
   name = "sagemaker-endpoint-config"
 
   production_variants {
-    variant_name           = "variant-1"
+    variant_name           = "aws-spacy-example"
     model_name             = aws_sagemaker_model.example_model.name
-    initial_instance_count = 1
-    instance_type          = "ml.t2.medium"
+
+    # Serverless Inference Config
+    serverless_config {
+        max_concurrency    = 3
+        memory_size_in_mb  = 1024
+    }
+
   }
 }
