@@ -5,6 +5,11 @@ resource "aws_sagemaker_model" "example_model" {
   primary_container {
     image = var.sagemaker_example_inference_image
   }
+
+  vpc_config {
+    security_group_ids = ["${aws_security_group.notebooks.id}"]
+    subnets = aws_subnet.private_without_egress.*.id
+  }
 }
 
 resource "aws_iam_role" "inference" {
@@ -42,12 +47,58 @@ resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuratio
   production_variants {
     variant_name           = "aws-spacy-example"
     model_name             = aws_sagemaker_model.example_model.name
-
-    # Serverless Inference Config
-    serverless_config {
-        max_concurrency    = 3
-        memory_size_in_mb  = 1024
-    }
-
+    instance_type          = "ml.t2.medium"
+    initial_instance_count = 1
   }
+  # Async config
+  async_inference_config {
+    client_config {
+        max_concurrent_invocations_per_instance = 1
+    }
+    output_config {
+        s3_output_path = "https://${data.aws_s3_bucket.sagemaker_default_bucket.bucket_regional_domain_name}"
+    }
+ }
+}
+
+data "aws_s3_bucket" "sagemaker_default_bucket" {
+  bucket = "sagemaker-eu-west-2-339713044404"
+}
+
+resource "aws_security_group" "notebooks_endpoints" {
+  name        = "${var.prefix}-notebooks-endpoints"
+  description = "${var.prefix}-notebooks-endpoints"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-notebooks-endpoints"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
+  description = "endpoint-ingress-from-datasets-vpc"
+
+  security_group_id        = aws_security_group.notebooks_endpoints.id
+  cidr_blocks         = [aws_vpc.notebooks.cidr_block]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
+  description = "endpoint-ingress-from-datasets-vpc"
+
+  security_group_id        = aws_security_group.notebooks_endpoints.id
+  cidr_blocks         = [aws_vpc.notebooks.cidr_block]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
 }
