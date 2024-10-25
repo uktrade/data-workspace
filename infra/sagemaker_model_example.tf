@@ -47,7 +47,7 @@ resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuratio
   production_variants {
     variant_name           = "aws-spacy-example"
     model_name             = aws_sagemaker_model.example_model.name
-    instance_type          = "ml.t2.medium"
+    instance_type          = "ml.m5.large"
     initial_instance_count = 1
   }
   # Async config
@@ -101,4 +101,64 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
   from_port = "0"
   to_port   = "65535"
   protocol  = "tcp"
+}
+
+
+# Auto scaling Target for the endpoint of this model
+resource "aws_appautoscaling_target" "sagemaker_target" {
+  # Max 2 instances at any given time
+  max_capacity = 2 
+  # Min capacity = 0 ensures our endpoint is off when not needed
+  min_capacity = 0
+  resource_id = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
+  # Number of desired instance count for the endpoint which can be modified by auto-scaling
+  scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
+  service_namespace = "sagemaker"
+}
+
+# Autoscaling policy based on usage metrics including number of invocation
+#  Scale out policy
+resource "aws_appautoscaling_policy" "scale_out" {
+  name               = "scale-out-policy"
+  # Predefined metric for the policy to adjust target value - using invocations
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.sagemaker_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.sagemaker_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.sagemaker_target.service_namespace
+
+  #  Config for the target tracking scaling policy
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      #  SageMakerVariantInvocationsPerInstance tracks the average number of invocations per instance
+      predefined_metric_type = "SageMakerVariantInvocationsPerInstance"
+    }
+
+    # n.b. target_value is a % - inovations will be kept around x% per instance; 
+    #  when load exceeds, add more instances - if sig lower scale down.
+    #  Cooldowns are in seconds - helps avoid rapid scaling with short-lived spikes.
+    target_value       = 70.0
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+#  Scale in
+resource "aws_appautoscaling_policy" "scale_in" {
+  name               = "scale-in-policy"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.sagemaker_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.sagemaker_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.sagemaker_target.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      #  Track how many requests are being processed per instance
+      predefined_metric_type = "SageMakerVariantInvocationsPerInstance"
+    }
+
+  #  Note longer scale in to ensure stablisation so no over-adjusting when demand fluctuates. 
+    target_value       = 30.0
+    scale_in_cooldown  = 120
+    scale_out_cooldown = 60
+  }
 }
