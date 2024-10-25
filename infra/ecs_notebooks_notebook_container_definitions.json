@@ -26,6 +26,9 @@
     "mountPoints": [{
       "sourceVolume": "home_directory",
       "containerPath": "${home_directory}"
+    }, {
+      "sourceVolume": "home_directory",
+      "containerPath": "/home/dw-user"
     }]
   },
   {
