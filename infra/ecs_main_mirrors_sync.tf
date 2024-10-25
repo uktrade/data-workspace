@@ -95,7 +95,7 @@ resource "aws_ecs_task_definition" "mirrors_sync_cran_binary_rv4" {
   family = "jupyterhub-mirrors-sync-cran-binary-rv4"
   container_definitions = templatefile(
     "${path.module}/ecs_main_mirrors_sync_cran_binary_container_definition.json", {
-      container_image  = "${aws_ecr_repository.mirrors_sync_cran_binary_rv4.repository_url}:latest"
+      container_image  = "${aws_ecr_repository.mirrors_sync_cran_binary_rv4.repository_url}:master"
       container_name   = "${local.mirrors_sync_cran_binary_container_name}"
       container_cpu    = "${local.mirrors_sync_cran_binary_container_cpu}"
       container_memory = "${local.mirrors_sync_cran_binary_container_memory}"
