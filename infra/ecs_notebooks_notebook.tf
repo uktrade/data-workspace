@@ -389,6 +389,25 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "arn:aws:s3:::amazonlinux.*.amazonaws.com/*",
     ]
   }
+
+  # Allow access to SageMaker default bucket
+  statement {
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "s3:ListBucket",
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::*sagemaker*"
+    ]
+  }
 }
 
 resource "aws_iam_policy" "notebook_task_boundary" {
