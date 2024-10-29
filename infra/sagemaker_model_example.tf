@@ -108,13 +108,50 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
 resource "aws_appautoscaling_target" "sagemaker_target" {
   # Max 2 instances at any given time
   max_capacity = 2 
-  # Min capacity = 1 ensures our endpoint is at a minimum when not needed but ready to go
-  min_capacity = 1
+  # Min capacity = 0 ensures our endpoint is off when not in use (Scheduled)
+  min_capacity = 0
   resource_id = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
   # Number of desired instance count for the endpoint which can be modified by auto-scaling
   scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
   service_namespace = "sagemaker"
 }
+
+# Scale out schedule during weekday mornings (e.g., 8 AM, Monday to Friday)
+resource "aws_appautoscaling_schedule" "scale_out_weekdays" {
+  scheduled_action_name = "scale-out-during-weekdays"
+  service_namespace     = "sagemaker"
+  schedule              = "cron(0 8 ? * MON-FRI *)"  # Every weekday at 8 AM
+  resource_id           = aws_appautoscaling_target.sagemaker_target.resource_id
+  scalable_dimension    = aws_appautoscaling_target.sagemaker_target.scalable_dimension
+  min_capacity          = 1  # Ensure at least 1 instance is running during weekdays
+  max_capacity          = 2  # Allow up to 2 instances during weekdays
+  desired_capacity      = 1  # Desired capacity during weekdays (e.g., 1 instance)
+}
+
+# Scale in schedule during off-peak hours (e.g., after 6 PM, Monday to Friday)
+resource "aws_appautoscaling_schedule" "scale_in_schedule" {
+  scheduled_action_name = "scale-in-during-off-peak"
+  service_namespace     = "sagemaker"
+  schedule              = "cron(0 18 ? * MON-FRI *)"  # Every weekday at 6 PM
+  resource_id           = aws_appautoscaling_target.sagemaker_target.resource_id
+  scalable_dimension    = aws_appautoscaling_target.scalable_dimension
+  min_capacity          = 0  # Scale down to 0 instances to save costs during off-peak hours
+  max_capacity          = 0  # No instances during off-peak hours
+  desired_capacity      = 0  
+}
+
+# Scale in schedule for weekends (scale down to zero on Saturdays and Sundays)
+resource "aws_appautoscaling_schedule" "scale_in_weekends" {
+  scheduled_action_name = "scale-in-during-weekends"
+  service_namespace     = "sagemaker"
+  schedule              = "cron(0 0 ? * SAT,SUN *)"  # Every Saturday and Sunday at midnight
+  resource_id           = aws_appautoscaling_target.sagemaker_target.resource_id
+  scalable_dimension    = aws_appautoscaling_target.scalable_dimension
+  min_capacity          = 0  # Ensure no instances are running during weekends
+  max_capacity          = 0  # Scale down to zero during weekends
+  desired_capacity      = 0  
+}
+
 
 # Autoscaling policy based on usage metrics around CPU % n.b. this may need altering 
 #  if using a GPU on the Scale out policy
