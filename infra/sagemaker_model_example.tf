@@ -161,7 +161,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_in_alarm" {
   }
 
   alarm_description = "Alarm if SageMaker CPU util rate  <5%. Triggers scale in due to being idle."
-  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero.arn]
+  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_one.arn]
   # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
 }
 
@@ -183,12 +183,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_in_memory_alarm" {
   }
 
   alarm_description = "SageMaker endpoint alarm if memory utilization < 4%"
-  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero.arn]
+  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_one.arn]
   # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
 }
 
 # Step Scaling Policy for Scaling In to Zero which the cloudwatch alarms utilise
-resource "aws_appautoscaling_policy" "scale_in_to_zero" {
+resource "aws_appautoscaling_policy" "scale_in_to_one" {
   name               = "scale-in-to-zero-policy"
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.sagemaker_target.resource_id
@@ -199,9 +199,9 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero" {
     adjustment_type = "ExactCapacity"
 
     # Adjust capacity to 1 when underutilization is detected
-    step_adjustment {
-      metric_interval_upper_bound = 1
-      scaling_adjustment          = 1  # Set capacity to 1 instances
+     step_adjustment {
+      metric_interval_lower_bound = 0  # Lower bound is set to 0 to cover all possible metric values
+      scaling_adjustment          = 1  # Set capacity to 1 instance
     }
 
     cooldown = 120  # Longer cooldown to prevent frequent scale-in actions
