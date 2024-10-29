@@ -108,57 +108,102 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
 resource "aws_appautoscaling_target" "sagemaker_target" {
   # Max 2 instances at any given time
   max_capacity = 2 
-  # Min capacity = 0 ensures our endpoint is off when not needed
-  min_capacity = 0
+  # Min capacity = 1 ensures our endpoint is at a minimum when not needed but ready to go
+  min_capacity = 1
   resource_id = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
   # Number of desired instance count for the endpoint which can be modified by auto-scaling
   scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
   service_namespace = "sagemaker"
 }
 
-# Autoscaling policy based on usage metrics including number of invocation
-#  Scale out policy
-resource "aws_appautoscaling_policy" "scale_out" {
-  name               = "scale-out-policy"
-  # Predefined metric for the policy to adjust target value - using invocations
+# Autoscaling policy based on usage metrics around CPU % n.b. this may need altering 
+#  if using a GPU on the Scale out policy
+resource "aws_appautoscaling_policy" "scale_out_cpu" {
+  name               = "scale-out-policy-cpu"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.sagemaker_target.resource_id
   scalable_dimension = aws_appautoscaling_target.sagemaker_target.scalable_dimension
   service_namespace  = aws_appautoscaling_target.sagemaker_target.service_namespace
 
-  #  Config for the target tracking scaling policy
+  # Config for the target tracking scaling policy
   target_tracking_scaling_policy_configuration {
-    predefined_metric_specification {
-      #  SageMakerVariantInvocationsPerInstance tracks the average number of invocations per instance
-      predefined_metric_type = "SageMakerVariantInvocationsPerInstance"
+    customized_metric_specification {
+      metric_name = "CPUUtilization"
+      namespace   = "AWS/SageMaker"  
+      statistic   = "Average"
+      unit        = "Percent"
     }
 
-    # n.b. target_value is a % - inovations will be kept around x% per instance; 
-    #  when load exceeds, add more instances - if sig lower scale down.
-    #  Cooldowns are in seconds - helps avoid rapid scaling with short-lived spikes.
-    target_value       = 70.0
-    scale_in_cooldown  = 60
-    scale_out_cooldown = 60
+    target_value       = 70.0  # Scale out if CPU utilization exceeds 70%
+    scale_in_cooldown  = 60    # Cooldown to prevent frequent scaling in
+    scale_out_cooldown = 60    # Cooldown to prevent frequent scaling out
   }
 }
 
-#  Scale in
-resource "aws_appautoscaling_policy" "scale_in" {
-  name               = "scale-in-policy"
-  policy_type        = "TargetTrackingScaling"
+
+#  Scale in - using cloudwatch alarm to ensure we have distinct thresholds
+#  Alongside a step scaling policy
+#  Now altered for low CPU utilisation as metric for inovcations not present 
+resource "aws_cloudwatch_metric_alarm" "scale_in_alarm" {
+  alarm_name          = "sm-low-cpu-util"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 3 # Increased eval periods to filter short-lived spikes (health check related)
+  metric_name         = "CPUUtilization"
+  namespace           = "/aws/sagemaker/Endpoints"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 5.0  # Trigger scale-in if utilization drops below 5%
+  
+
+  dimensions = {
+    EndpointName = aws_sagemaker_endpoint.inference_endpoint.name
+    VariantName = "aws-spacy-example"
+  }
+
+  alarm_description = "Alarm if SageMaker CPU util rate  <5%. Triggers scale in due to being idle."
+  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero.arn]
+  # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
+}
+
+# Alternative: Memory Utilization
+resource "aws_cloudwatch_metric_alarm" "scale_in_memory_alarm" {
+  alarm_name          = "sm-low-memory-util"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 3
+  metric_name         = "MemoryUtilization"
+  namespace           = "/aws/sagemaker/Endpoints"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 4.0  # Trigger scale-in if memory utilization drops below 4%
+  
+
+  dimensions = {
+    EndpointName = aws_sagemaker_endpoint.inference_endpoint.name
+    VariantName = "aws-spacy-example"
+  }
+
+  alarm_description = "SageMaker endpoint alarm if memory utilization < 4%"
+  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero.arn]
+  # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
+}
+
+# Step Scaling Policy for Scaling In to Zero which the cloudwatch alarms utilise
+resource "aws_appautoscaling_policy" "scale_in_to_zero" {
+  name               = "scale-in-to-zero-policy"
+  policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.sagemaker_target.resource_id
   scalable_dimension = aws_appautoscaling_target.sagemaker_target.scalable_dimension
   service_namespace  = aws_appautoscaling_target.sagemaker_target.service_namespace
 
-  target_tracking_scaling_policy_configuration {
-    predefined_metric_specification {
-      #  Track how many requests are being processed per instance
-      predefined_metric_type = "SageMakerVariantInvocationsPerInstance"
+  step_scaling_policy_configuration {
+    adjustment_type = "ExactCapacity"
+
+    # Adjust capacity to 1 when underutilization is detected
+    step_adjustment {
+      metric_interval_upper_bound = 1
+      scaling_adjustment          = 1  # Set capacity to 1 instances
     }
 
-  #  Note longer scale in to ensure stablisation so no over-adjusting when demand fluctuates. 
-    target_value       = 30.0
-    scale_in_cooldown  = 120
-    scale_out_cooldown = 60
+    cooldown = 120  # Longer cooldown to prevent frequent scale-in actions
   }
 }
