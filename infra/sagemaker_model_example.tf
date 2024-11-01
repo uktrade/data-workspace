@@ -116,47 +116,49 @@ resource "aws_appautoscaling_target" "sagemaker_target" {
   service_namespace = "sagemaker"
 }
 
-# Scale out schedule during weekday mornings (8 AM, Monday to Friday)
-resource "aws_appautoscaling_scheduled_action" "scale_out_weekdays" {
-  name                  = "scale-out-during-weekdays"
-  service_namespace     = "sagemaker"
-  schedule              = "cron(0 8 ? * MON-FRI *)"  # Every weekday at 8 AM
-  resource_id           = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
-  scalable_dimension    = "sagemaker:variant:DesiredInstanceCount"
 
-  scalable_target_action {
-    min_capacity = 1
-    max_capacity = 2
+# Scale up from 0 
+resource "aws_appautoscaling_policy" "has_backlog_without_capacity" {
+  name                  = "HasBacklogWithoutCapacity-ScalingPolicy"
+  service_namespace     = "sagemaker"
+  resource_id           = aws_appautoscaling_target.sagemaker_target.resource_id
+  scalable_dimension    = aws_appautoscaling_target.sagemaker_target.scalable_dimension
+  policy_type           = "StepScaling"
+
+  step_scaling_policy_configuration {
+    adjustment_type          = "ChangeInCapacity"  # Changes instance count by the specified value
+    metric_aggregation_type  = "Average"
+    cooldown                 = 300  # Wait time for previous scaling activity before starting a new one
+
+    # Increase the instance count by 1 if there are requests in the queue
+    step_adjustment {
+      metric_interval_lower_bound = 0  # The lower bound for metric interval
+      scaling_adjustment          = 1  # Increase instance count by 1
+    }
   }
 }
 
-# Scale in schedule during off-peak hours (6 PM, Monday to Friday)
-resource "aws_appautoscaling_scheduled_action" "scale_in_weekdays" {
-  name                  = "scale-in-during-weekdays"
-  service_namespace     = "sagemaker"
-  schedule              = "cron(0 18 ? * MON-FRI *)"  # Every weekday at 6 PM
-  resource_id           = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
-  scalable_dimension    = "sagemaker:variant:DesiredInstanceCount"
+resource "aws_cloudwatch_metric_alarm" "has_backlog_without_capacity_alarm" {
+  alarm_name          = "HasBacklogWithoutCapacity-Alarm"
+  alarm_description   = "Trigger scaling policy when the SageMaker endpoint has pending requests in the queue."
+  metric_name         = "HasBacklogWithoutCapacity"
+  namespace           = "AWS/SageMaker"
+  statistic           = "Average"
+  period              = 60  # Data aggregation period (seconds)
+  evaluation_periods  = 2   # Number of periods to evaluate before triggering the alarm
+  datapoints_to_alarm = 2   # Data points that must be breaching to trigger alarm
+  threshold           = 1   # Trigger alarm if the backlog metric is greater or equal to 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  treat_missing_data  = "missing"
 
-  scalable_target_action {
-    min_capacity = 0
-    max_capacity = 0
+  dimensions = {
+    EndpointName = aws_sagemaker_endpoint.inference_endpoint.name
   }
+
+  # When the alarm state is triggered, initiate the scaling policy to scale up the endpoint
+  alarm_actions = [aws_appautoscaling_policy.has_backlog_without_capacity.arn]
 }
 
-# Scale in schedule for weekends (scale down to zero on Saturdays and Sundays)
-resource "aws_appautoscaling_scheduled_action" "scale_in_weekends" {
-  name                  = "scale-in-during-weekends"
-  service_namespace     = "sagemaker"
-  schedule              = "cron(0 0 ? * SAT,SUN *)"  # Every Saturday and Sunday at midnight
-  resource_id           = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
-  scalable_dimension    = "sagemaker:variant:DesiredInstanceCount"
-
-  scalable_target_action {
-    min_capacity = 0
-    max_capacity = 0
-  }
-}
 
 # Autoscaling policy based on usage metrics around CPU % n.b. this may need altering 
 #  if using a GPU on the Scale out policy
@@ -203,7 +205,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_in_alarm" {
   }
 
   alarm_description = "Alarm if SageMaker CPU util rate  <5%. Triggers scale in due to being idle."
-  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_one.arn]
+  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero.arn]
   # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
 }
 
@@ -225,12 +227,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_in_memory_alarm" {
   }
 
   alarm_description = "SageMaker endpoint alarm if memory utilization < 4%"
-  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_one.arn]
+  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero.arn]
   # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
 }
 
 # Step Scaling Policy for Scaling In to Zero which the cloudwatch alarms utilise
-resource "aws_appautoscaling_policy" "scale_in_to_one" {
+resource "aws_appautoscaling_policy" "scale_in_to_zero" {
   name               = "scale-in-to-zero-policy"
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.sagemaker_target.resource_id
@@ -242,10 +244,53 @@ resource "aws_appautoscaling_policy" "scale_in_to_one" {
 
     # Adjust capacity to 1 when underutilization is detected
      step_adjustment {
-      metric_interval_lower_bound = 0  # Lower bound is set to 0 to cover all possible metric values
-      scaling_adjustment          = 1  # Set capacity to 1 instance
+      metric_interval_upper_bound = 0  # Upper bound is set to 0 - ensure no negative or positive delta 
+      scaling_adjustment          = 0  # Set capacity to 0 instances
     }
 
     cooldown = 120  # Longer cooldown to prevent frequent scale-in actions
   }
 }
+
+#  Legacy code below for scheduling autoscaling
+# # Scale out schedule during weekday mornings (8 AM, Monday to Friday)
+# resource "aws_appautoscaling_scheduled_action" "scale_out_weekdays" {
+#   name                  = "scale-out-during-weekdays"
+#   service_namespace     = "sagemaker"
+#   schedule              = "cron(0 8 ? * MON-FRI *)"  # Every weekday at 8 AM
+#   resource_id           = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
+#   scalable_dimension    = "sagemaker:variant:DesiredInstanceCount"
+
+#   scalable_target_action {
+#     min_capacity = 1
+#     max_capacity = 2
+#   }
+# }
+
+# # Scale in schedule during off-peak hours (6 PM, Monday to Friday)
+# resource "aws_appautoscaling_scheduled_action" "scale_in_weekdays" {
+#   name                  = "scale-in-during-weekdays"
+#   service_namespace     = "sagemaker"
+#   schedule              = "cron(0 18 ? * MON-FRI *)"  # Every weekday at 6 PM
+#   resource_id           = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
+#   scalable_dimension    = "sagemaker:variant:DesiredInstanceCount"
+
+#   scalable_target_action {
+#     min_capacity = 0
+#     max_capacity = 0
+#   }
+# }
+
+# # Scale in schedule for weekends (scale down to zero on Saturdays and Sundays)
+# resource "aws_appautoscaling_scheduled_action" "scale_in_weekends" {
+#   name                  = "scale-in-during-weekends"
+#   service_namespace     = "sagemaker"
+#   schedule              = "cron(0 0 ? * SAT,SUN *)"  # Every Saturday and Sunday at midnight
+#   resource_id           = "endpoint/${aws_sagemaker_endpoint.inference_endpoint.name}/variant/aws-spacy-example"
+#   scalable_dimension    = "sagemaker:variant:DesiredInstanceCount"
+
+#   scalable_target_action {
+#     min_capacity = 0
+#     max_capacity = 0
+#   }
+# }
