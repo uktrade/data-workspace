@@ -4,8 +4,8 @@ resource "aws_sagemaker_model" "gpt_neo_125m" {
   execution_role_arn = aws_iam_role.inference_role.arn
 
   primary_container {
-    image = "${hugging_face_model_image}"
-    model_data_url = "${sagemaker_models_folder}/gpt-neo-125m.tar.gz"
+    image = "${var.hugging_face_model_image}"
+    model_data_url = "${var.sagemaker_models_folder}/gpt-neo-125m.tar.gz"
     environment = {
       "HF_MODEL_ID": "/opt/ml/model/", # model_id from hf.co/models
       "SM_NUM_GPUS": 1, # Number of GPU used per replica

@@ -75,7 +75,7 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
 }
 
 data "aws_s3_bucket" "sagemaker_default_bucket" {
-  bucket = "${sagemaker_default_bucket}"
+  bucket = "${var.sagemaker_default_bucket}"
 }
 
 resource "aws_iam_role" "inference_role" {
