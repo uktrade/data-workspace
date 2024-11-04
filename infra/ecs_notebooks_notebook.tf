@@ -124,6 +124,27 @@ data "aws_iam_policy_document" "notebook_task_execution" {
 
   statement {
     actions = [
+      "sagemaker:InvokeEndpoint",
+      "sagemaker:InvokeEndpointAsync",
+      "sagemaker:ListEndpoints"
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "ec2:*VpcEndpoint*"
+    ]
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    actions = [
       "ecr:GetAuthorizationToken",
       "ecr:BatchCheckLayerAvailability",
       "ecr:GetDownloadUrlForLayer",
@@ -232,6 +253,29 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
 
     resources = [
       "${aws_efs_file_system.notebooks.arn}",
+    ]
+  }
+
+  # Temporary: Allow SageMaker access for all DW tools users
+  statement {
+    actions = [
+      "sagemaker:InvokeEndpoint",
+      "sagemaker:InvokeEndpointAsync",
+      "sagemaker:ListEndpoints"
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  # Temporary: Allow all VPC endpoint permissions for all DW tools users
+  statement {
+    actions = [
+      "ec2:*VpcEndpoint*"
+    ]
+    resources = [
+      "*",
     ]
   }
 }
@@ -345,6 +389,25 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "arn:aws:s3:::amazonlinux.*.amazonaws.com/*",
     ]
   }
+
+  # Allow access to SageMaker default bucket
+  statement {
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "s3:ListBucket",
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::*sagemaker*"
+    ]
+  }
 }
 
 resource "aws_iam_policy" "notebook_task_boundary" {
@@ -372,6 +435,19 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
 
     resources = [
       "${aws_s3_bucket.notebooks.arn}/*",
+    ]
+  }
+
+  # Temporary: Allow all tools users to access SageMaker endpoints
+  statement {
+    actions = [
+      "sagemaker:InvokeEndpoint",
+      "sagemaker:InvokeEndpointAsync",
+      "sagemaker:ListEndpoints",
+    ]
+
+    resources = [
+      "*",
     ]
   }
 
