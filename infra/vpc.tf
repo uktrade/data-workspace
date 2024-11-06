@@ -871,6 +871,8 @@ data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
       "sagemaker:InvokeEndpoint",
       "sagemaker:InvokeEndpointAsync",
       "sagemaker:ListEndpoints",
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescibeTransformJob"
     ]
     resources = [
       "*"

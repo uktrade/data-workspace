@@ -126,7 +126,9 @@ data "aws_iam_policy_document" "notebook_task_execution" {
     actions = [
       "sagemaker:InvokeEndpoint",
       "sagemaker:InvokeEndpointAsync",
-      "sagemaker:ListEndpoints"
+      "sagemaker:ListEndpoints",
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescibeTransformJob"
     ]
 
     resources = [
@@ -261,7 +263,9 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     actions = [
       "sagemaker:InvokeEndpoint",
       "sagemaker:InvokeEndpointAsync",
-      "sagemaker:ListEndpoints"
+      "sagemaker:ListEndpoints",
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescibeTransformJob"
     ]
 
     resources = [
@@ -444,6 +448,8 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
       "sagemaker:InvokeEndpoint",
       "sagemaker:InvokeEndpointAsync",
       "sagemaker:ListEndpoints",
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescibeTransformJob"
     ]
 
     resources = [

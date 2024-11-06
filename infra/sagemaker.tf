@@ -28,12 +28,13 @@ data "aws_iam_policy_document" "sagemaker_assume_role" {
 }
 
 data "aws_iam_policy" "sagemaker_access_policy" {
-  name = "AmazonSageMakerFullAccess"
+  name   = "${var.prefix}-sagemaker-domain"
+  policy = data.aws_iam_policy_document.sagemaker_inference_policy_document.json
 }
 
 resource "aws_iam_role_policy_attachment" "sagemaker_managed_policy" {
   role = aws_iam_role.sagemaker.name
-  policy_arn = data.aws_iam_policy.sagemaker_access_policy.arn
+  policy_arn = aws_iam_policy.sagemaker_access_policy.arn
 }
 
 resource "aws_security_group" "notebooks_endpoints" {
@@ -95,11 +96,116 @@ data "aws_iam_policy_document" "assume_inference_role" {
 
 resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
   role = aws_iam_role.inference_role.name
-  policy_arn = data.aws_iam_policy.sagemaker_ro_access_policy.arn
+  policy_arn = aws_iam_policy.sagemaker_ro_access_policy.arn
 }
 
 data "aws_iam_policy" "sagemaker_ro_access_policy" {
-  name = "AmazonSageMakerFullAccess"
+  name   = "${var.prefix}-sagemaker-execution"
+  policy = data.aws_iam_policy_document.sagemaker_inference_policy_document.json
+}
+
+data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
+
+  statement {
+    actions = [
+      "s3:ListBucket",
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ]
+
+    resources = [
+      "arn:aws:s3:::*sagemaker*",
+      "${aws_s3_bucket.notebooks.arn}/*"
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecr:BatchGetImage",
+      "ecr:DescribeImages",
+    ]
+
+    resources = [
+      "${aws_ecr_repository.sagemaker.arn}",
+    ]
+  }
+
+  statement {
+    actions = [
+      "cloudwatch:DeleteAlarms",
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:GetMetricData",
+      "cloudwatch:GetMetricStatistics",
+      "cloudwatch:ListMetrics",
+      "cloudwatch:PutMetricAlarm",
+      "cloudwatch:PutMetricData",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "application-autoscaling:DeleteScalingPolicy",
+      "application-autoscaling:DeleteScheduledAction",
+      "application-autoscaling:DeregisterScalableTarget",
+      "application-autoscaling:DescribeScalableTargets",
+      "application-autoscaling:DescribeScalingActivities",
+      "application-autoscaling:DescribeScalingPolicies",
+      "application-autoscaling:DescribeScheduledActions",
+      "application-autoscaling:PutScalingPolicy",
+      "application-autoscaling:PutScheduledAction",
+      "application-autoscaling:RegisterScalableTarget",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "ec2:CreateNetworkInterface",
+      "ec2:CreateNetworkInterfacePermission",
+      "ec2:CreateVpcEndpoint",
+      "ec2:DeleteNetworkInterface",
+      "ec2:DeleteNetworkInterfacePermission",
+      "ec2:DescribeDhcpOptions",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeVpcEndpoints",
+      "ec2:DescribeVpcs",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "logs:CreateLogDelivery",
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:DeleteLogDelivery",
+      "logs:Describe*",
+      "logs:GetLogDelivery",
+      "logs:GetLogEvents",
+      "logs:ListLogDeliveries",
+      "logs:PutLogEvents",
+      "logs:PutResourcePolicy",
+      "logs:UpdateLogDelivery",
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
 }
 
 #  Legacy code below for scheduling autoscaling
