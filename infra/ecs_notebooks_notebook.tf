@@ -203,6 +203,19 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
 
   }
 
+  # temporary policy to allow access to SageMaker bucket
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+      "s3:ListBucket"
+    ]
+
+    resources = ["arn:aws:s3:::*sagemaker*"]
+
+  }
+
   statement {
     actions = [
       "s3:ListBucket",
@@ -454,6 +467,20 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
 
     resources = [
       "*",
+    ]
+  }
+
+  # Temporary: Allow all tools users to access SageMaker S3 bucket
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      "arn:aws:s3:::*sagemaker*",
     ]
   }
 
