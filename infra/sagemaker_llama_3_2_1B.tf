@@ -50,9 +50,9 @@ resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuratio
 # Auto scaling Target for the endpoint of this model
 resource "aws_appautoscaling_target" "sagemaker_target_Llama_3_2_1B_endpoint" {
   # Max 2 instances at any given time
-  max_capacity = 2 
+  max_capacity = 2
   # Min capacity = 1 ensures our endpoint is at a minimum when not needed but ready to go
-  min_capacity = 1
+  min_capacity = 0
   resource_id = "endpoint/${aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name}/variant/Llama-3-2-1B-endpoint-example-1"
   # Number of desired instance count for the endpoint which can be modified by auto-scaling
   scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
@@ -152,27 +152,27 @@ resource "aws_cloudwatch_metric_alarm" "scale_in_alarm_Llama_3_2_1B_endpoint" {
   # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
 }
 
-# Alternative: Memory Utilization
-resource "aws_cloudwatch_metric_alarm" "scale_in_memory_alarm_Llama_3_2_1B_endpoint" {
-  alarm_name          = "sm-low-memory-util"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = 3
-  metric_name         = "MemoryUtilization"
-  namespace           = "/aws/sagemaker/Endpoints"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 4.0  # Trigger scale-in if memory utilization drops below 4%
+# # Alternative: Memory Utilization
+# resource "aws_cloudwatch_metric_alarm" "scale_in_memory_alarm_Llama_3_2_1B_endpoint" {
+#   alarm_name          = "sm-low-memory-util"
+#   comparison_operator = "LessThanThreshold"
+#   evaluation_periods  = 3
+#   metric_name         = "MemoryUtilization"
+#   namespace           = "/aws/sagemaker/Endpoints"
+#   period              = 60
+#   statistic           = "Average"
+#   threshold           = 4.0  # Trigger scale-in if memory utilization drops below 4%
   
 
-  dimensions = {
-    EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
-    VariantName = "Llama-3-2-1B-endpoint-example-1"
-  }
+#   dimensions = {
+#     EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
+#     VariantName = "Llama-3-2-1B-endpoint-example-1"
+#   }
 
-  alarm_description = "SageMaker endpoint alarm if memory utilization < 4%"
-  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero_Llama_3_2_1B_endpoint.arn]
-  # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
-}
+#   alarm_description = "SageMaker endpoint alarm if memory utilization < 4%"
+#   alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero_Llama_3_2_1B_endpoint.arn]
+#   # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
+# }
 
 # Step Scaling Policy for Scaling In to Zero which the cloudwatch alarms utilise
 resource "aws_appautoscaling_policy" "scale_in_to_zero_Llama_3_2_1B_endpoint" {
