@@ -23,6 +23,10 @@ resource "aws_sagemaker_model" "Llama_3_2_1B" {
 resource "aws_sagemaker_endpoint" "Llama_3_2_1B_endpoint" {
   name = "Llama-3-2-1B-endpoint"
   endpoint_config_name = aws_sagemaker_endpoint_configuration.sagemaker_endpoint_configuration_Llama_3_2_1B_endpoint.name
+  
+  depends_on = [
+    aws_iam_role.inference_role
+  ]
 }
 
 resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuration_Llama_3_2_1B_endpoint" {

@@ -23,6 +23,10 @@ resource "aws_sagemaker_model" "gpt_neo_125m" {
 resource "aws_sagemaker_endpoint" "gpt_neo_125m_endpoint" {
   name = "gpt-neo-125m-endpoint"
   endpoint_config_name = aws_sagemaker_endpoint_configuration.sagemaker_endpoint_configuration_gpt_neo_125m_endpoint.name
+
+  depends_on = [
+    aws_iam_role.inference_role
+  ]
 }
 
 resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuration_gpt_neo_125m_endpoint" {

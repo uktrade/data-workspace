@@ -125,7 +125,8 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
       "ecr:BatchGetImage",
       "ecr:DescribeImages",
       "ecr:GetDownloadUrlForLayer",
-      "ecr:BatchCheckLayerAvailability"
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetAuthorizationToken"
     ]
 
     resources = [
