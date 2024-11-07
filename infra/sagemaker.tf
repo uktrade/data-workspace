@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "sagemaker_assume_role" {
   }
 }
 
-data "aws_iam_policy" "sagemaker_access_policy" {
+resource "aws_iam_policy" "sagemaker_access_policy" {
   name   = "${var.prefix}-sagemaker-domain"
   policy = data.aws_iam_policy_document.sagemaker_inference_policy_document.json
 }
@@ -99,7 +99,7 @@ resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
   policy_arn = aws_iam_policy.sagemaker_ro_access_policy.arn
 }
 
-data "aws_iam_policy" "sagemaker_ro_access_policy" {
+resource "aws_iam_policy" "sagemaker_ro_access_policy" {
   name   = "${var.prefix}-sagemaker-execution"
   policy = data.aws_iam_policy_document.sagemaker_inference_policy_document.json
 }
@@ -124,10 +124,14 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     actions = [
       "ecr:BatchGetImage",
       "ecr:DescribeImages",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetAuthorizationToken"
     ]
 
     resources = [
-      "${aws_ecr_repository.sagemaker.arn}",
+      # "${aws_ecr_repository.sagemaker.arn}",
+      "*"
     ]
   }
 
