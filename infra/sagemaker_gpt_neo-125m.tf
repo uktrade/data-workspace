@@ -129,11 +129,31 @@ resource "aws_appautoscaling_policy" "scale_out_cpu_sagemaker_target_gpt_neo_125
   }
 }
 
+#  Metric Alarm to scale up
+resource "aws_cloudwatch_metric_alarm" "scale_up_gpt_neo_125m_endpoint_endpoint" {
+  alarm_name          = "cpu-high-utilization-${aws_sagemaker_model.gpt_neo_125m.name}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2  # Number of periods with high CPU before triggering scale-up
+  metric_name         = "CPUUtilization"
+  namespace           = "/aws/sagemaker/Endpoints"
+  period              = 60  # Data aggregation period (in seconds)
+  statistic           = "Average"
+  threshold           = 70.0  # Trigger scale-up if utilization exceeds 70%
+
+  dimensions = {
+    EndpointName = aws_sagemaker_endpoint.gpt_neo_125m_endpoint.name
+    VariantName  = "gpt-neo-125m-endpoint-example-1"
+  }
+
+  alarm_description = "Alarm if SageMaker CPU utilization rate > 70%. Triggers scale-up."
+  alarm_actions     = [aws_appautoscaling_policy.scale_out_cpu_sagemaker_target_gpt_neo_125m_endpoint.arn]
+}
+
 #  Scale in - using cloudwatch alarm to ensure we have distinct thresholds
 #  Alongside a step scaling policy
 #  Now altered for low CPU utilisation as metric for inovcations not present 
 resource "aws_cloudwatch_metric_alarm" "scale_in_alarm_gpt_neo_125m_endpoint" {
-  alarm_name          = "sm-low-cpu-util"
+  alarm_name          = "sm-low-cpu-util-${aws_sagemaker_endpoint.gpt_neo_125m_endpoint.name}"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 3 # Increased eval periods to filter short-lived spikes (health check related)
   metric_name         = "CPUUtilization"
@@ -186,10 +206,19 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_gpt_neo_125m_endpoint" {
   step_scaling_policy_configuration {
     adjustment_type = "ExactCapacity"
 
+
     # Adjust capacity to 1 when underutilization is detected
-     step_adjustment {
-      metric_interval_lower_bound = 0  # Lower bound is set to 0 to cover all possible metric values
-      scaling_adjustment          = 0  # Set capacity to 0 instances to spin down
+    step_adjustment {
+      metric_interval_lower_bound = null  # Handles everything below 5%
+      metric_interval_upper_bound = 5     # Upper bound of 5% utilization
+      scaling_adjustment          = 0     # Set capacity to zero instances
+    }
+
+    # Step adjustment to handle all values above the upper bound (fallback)
+    step_adjustment {
+      metric_interval_lower_bound = 5     # Handles everything above 5%
+      metric_interval_upper_bound = null  # Unspecified upper bound to catch all higher values
+      scaling_adjustment          = 0     # Set capacity to zero instances
     }
 
     cooldown = 120  # Longer cooldown to prevent frequent scale-in actions

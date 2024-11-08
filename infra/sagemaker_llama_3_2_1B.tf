@@ -55,7 +55,7 @@ resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuratio
 resource "aws_appautoscaling_target" "sagemaker_target_Llama_3_2_1B_endpoint" {
   # Max 2 instances at any given time
   max_capacity = 2
-  # Min capacity = 1 ensures our endpoint is at a minimum when not needed but ready to go
+  # Min capacity = 0 ensures our endpoint is at a minimum when not needed but ready to go
   min_capacity = 0
   resource_id = "endpoint/${aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name}/variant/Llama-3-2-1B-endpoint-example-1"
   # Number of desired instance count for the endpoint which can be modified by auto-scaling
@@ -129,14 +129,36 @@ resource "aws_appautoscaling_policy" "scale_out_cpu_Llama_3_2_1B_endpoint" {
     scale_in_cooldown  = 60    # Cooldown to prevent frequent scaling in
     scale_out_cooldown = 60    # Cooldown to prevent frequent scaling out
   }
+  
 }
+
+#  Metric Alarm to scale up
+resource "aws_cloudwatch_metric_alarm" "scale_up_alarm_Llama_3_2_1B_endpoint" {
+  alarm_name          = "cpu-high-utilization-${aws_sagemaker_model.Llama_3_2_1B.name}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2  # Number of periods with high CPU before triggering scale-up
+  metric_name         = "CPUUtilization"
+  namespace           = "/aws/sagemaker/Endpoints"
+  period              = 60  # Data aggregation period (in seconds)
+  statistic           = "Average"
+  threshold           = 70.0  # Trigger scale-up if utilization exceeds 70%
+
+  dimensions = {
+    EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
+    VariantName  = "Llama-3-2-1B-endpoint-example-1"
+  }
+
+  alarm_description = "Alarm if SageMaker CPU utilization rate > 70%. Triggers scale-up."
+  alarm_actions     = [aws_appautoscaling_policy.scale_out_cpu_Llama_3_2_1B_endpoint.arn]
+}
+
 
 
 #  Scale in - using cloudwatch alarm to ensure we have distinct thresholds
 #  Alongside a step scaling policy
 #  Now altered for low CPU utilisation as metric for inovcations not present 
 resource "aws_cloudwatch_metric_alarm" "scale_in_alarm_Llama_3_2_1B_endpoint" {
-  alarm_name          = "sm-low-cpu-util"
+  alarm_name          = "sm-low-cpu-util-${aws_sagemaker_model.Llama_3_2_1B.name}"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 3 # Increased eval periods to filter short-lived spikes (health check related)
   metric_name         = "CPUUtilization"
@@ -190,9 +212,17 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_Llama_3_2_1B_endpoint" {
     adjustment_type = "ExactCapacity"
 
     # Adjust capacity to 1 when underutilization is detected
-     step_adjustment {
-      metric_interval_upper_bound = 0  # Upper bound is set to 0 - ensure no negative or positive delta 
-      scaling_adjustment          = 0  # Set capacity to 0 instances
+    step_adjustment {
+      metric_interval_lower_bound = null  # Handles everything below 5%
+      metric_interval_upper_bound = 5     # Upper bound of 5% utilization
+      scaling_adjustment          = 0     # Set capacity to zero instances
+    }
+
+    # Step adjustment to handle all values above the upper bound (fallback)
+    step_adjustment {
+      metric_interval_lower_bound = 5     # Handles everything above 5%
+      metric_interval_upper_bound = null  # Unspecified upper bound to catch all higher values
+      scaling_adjustment          = 0     # Set capacity to zero instances
     }
 
     cooldown = 120  # Longer cooldown to prevent frequent scale-in actions
