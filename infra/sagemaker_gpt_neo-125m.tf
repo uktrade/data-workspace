@@ -189,7 +189,7 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_gpt_neo_125m_endpoint" {
     # Adjust capacity to 1 when underutilization is detected
      step_adjustment {
       metric_interval_lower_bound = 0  # Lower bound is set to 0 to cover all possible metric values
-      scaling_adjustment          = 1  # Set capacity to 1 instance
+      scaling_adjustment          = 0  # Set capacity to 0 instances to spin down
     }
 
     cooldown = 120  # Longer cooldown to prevent frequent scale-in actions
