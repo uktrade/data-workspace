@@ -235,7 +235,20 @@ data "aws_iam_policy_document" "airflow_team" {
     ]
 
     resources = [
-      "arn:aws:secretsmanager:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:secret:${var.prefix}/airflow/${var.airflow_dag_processors[count.index].name}-*"
+      "arn:aws:secretsmanager:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:secret:${var.prefix}/airflow/${var.airflow_dag_processors[count.index].name}-*",
+      "arn:aws:secretsmanager:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:secret:${var.prefix}/airflow/${var.airflow_dag_processors[count.index].name}_2-*"
+    ]
+  }
+
+  # This just gives a permission to call BatchGetSecretValue, but doesn't actually give permission
+  # to look at any secret values themselves - secretsmanager:GetSecretValue does that
+  statement {
+    actions = [
+      "secretsmanager:BatchGetSecretValue"
+    ]
+
+    resources = [
+      "*"
     ]
   }
 
