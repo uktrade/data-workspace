@@ -955,6 +955,17 @@ data "aws_iam_policy_document" "gitlab_runner" {
       "${aws_ecr_repository.user_provided.arn}",
     ]
   }
+
+  # Allow put object for private packages
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:PutObjectAcl"
+    ]
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.notebooks.id}/shared/*"
+    ]
+  }
 }
 
 resource "aws_iam_policy_attachment" "gitlab_runner" {
