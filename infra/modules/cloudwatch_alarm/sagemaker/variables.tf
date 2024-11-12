@@ -13,6 +13,11 @@ variable "namespace" {
   description = "The namespace for the metric"
 }
 
+variable "period" {
+  type        = number
+  description = "The namespace for the metric"
+}
+
 variable "comparison_operator" {
   type        = string
   description = "Comparison operator for the CloudWatch alarm"

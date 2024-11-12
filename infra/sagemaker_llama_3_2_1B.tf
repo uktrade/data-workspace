@@ -1,193 +1,171 @@
 
-resource "aws_sagemaker_model" "Llama_3_2_1B" {
-  name               = "Llama-3-2-1B"
-  execution_role_arn = aws_iam_role.inference_role.arn
+# resource "aws_sagemaker_model" "Llama_3_2_1B" {
+#   name               = "Llama-3-2-1B"
+#   execution_role_arn = module.iam.inference_role
 
-  primary_container {
-    image = "${var.hugging_face_model_image}"
-    model_data_url = "${var.sagemaker_models_folder}/Llama-3.2-1B.tar.gz"
-    environment = {
-      "HF_MODEL_ID": "/opt/ml/model/", # model_id from hf.co/models
-      "SM_NUM_GPUS": 1, # Number of GPU used per replica
-      "MAX_INPUT_LENGTH": 1024,  # Max length of input text
-      "MAX_TOTAL_TOKENS": 2048,  # Max length of the generation (including input text)
-    }
-  }
+#   primary_container {
+#     image = "${var.hugging_face_model_image}"
+#     model_data_url = "${var.sagemaker_models_folder}/Llama-3.2-1B.tar.gz"
+#     environment = {
+#       "HF_MODEL_ID": "/opt/ml/model/", # model_id from hf.co/models
+#       "SM_NUM_GPUS": 1, # Number of GPU used per replica
+#       "MAX_INPUT_LENGTH": 1024,  # Max length of input text
+#       "MAX_TOTAL_TOKENS": 2048,  # Max length of the generation (including input text)
+#     }
+#   }
 
-  vpc_config {
-    security_group_ids = ["${aws_security_group.notebooks.id}"]
-    subnets = aws_subnet.private_without_egress.*.id
-  }
-}
+#   vpc_config {
+#     security_group_ids = ["${aws_security_group.notebooks.id}"]
+#     subnets = aws_subnet.private_without_egress.*.id
+#   }
+# }
 
-resource "aws_sagemaker_endpoint" "Llama_3_2_1B_endpoint" {
-  name = "Llama-3-2-1B-endpoint"
-  endpoint_config_name = aws_sagemaker_endpoint_configuration.sagemaker_endpoint_configuration_Llama_3_2_1B_endpoint.name
+# resource "aws_sagemaker_endpoint" "Llama_3_2_1B_endpoint" {
+#   name = "Llama-3-2-1B-endpoint"
+#   endpoint_config_name = aws_sagemaker_endpoint_configuration.sagemaker_endpoint_configuration_Llama_3_2_1B_endpoint.name
   
-  depends_on = [
-    aws_iam_role.inference_role
-  ]
-}
+#   depends_on = [
+#     module.iam.inference_role
+#   ]
+# }
 
-resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuration_Llama_3_2_1B_endpoint" {
-  name = "sagemaker-endpoint-config-Llama-3-2-1B"
+# resource "aws_sagemaker_endpoint_configuration" "sagemaker_endpoint_configuration_Llama_3_2_1B_endpoint" {
+#   name = "sagemaker-endpoint-config-Llama-3-2-1B"
 
-  production_variants {
-    variant_name           = "Llama-3-2-1B-endpoint-example-1"
-    model_name             = aws_sagemaker_model.Llama_3_2_1B.name
-    instance_type          = "ml.g5.2xlarge"
-    initial_instance_count = 1
-    container_startup_health_check_timeout_in_seconds = 90
-  }
+#   production_variants {
+#     variant_name           = "Llama-3-2-1B-endpoint-example-1"
+#     model_name             = aws_sagemaker_model.Llama_3_2_1B.name
+#     instance_type          = "ml.g5.2xlarge"
+#     initial_instance_count = 1
+#     container_startup_health_check_timeout_in_seconds = 90
+#   }
 
-  # Async config
-  async_inference_config {
-    client_config {
-        max_concurrent_invocations_per_instance = 1
-    }
-    output_config {
-        s3_output_path = "https://${data.aws_s3_bucket.sagemaker_default_bucket.bucket_regional_domain_name}"
-    }
- }
-}
+#   # Async config
+#   async_inference_config {
+#     client_config {
+#         max_concurrent_invocations_per_instance = 1
+#     }
+#     output_config {
+#         s3_output_path = "https://${data.aws_s3_bucket.sagemaker_default_bucket.bucket_regional_domain_name}"
+#     }
+#  }
+# }
 
-# Auto scaling Target for the endpoint of this model
-resource "aws_appautoscaling_target" "sagemaker_target_Llama_3_2_1B_endpoint" {
-  # Max 2 instances at any given time
-  max_capacity = 2
-  # Min capacity = 0 ensures our endpoint is at a minimum when not needed but ready to go
-  min_capacity = 0
-  resource_id = "endpoint/${aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name}/variant/Llama-3-2-1B-endpoint-example-1"
-  # Number of desired instance count for the endpoint which can be modified by auto-scaling
-  scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
-  service_namespace = "sagemaker"
-}
-
-
-# Scale up from 0 
-resource "aws_appautoscaling_policy" "has_backlog_without_capacity_Llama_3_2_1B_endpoint" {
-  name                  = "HasBacklogWithoutCapacity-ScalingPolicy"
-  service_namespace     = "sagemaker"
-  resource_id           = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.resource_id
-  scalable_dimension    = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.scalable_dimension
-  policy_type           = "StepScaling"
-
-  step_scaling_policy_configuration {
-    adjustment_type          = "ChangeInCapacity"  # Changes instance count by the specified value
-    metric_aggregation_type  = "Average"
-    cooldown                 = 300  # Wait time for previous scaling activity before starting a new one
-
-    # Increase the instance count by 1 if there are requests in the queue
-    step_adjustment {
-      metric_interval_lower_bound = 0  # The lower bound for metric interval
-      scaling_adjustment          = 1  # Increase instance count by 1
-    }
-  }
-}
-
-resource "aws_cloudwatch_metric_alarm" "has_backlog_without_capacity_alarm_Llama_3_2_1B_endpoint" {
-  alarm_name          = "HasBacklogWithoutCapacity-Alarm-Llama-3-2-1B"
-  alarm_description   = "Trigger scaling policy when the SageMaker endpoint has pending requests in the queue."
-  metric_name         = "HasBacklogWithoutCapacity"
-  namespace           = "AWS/SageMaker"
-  statistic           = "Average"
-  period              = 60  # Data aggregation period (seconds)
-  evaluation_periods  = 2   # Number of periods to evaluate before triggering the alarm
-  datapoints_to_alarm = 2   # Data points that must be breaching to trigger alarm
-  threshold           = 1   # Trigger alarm if the backlog metric is greater or equal to 1
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  treat_missing_data  = "missing"
-
-  dimensions = {
-    EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
-  }
-
-  # When the alarm state is triggered, initiate the scaling policy to scale up the endpoint
-  alarm_actions = [aws_appautoscaling_policy.has_backlog_without_capacity_Llama_3_2_1B_endpoint.arn]
-}
+# # Auto scaling Target for the endpoint of this model
+# resource "aws_appautoscaling_target" "sagemaker_target_Llama_3_2_1B_endpoint" {
+#   # Max 2 instances at any given time
+#   max_capacity = 2
+#   # Min capacity = 0 ensures our endpoint is at a minimum when not needed but ready to go
+#   min_capacity = 0
+#   resource_id = "endpoint/${aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name}/variant/Llama-3-2-1B-endpoint-example-1"
+#   # Number of desired instance count for the endpoint which can be modified by auto-scaling
+#   scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
+#   service_namespace = "sagemaker"
+# }
 
 
-# Autoscaling policy based on usage metrics around CPU % n.b. this may need altering 
-#  if using a GPU on the Scale out policy
-resource "aws_appautoscaling_policy" "scale_out_cpu_Llama_3_2_1B_endpoint" {
-  name               = "scale-out-policy-cpu"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.resource_id
-  scalable_dimension = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.service_namespace
+# # Scale up from 0 
+# resource "aws_appautoscaling_policy" "has_backlog_without_capacity_Llama_3_2_1B_endpoint" {
+#   name                  = "HasBacklogWithoutCapacity-ScalingPolicy"
+#   service_namespace     = "sagemaker"
+#   resource_id           = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.resource_id
+#   scalable_dimension    = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.scalable_dimension
+#   policy_type           = "StepScaling"
 
-  # Config for the target tracking scaling policy
-  target_tracking_scaling_policy_configuration {
-    customized_metric_specification {
-      metric_name = "CPUUtilization"
-      namespace   = "AWS/SageMaker"  
-      statistic   = "Average"
-      unit        = "Percent"
-    }
+#   step_scaling_policy_configuration {
+#     adjustment_type          = "ChangeInCapacity"  # Changes instance count by the specified value
+#     metric_aggregation_type  = "Average"
+#     cooldown                 = 120  # Wait time for previous scaling activity before starting a new one
 
-    target_value       = 70.0  # Scale out if CPU utilization exceeds 70%
-    scale_in_cooldown  = 60    # Cooldown to prevent frequent scaling in
-    scale_out_cooldown = 60    # Cooldown to prevent frequent scaling out
-  }
-  
-}
+#     # Increase the instance count by 1 if there are requests in the queue
+#     step_adjustment {
+#       metric_interval_lower_bound = 0  # The lower bound for metric interval
+#       scaling_adjustment          = 1  # Increase instance count by 1
+#     }
+#   }
+# }
 
-#  Metric Alarm to scale up
-resource "aws_cloudwatch_metric_alarm" "scale_up_alarm_Llama_3_2_1B_endpoint" {
-  alarm_name          = "cpu-high-utilization-${aws_sagemaker_model.Llama_3_2_1B.name}"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2  # Number of periods with high CPU before triggering scale-up
-  metric_name         = "CPUUtilization"
-  namespace           = "/aws/sagemaker/Endpoints"
-  period              = 60  # Data aggregation period (in seconds)
-  statistic           = "Average"
-  threshold           = 70.0  # Trigger scale-up if utilization exceeds 70%
-
-  dimensions = {
-    EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
-    VariantName  = "Llama-3-2-1B-endpoint-example-1"
-  }
-
-  alarm_description = "Alarm if SageMaker CPU utilization rate > 70%. Triggers scale-up."
-  alarm_actions     = [aws_appautoscaling_policy.scale_out_cpu_Llama_3_2_1B_endpoint.arn]
-}
-
-
-
-#  Scale in - using cloudwatch alarm to ensure we have distinct thresholds
-#  Alongside a step scaling policy
-#  Now altered for low CPU utilisation as metric for inovcations not present 
-resource "aws_cloudwatch_metric_alarm" "scale_in_alarm_Llama_3_2_1B_endpoint" {
-  alarm_name          = "sm-low-cpu-util-${aws_sagemaker_model.Llama_3_2_1B.name}"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = 3 # Increased eval periods to filter short-lived spikes (health check related)
-  metric_name         = "CPUUtilization"
-  namespace           = "/aws/sagemaker/Endpoints"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 5.0  # Trigger scale-in if utilization drops below 5%
-  
-
-  dimensions = {
-    EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
-    VariantName = "Llama-3-2-1B-endpoint-example-1"
-  }
-
-  alarm_description = "Alarm if SageMaker CPU util rate  <5%. Triggers scale in due to being idle."
-  alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero_Llama_3_2_1B_endpoint.arn]
-  # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
-}
-
-# # Alternative: Memory Utilization
-# resource "aws_cloudwatch_metric_alarm" "scale_in_memory_alarm_Llama_3_2_1B_endpoint" {
-#   alarm_name          = "sm-low-memory-util"
-#   comparison_operator = "LessThanThreshold"
-#   evaluation_periods  = 3
-#   metric_name         = "MemoryUtilization"
-#   namespace           = "/aws/sagemaker/Endpoints"
-#   period              = 60
+# resource "aws_cloudwatch_metric_alarm" "has_backlog_without_capacity_alarm_Llama_3_2_1B_endpoint" {
+#   alarm_name          = "HasBacklogWithoutCapacity-Alarm-Llama-3-2-1B"
+#   alarm_description   = "Trigger scaling policy when the SageMaker endpoint has pending requests in the queue."
+#   metric_name         = "HasBacklogWithoutCapacity"
+#   namespace           = "AWS/SageMaker"
 #   statistic           = "Average"
-#   threshold           = 4.0  # Trigger scale-in if memory utilization drops below 4%
+#   period              = 60  # Data aggregation period (seconds)
+#   evaluation_periods  = 2   # Number of periods to evaluate before triggering the alarm
+#   datapoints_to_alarm = 2   # Data points that must be breaching to trigger alarm
+#   threshold           = 1   # Trigger alarm if the backlog metric is greater or equal to 1
+#   comparison_operator = "GreaterThanOrEqualToThreshold"
+#   treat_missing_data  = "missing"
+
+#   dimensions = {
+#     EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
+#   }
+
+#   # When the alarm state is triggered, initiate the scaling policy to scale up the endpoint
+#   alarm_actions = [aws_appautoscaling_policy.has_backlog_without_capacity_Llama_3_2_1B_endpoint.arn]
+# }
+
+
+# # Autoscaling policy based on usage metrics around CPU % n.b. this may need altering 
+# #  if using a GPU on the Scale out policy
+# resource "aws_appautoscaling_policy" "scale_out_cpu_Llama_3_2_1B_endpoint" {
+#   name               = "scale-out-policy-cpu"
+#   policy_type        = "TargetTrackingScaling"
+#   resource_id        = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.resource_id
+#   scalable_dimension = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.scalable_dimension
+#   service_namespace  = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.service_namespace
+
+#   # Config for the target tracking scaling policy
+#   target_tracking_scaling_policy_configuration {
+#     customized_metric_specification {
+#       metric_name = "CPUUtilization"
+#       namespace   = "AWS/SageMaker"  
+#       statistic   = "Average"
+#       unit        = "Percent"
+#     }
+
+#     target_value       = 70.0  # Scale out if CPU utilization exceeds 70%
+#     scale_in_cooldown  = 60    # Cooldown to prevent frequent scaling in
+#     scale_out_cooldown = 60    # Cooldown to prevent frequent scaling out
+#   }
+  
+# }
+
+# #  Metric Alarm to scale up
+# resource "aws_cloudwatch_metric_alarm" "scale_up_alarm_Llama_3_2_1B_endpoint" {
+#   alarm_name          = "cpu-high-utilization-${aws_sagemaker_model.Llama_3_2_1B.name}"
+#   comparison_operator = "GreaterThanThreshold"
+#   evaluation_periods  = 2  # Number of periods with high CPU before triggering scale-up
+#   metric_name         = "CPUUtilization"
+#   namespace           = "/aws/sagemaker/Endpoints"
+#   period              = 60  # Data aggregation period (in seconds)
+#   statistic           = "Average"
+#   threshold           = 70.0  # Trigger scale-up if utilization exceeds 70%
+
+#   dimensions = {
+#     EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
+#     VariantName  = "Llama-3-2-1B-endpoint-example-1"
+#   }
+
+#   alarm_description = "Alarm if SageMaker CPU utilization rate > 70%. Triggers scale-up."
+#   alarm_actions     = [aws_appautoscaling_policy.scale_out_cpu_Llama_3_2_1B_endpoint.arn]
+# }
+
+
+
+# #  Scale in - using cloudwatch alarm to ensure we have distinct thresholds
+# #  Alongside a step scaling policy
+# #  Now altered for low CPU utilisation as metric for inovcations not present 
+# resource "aws_cloudwatch_metric_alarm" "scale_in_alarm_Llama_3_2_1B_endpoint" {
+#   alarm_name          = "sm-low-cpu-util-${aws_sagemaker_model.Llama_3_2_1B.name}"
+#   comparison_operator = "LessThanThreshold"
+#   evaluation_periods  = 3 # Increased eval periods to filter short-lived spikes (health check related)
+#   metric_name         = "CPUUtilization"
+#   namespace           = "/aws/sagemaker/Endpoints"
+#   period              = 300
+#   statistic           = "Average"
+#   threshold           = 5.0  # Trigger scale-in if utilization drops below 5%
   
 
 #   dimensions = {
@@ -195,36 +173,58 @@ resource "aws_cloudwatch_metric_alarm" "scale_in_alarm_Llama_3_2_1B_endpoint" {
 #     VariantName = "Llama-3-2-1B-endpoint-example-1"
 #   }
 
-#   alarm_description = "SageMaker endpoint alarm if memory utilization < 4%"
+#   alarm_description = "Alarm if SageMaker CPU util rate  <5%. Triggers scale in due to being idle."
 #   alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero_Llama_3_2_1B_endpoint.arn]
 #   # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
 # }
 
-# Step Scaling Policy for Scaling In to Zero which the cloudwatch alarms utilise
-resource "aws_appautoscaling_policy" "scale_in_to_zero_Llama_3_2_1B_endpoint" {
-  name               = "scale-in-to-zero-policy"
-  policy_type        = "StepScaling"
-  resource_id        = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.resource_id
-  scalable_dimension = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.service_namespace
+# # # Alternative: Memory Utilization
+# # resource "aws_cloudwatch_metric_alarm" "scale_in_memory_alarm_Llama_3_2_1B_endpoint" {
+# #   alarm_name          = "sm-low-memory-util"
+# #   comparison_operator = "LessThanThreshold"
+# #   evaluation_periods  = 3
+# #   metric_name         = "MemoryUtilization"
+# #   namespace           = "/aws/sagemaker/Endpoints"
+# #   period              = 60
+# #   statistic           = "Average"
+# #   threshold           = 4.0  # Trigger scale-in if memory utilization drops below 4%
+  
 
-  step_scaling_policy_configuration {
-    adjustment_type = "ExactCapacity"
+# #   dimensions = {
+# #     EndpointName = aws_sagemaker_endpoint.Llama_3_2_1B_endpoint.name
+# #     VariantName = "Llama-3-2-1B-endpoint-example-1"
+# #   }
 
-    # Adjust capacity to 1 when underutilization is detected
-    step_adjustment {
-      metric_interval_lower_bound = null  # Handles everything below 5%
-      metric_interval_upper_bound = 5     # Upper bound of 5% utilization
-      scaling_adjustment          = 0     # Set capacity to zero instances
-    }
+# #   alarm_description = "SageMaker endpoint alarm if memory utilization < 4%"
+# #   alarm_actions     = [aws_appautoscaling_policy.scale_in_to_zero_Llama_3_2_1B_endpoint.arn]
+# #   # treat_missing_data = "breaching"  # Treat missing data as breaching to force evaluation
+# # }
 
-    # Step adjustment to handle all values above the upper bound (fallback)
-    step_adjustment {
-      metric_interval_lower_bound = 5     # Handles everything above 5%
-      metric_interval_upper_bound = null  # Unspecified upper bound to catch all higher values
-      scaling_adjustment          = 0     # Set capacity to zero instances
-    }
+# # Step Scaling Policy for Scaling In to Zero which the cloudwatch alarms utilise
+# resource "aws_appautoscaling_policy" "scale_in_to_zero_Llama_3_2_1B_endpoint" {
+#   name               = "scale-in-to-zero-policy"
+#   policy_type        = "StepScaling"
+#   resource_id        = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.resource_id
+#   scalable_dimension = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.scalable_dimension
+#   service_namespace  = aws_appautoscaling_target.sagemaker_target_Llama_3_2_1B_endpoint.service_namespace
 
-    cooldown = 120  # Longer cooldown to prevent frequent scale-in actions
-  }
-}
+#   step_scaling_policy_configuration {
+#     adjustment_type = "ExactCapacity"
+
+#     # Adjust capacity to 1 when underutilization is detected
+#     step_adjustment {
+#       metric_interval_lower_bound = null  # Handles everything below 5%
+#       metric_interval_upper_bound = 5     # Upper bound of 5% utilization
+#       scaling_adjustment          = 0     # Set capacity to zero instances
+#     }
+
+#     # Step adjustment to handle all values above the upper bound (fallback)
+#     step_adjustment {
+#       metric_interval_lower_bound = 5     # Handles everything above 5%
+#       metric_interval_upper_bound = null  # Unspecified upper bound to catch all higher values
+#       scaling_adjustment          = 0     # Set capacity to zero instances
+#     }
+
+#     cooldown = 120  # Longer cooldown to prevent frequent scale-in actions
+#   }
+# }

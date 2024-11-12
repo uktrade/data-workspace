@@ -834,6 +834,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ecr" {
 }
 
 resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
+  # source                                = "./modules/sagemaker_init/security"
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
   vpc_endpoint_type  = "Interface"
@@ -848,6 +849,7 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint" {
+  # source                                = "./modules/sagemaker_init/security"
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
   vpc_endpoint_type  = "Interface"

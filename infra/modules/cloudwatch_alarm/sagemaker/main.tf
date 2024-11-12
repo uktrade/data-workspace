@@ -9,7 +9,7 @@ resource "aws_cloudwatch_metric_alarm" "sagemaker_alarm" {
   datapoints_to_alarm = var.datapoints_to_alarm
   treat_missing_data  = "missing"
   statistic           = "Average"
-  period              = 60
+  period              = var.period
   
   dimensions = {
     EndpointName = var.endpoint_name
