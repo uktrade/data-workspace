@@ -7,6 +7,15 @@ module "sagemaker_domain" {
   execution_role_arn = module.iam.execution_role
 }
 
+# IAM Roles and Policies for SageMaker
+module "iam" {
+  source = "./modules/sagemaker_init/iam"
+  prefix = var.prefix
+  sagemaker_default_bucket_name = "${var.sagemaker_default_bucket}"
+  aws_s3_bucket_notebook = aws_s3_bucket.notebooks
+}
+
+
 # Security Group for SageMaker Notebooks and Endpoints
 # module "security_groups" {
 #   source      = "./modules/sagemaker_init/security"
@@ -53,15 +62,6 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
   protocol  = "tcp"
 }
 
-# IAM Roles and Policies for SageMaker
-module "iam" {
-  source = "./modules/sagemaker_init/iam"
-  prefix = var.prefix
-  sagemaker_default_bucket_name = "${var.sagemaker_default_bucket}"
-  aws_s3_bucket_notebook = aws_s3_bucket.notebooks
-}
-
-
 # SageMaker Execution Role Output
 output "execution_role" {
   value       = module.iam.execution_role
@@ -75,14 +75,6 @@ output "inference_role" {
   description = "The ARN of the SageMaker inference role"
 }
 
-
-# # Security Group Output
-# output "security_group_id" {
-#   value       = module.security_groups.security_group_id
-#   description = "The ID of the security group for SageMaker endpoints"
-# }
-
-
 # SageMaker Domain Output
 output "sagemaker_domain_id" {
   value       = module.sagemaker_domain.sagemaker_domain_id
@@ -92,3 +84,10 @@ output "sagemaker_domain_id" {
 output "default_sagemaker_bucket" {
   value = module.iam.default_sagemaker_bucket
 }
+
+# # Security Group Output
+# output "security_group_id" {
+#   value       = module.security_groups.security_group_id
+#   description = "The ID of the security group for SageMaker endpoints"
+# }
+

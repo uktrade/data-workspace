@@ -8,8 +8,8 @@ resource "aws_security_group" "notebooks_endpoints" {
   }
 
   lifecycle {
-    # create_before_destroy = true
-    prevent_destroy = false
+    create_before_destroy = true
+    # prevent_destroy = false
   }
 }
 

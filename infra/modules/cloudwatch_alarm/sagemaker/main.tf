@@ -13,7 +13,8 @@ resource "aws_cloudwatch_metric_alarm" "sagemaker_alarm" {
   
   dimensions = {
     EndpointName = var.endpoint_name
-    VariantName  = var.variant_name
+    VariantName  =  var.variant_name != null ? var.variant_name : ""
+
   }
 
   alarm_actions = var.alarm_actions

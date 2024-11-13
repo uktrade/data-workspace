@@ -1,0 +1,149 @@
+##################################################################################################################
+# GPT Neo 125M parameter endpoint and associated alarms and policies
+#################################################################################################################
+
+module "gpt_neo_125_deployment" {
+  source                          = "./modules/sagemaker_deployment"
+  model_name                      = "gpt-neo-125m"
+  execution_role_arn              = module.iam.inference_role
+  container_image                 = var.hugging_face_model_image
+  model_data_url                  = "${var.sagemaker_models_folder}/gpt-neo-125m.tar.gz"
+  environment                     = {
+    "HF_MODEL_ID"      = "/opt/ml/model/"
+    "SM_NUM_GPUS"      = 1
+    "MAX_INPUT_LENGTH" = 1024
+    "MAX_TOTAL_TOKENS" = 2048
+  }
+  security_group_ids              = [aws_security_group.notebooks.id]
+  subnets                         = aws_subnet.private_without_egress.*.id
+  endpoint_config_name            = "sagemaker-endpoint-config-gpt-neo-125m"
+  endpoint_name                   = "gpt-neo-125-endpoint"
+  variant_name                    = "gpt-neo-125m-endpoint-example"
+  instance_type                   = "ml.g5.2xlarge"
+  initial_instance_count          = 1
+  max_concurrent_invocations_per_instance = 1
+  s3_output_path                  = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  max_capacity                    = 2
+  min_capacity                    = 0
+  scale_up_adjustment             = 1
+  scale_up_cooldown               = 300
+  scale_in_to_zero_cooldown       = 120
+
+  alarms = [
+    {
+      alarm_name          = "backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale up to 1 when queries are in the backlog, if 0 instances"
+      metric_name         = "HasBacklogWithoutCapacity"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "low-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale in to zero when CPU < 5%"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 5.0
+      evaluation_periods  = 3
+      datapoints_to_alarm = 1
+      period              = 360
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
+    },
+    {
+      alarm_name          = "high-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale out when CPU is at 70% threshold"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 70
+      evaluation_periods  = 2
+      datapoints_to_alarm = 1
+      period              = 360
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    }
+  ]
+}
+
+
+##################################################################################################################
+# Llama 3.2 1B parameter endpoint and associated alarms and policies
+#################################################################################################################
+
+module "llama_3_2_1b_deployment" {
+  source                          = "./modules/sagemaker_deployment"
+  model_name                      = "Llama-3-2-1B"
+  execution_role_arn              = module.iam.inference_role
+  container_image                 = var.hugging_face_model_image
+  model_data_url                  = "${var.sagemaker_models_folder}/Llama-3.2-1B.tar.gz"
+  environment                     = {
+    "HF_MODEL_ID"      = "/opt/ml/model/"
+    "SM_NUM_GPUS"      = 1
+    "MAX_INPUT_LENGTH" = 1024
+    "MAX_TOTAL_TOKENS" = 2048
+  }
+  security_group_ids              = [aws_security_group.notebooks.id]
+  subnets                         = aws_subnet.private_without_egress.*.id
+  endpoint_config_name            = "sagemaker-endpoint-config-llama-3-2-1B"
+  endpoint_name                   = "llama-3-2-1b-endpoint"
+  variant_name                    = "llama-3-2-1B-endpoint-example"
+  instance_type                   = "ml.g5.2xlarge"
+  initial_instance_count          = 1
+  max_concurrent_invocations_per_instance = 1
+  s3_output_path                  = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  max_capacity                    = 2
+  min_capacity                    = 0
+  scale_up_adjustment             = 1
+  scale_up_cooldown               = 300
+  scale_in_to_zero_cooldown       = 120
+
+  alarms = [
+    {
+      alarm_name          = "backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      alarm_description   = "Scale up to 1 when queries are in the backlog, if 0 instances"
+      metric_name         = "HasBacklogWithoutCapacity"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Average"
+      alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "low-cpu-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      alarm_description   = "Scale in to zero when CPU < 5%"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 5.0
+      evaluation_periods  = 3
+      datapoints_to_alarm = 1
+      period              = 360
+      statistic           = "Average"
+      alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
+    },
+    {
+      alarm_name          = "high-cpu-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      alarm_description   = "Scale out when CPU is at 70% threshold"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 70
+      evaluation_periods  = 2
+      datapoints_to_alarm = 1
+      period              = 360
+      statistic           = "Average"
+      alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
+    }
+  ]
+}
+
