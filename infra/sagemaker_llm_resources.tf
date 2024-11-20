@@ -26,8 +26,8 @@ module "gpt_neo_125_deployment" {
   max_capacity                    = 2
   min_capacity                    = 0
   scale_up_adjustment             = 1
-  scale_up_cooldown               = 300
-  scale_in_to_zero_cooldown       = 120
+  scale_up_cooldown               = 30
+  scale_in_to_zero_cooldown       = 300
 
   alarms = [
     {
@@ -39,7 +39,7 @@ module "gpt_neo_125_deployment" {
       threshold           = 1
       evaluation_periods  = 1
       datapoints_to_alarm = 1
-      period              = 60
+      period              = 30
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
     },
@@ -50,9 +50,9 @@ module "gpt_neo_125_deployment" {
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
       threshold           = 5.0
-      evaluation_periods  = 3
-      datapoints_to_alarm = 1
-      period              = 360
+      evaluation_periods  = 5
+      datapoints_to_alarm = 3 # 3 out of 5 periods breaching then scale down to ensure 
+      period              = 300
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
     },
@@ -63,9 +63,9 @@ module "gpt_neo_125_deployment" {
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
       threshold           = 70
-      evaluation_periods  = 2
+      evaluation_periods  = 1
       datapoints_to_alarm = 1
-      period              = 360
+      period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
     }
@@ -101,8 +101,8 @@ module "llama_3_2_1b_deployment" {
   max_capacity                    = 2
   min_capacity                    = 0
   scale_up_adjustment             = 1
-  scale_up_cooldown               = 300
-  scale_in_to_zero_cooldown       = 120
+  scale_up_cooldown               = 30
+  scale_in_to_zero_cooldown       = 300
 
   alarms = [
     {
@@ -114,7 +114,7 @@ module "llama_3_2_1b_deployment" {
       threshold           = 1
       evaluation_periods  = 1
       datapoints_to_alarm = 1
-      period              = 60
+      period              = 30 # Faster spin up
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
     },
@@ -125,9 +125,9 @@ module "llama_3_2_1b_deployment" {
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
       threshold           = 5.0
-      evaluation_periods  = 3
-      datapoints_to_alarm = 1
-      period              = 360
+      evaluation_periods  = 5 # Longer periods of inactivity before scaling down
+      datapoints_to_alarm = 3 # 3 out of 5 periods breaching then scale down to ensure 
+      period              = 300
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
     },
@@ -140,7 +140,7 @@ module "llama_3_2_1b_deployment" {
       threshold           = 70
       evaluation_periods  = 2
       datapoints_to_alarm = 1
-      period              = 360
+      period              = 60 # Sooner spin up
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
     }
