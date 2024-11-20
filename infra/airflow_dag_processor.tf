@@ -200,10 +200,28 @@ data "aws_iam_policy_document" "airflow_team" {
       actions = [
         "sts:AssumeRole",
       ]
-
       resources = var.airflow_dag_processors[count.index].assume_roles
     }
+  }
 
+  dynamic "statement" {
+    for_each = length(var.airflow_dag_processors[count.index].buckets) > 0 ? [1] : []
+    content {
+      actions = [
+        "s3:ListBucket",
+      ]
+      resources = var.airflow_dag_processors[count.index].buckets
+    }
+  }
+
+  dynamic "statement" {
+    for_each = length(var.airflow_dag_processors[count.index].buckets) > 0 ? [1] : []
+    content {
+      actions = [
+        "s3:GetObject",
+      ]
+      resources = [for s in var.airflow_dag_processors[count.index].buckets : "${s}/*"]
+    }
   }
 
   statement {
