@@ -106,7 +106,7 @@ variable "alarms" {
     datapoints_to_alarm = number
     period              = number
     statistic           = string
-    alarm_actions       = list(string)
+    alarm_actions       = optional(list(string), null)
   }))
   description = "List of CloudWatch alarms to be created"
 }

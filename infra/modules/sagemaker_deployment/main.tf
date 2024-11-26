@@ -114,6 +114,6 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
     EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name,
     VariantName  = var.variant_name
   }
+  alarm_actions = var.alarms[count.index].alarm_actions != null ? var.alarms[count.index].alarm_actions : []
 
-  alarm_actions = var.alarms[count.index].alarm_actions
 }

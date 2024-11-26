@@ -68,8 +68,60 @@ module "gpt_neo_125_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "high-memory-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale up memory usage > 80%"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 80
+      evaluation_periods  = 2
+      datapoints_to_alarm = 1 
+      period              = 60
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "high-GPU-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale up GPU usage > 70%"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 70
+      evaluation_periods  = 2
+      datapoints_to_alarm = 1 
+      period              = 60
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "network-spike-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale up to 1 when endpoint experiences a backlog of requests beyond threshold"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 10 # More than 10 requests requires scale up
+      evaluation_periods  = 2
+      datapoints_to_alarm = 2
+      period              = 30
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "disk-util-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Alerts when disk util is high"
+      metric_name         = "DiskUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 80 
+      evaluation_periods  = 2
+      datapoints_to_alarm = 2
+      period              = 30
+      statistic           = "Average"
     }
   ]
+  
 }
 
 
@@ -105,8 +157,8 @@ module "llama_3_2_1b_deployment" {
   scale_in_to_zero_cooldown       = 300
 
   alarms = [
-    {
-      alarm_name          = "backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+     {
+      alarm_name          = "backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
       alarm_description   = "Scale up to 1 when queries are in the backlog, if 0 instances"
       metric_name         = "HasBacklogWithoutCapacity"
       namespace           = "AWS/SageMaker"
@@ -114,35 +166,86 @@ module "llama_3_2_1b_deployment" {
       threshold           = 1
       evaluation_periods  = 1
       datapoints_to_alarm = 1
-      period              = 30 # Faster spin up
+      period              = 30
       statistic           = "Average"
-      alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
     },
     {
-      alarm_name          = "low-cpu-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      alarm_name          = "low-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
       alarm_description   = "Scale in to zero when CPU < 5%"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
       threshold           = 5.0
-      evaluation_periods  = 5 # Longer periods of inactivity before scaling down
+      evaluation_periods  = 5
       datapoints_to_alarm = 3 # 3 out of 5 periods breaching then scale down to ensure 
       period              = 300
       statistic           = "Average"
-      alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
     },
     {
-      alarm_name          = "high-cpu-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      alarm_name          = "high-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
       alarm_description   = "Scale out when CPU is at 70% threshold"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
       threshold           = 70
-      evaluation_periods  = 2
+      evaluation_periods  = 1
       datapoints_to_alarm = 1
-      period              = 60 # Sooner spin up
+      period              = 60
       statistic           = "Average"
-      alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "high-memory-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale up memory usage > 80%"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 80
+      evaluation_periods  = 2
+      datapoints_to_alarm = 1 
+      period              = 60
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "high-GPU-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale up GPU usage > 70%"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 70
+      evaluation_periods  = 2
+      datapoints_to_alarm = 1 
+      period              = 60
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "network-spike-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Scale up to 1 when endpoint experiences a backlog of requests beyond threshold"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 10 # More than 10 requests requires scale up
+      evaluation_periods  = 2
+      datapoints_to_alarm = 2
+      period              = 30
+      statistic           = "Average"
+      alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+    },
+    {
+      alarm_name          = "disk-util-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Alerts when disk util is high"
+      metric_name         = "DiskUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 80 
+      evaluation_periods  = 2
+      datapoints_to_alarm = 2
+      period              = 30
+      statistic           = "Average"
     }
   ]
 }
