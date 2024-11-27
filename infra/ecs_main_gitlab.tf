@@ -1044,11 +1044,10 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
     ]
   }
 
-  # Allow list, get and put object for Gitlab private package index
+  # Allow list and put object for Gitlab private package index
   statement {
     actions = [
       "s3:ListBucket",
-      "s3:GetObject",
       "s3:PutObject"
     ]
     resources = [
