@@ -27,9 +27,6 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
   }
 
   async_inference_config {
-    client_config {
-      max_concurrent_invocations_per_instance = var.max_concurrent_invocations_per_instance
-    }
     output_config {
       s3_output_path = var.s3_output_path
     }
@@ -81,14 +78,56 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_policy" {
 
   step_scaling_policy_configuration {
     adjustment_type = "ExactCapacity"
+  
 
     step_adjustment {
-      metric_interval_lower_bound = 0
+      metric_interval_lower_bound = null # No lower bound to cover everything
+      metric_interval_upper_bound = 5 # Upper bound is 5%
       scaling_adjustment          = 0
+    }
+
+    step_adjustment {
+      metric_interval_lower_bound = 5 # Lower bound starts at 5%
+      metric_interval_upper_bound = null # No upper bound
+      scaling_adjustment          = 1 # Maintains min capacity of one instance
     }
 
     cooldown = var.scale_in_to_zero_cooldown
   }
+  depends_on = [aws_appautoscaling_target.autoscaling_target]
+}
+
+# Scale-In Policy to Reduce Capacity to Zero Based on backlog size
+resource "aws_appautoscaling_policy" "scale_in_to_zero_based_on_backlog" {
+  name                  = "scale-in-to-zero-backlog-policy-${var.model_name}"
+  policy_type           = "StepScaling"
+  resource_id           = aws_appautoscaling_target.autoscaling_target.resource_id
+  scalable_dimension    = aws_appautoscaling_target.autoscaling_target.scalable_dimension
+  service_namespace     = aws_appautoscaling_target.autoscaling_target.service_namespace
+
+
+  step_scaling_policy_configuration {
+    adjustment_type = "ExactCapacity"       # Set the capacity exactly to zero
+   
+    # Step adjustment for when there are zero queries in the backlog
+    step_adjustment {
+      metric_interval_lower_bound = null    # No lower bound (cover everything below 0)
+      metric_interval_upper_bound = 0       # Exact match for zero backlog size
+      scaling_adjustment          = 0       # Set capacity to zero instances
+    }
+
+    # Falllback for any value above 0 to prevent overlap
+    step_adjustment {
+      metric_interval_lower_bound = 0    # No lower bound (cover everything below 0)
+      metric_interval_upper_bound = null       # Exact match for zero backlog size
+      scaling_adjustment          = 1       # Set capacity to zero instances
+    }
+
+    cooldown = var.scale_in_to_zero_cooldown
+  }
+
+
+  depends_on = [aws_appautoscaling_target.autoscaling_target]
 }
 
 # Loop through the alarm definitions to create multiple CloudWatch alarms
@@ -115,5 +154,5 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
     VariantName  = var.variant_name
   }
 
-  alarm_actions = var.alarms[count.index].alarm_actions
+  alarm_actions = var.alarms[count.index].alarm_actions != null ? var.alarms[count.index].alarm_actions : []
 }

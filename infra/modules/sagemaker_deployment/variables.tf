@@ -59,11 +59,6 @@ variable "initial_instance_count" {
   description = "Initial instance count for the endpoint"
 }
 
-variable "max_concurrent_invocations_per_instance" {
-  type        = number
-  description = "Maximum number of concurrent invocations per instance"
-}
-
 variable "s3_output_path" {
   type        = string
   description = "S3 output path for async inference"
@@ -94,6 +89,7 @@ variable "scale_in_to_zero_cooldown" {
     description = "Cooldown period for scale down"
 }
 
+
 variable "alarms" {
   type = list(object({
     alarm_name          = string
@@ -106,7 +102,7 @@ variable "alarms" {
     datapoints_to_alarm = number
     period              = number
     statistic           = string
-    alarm_actions       = list(string)
+    alarm_actions       = optional(list(string), null)
   }))
   description = "List of CloudWatch alarms to be created"
 }

@@ -64,23 +64,50 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero" {
   service_namespace     = aws_appautoscaling_target.sagemaker_target.service_namespace
 
   step_scaling_policy_configuration {
-    adjustment_type = "ExactCapacity"
+    adjustment_type = "ChangeInCapacity"
     cooldown        = var.scale_in_to_zero_cooldown
 
     # Adjust capacity to 0 when underutilization is detected
     step_adjustment {
-      metric_interval_lower_bound = null  # Handles everything below 5%
-      metric_interval_upper_bound = 5     # Upper bound of 5% utilization
-      scaling_adjustment          = 0     # Set capacity to zero instances
+      metric_interval_lower_bound = 0  # Handles all values from 0% and above
+      metric_interval_upper_bound = 5     # Upper bound of 5
+      scaling_adjustment          = -1     # Set capacity to zero instances
     }
 
     # Step adjustment to handle all values above the upper bound (fallback)
     step_adjustment {
-      metric_interval_lower_bound = 5     # Handles everything above 5%
-      metric_interval_upper_bound = null  # Unspecified upper bound to catch all higher values
-      scaling_adjustment          = 0     # Set capacity to zero instances
+      metric_interval_lower_bound = null     # Anything below 0
+      metric_interval_upper_bound = 0        # Unspecified upper bound to catch all higher values
+      scaling_adjustment          = -1       # Set capacity to zero instances
+    }
+
+  }
+
+  depends_on = [aws_appautoscaling_target.sagemaker_target]
+}
+
+# Scale-In Policy to Reduce Capacity to Zero Based on backlog size
+resource "aws_appautoscaling_policy" "scale_in_to_zero_based_on_backlog" {
+  name                  = "${var.resource_id}-scale-in-zero-backlog"
+  policy_type           = "StepScaling"
+  resource_id           = aws_appautoscaling_target.sagemaker_target.resource_id
+  scalable_dimension    = aws_appautoscaling_target.sagemaker_target.scalable_dimension
+  service_namespace     = aws_appautoscaling_target.sagemaker_target.service_namespace
+
+
+  step_scaling_policy_configuration {
+    adjustment_type = "ExactCapacity"       # Set the capacity exactly to zero
+    cooldown        = var.scale_in_cooldown # Cooldown period to avoid frequent actions
+
+
+    # Step adjustment for when there are zero queries in the backlog
+    step_adjustment {
+      metric_interval_lower_bound = null    # No lower bound (cover everything below 0)
+      metric_interval_upper_bound = 0.0     # Exact match for zero backlog size
+      scaling_adjustment          = 0       # Set capacity to zero instances
     }
   }
+
 
   depends_on = [aws_appautoscaling_target.sagemaker_target]
 }
