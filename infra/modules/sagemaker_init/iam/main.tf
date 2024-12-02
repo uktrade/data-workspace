@@ -62,6 +62,12 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     ]
   }
 
+  statement {
+    actions = [
+      "sns:Publish",
+    ]
+    resources = ["*"]
+  }
 
   statement {
     actions = [
@@ -159,10 +165,3 @@ resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
   role       = aws_iam_role.inference_role.name
   policy_arn = aws_iam_policy.sagemaker_access_policy.arn
 }
-
-
-
-
-
-
-

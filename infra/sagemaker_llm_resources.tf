@@ -50,7 +50,7 @@ module "gpt_neo_125_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 5.0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 5 periods breaching then scale down to ensure 
+      datapoints_to_alarm = 2 # 2 out of 5 periods breaching then scale down to ensure
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
@@ -63,7 +63,7 @@ module "gpt_neo_125_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure 
+      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_based_on_backlog_arn]
@@ -224,7 +224,7 @@ module "llama_3_2_1b_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 5.0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure 
+      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
@@ -237,7 +237,7 @@ module "llama_3_2_1b_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure 
+      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_based_on_backlog_arn]
