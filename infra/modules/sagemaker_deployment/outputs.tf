@@ -6,6 +6,14 @@ output "endpoint_name" {
   value = aws_sagemaker_endpoint.sagemaker_endpoint.name
 }
 
+output "sns_error_topic_arn" {
+  value = aws_sns_topic.async-sagemaker-error-topic
+}
+
+output "sns_success_topic_arn" {
+  value = aws_sns_topic.async-sagemaker-success-topic
+}
+
 output "scale_up_policy_arn" {
   value = aws_appautoscaling_policy.scale_up_policy.arn
 }
