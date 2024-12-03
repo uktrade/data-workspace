@@ -1,18 +1,30 @@
-resource "aws_vpc_peering_connection" "jupyterhub" {
-  peer_vpc_id = aws_vpc.notebooks.id
-  vpc_id      = aws_vpc.main.id
-  auto_accept = true
+resource "aws_vpc" "main" {
+  cidr_block = var.vpc_cidr
 
-  accepter {
-    allow_remote_vpc_dns_resolution = false
-  }
-
-  requester {
-    allow_remote_vpc_dns_resolution = false
-  }
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = {
     Name = "${var.prefix}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_vpc" "datasets" {
+  cidr_block = var.vpc_datasets_cidr
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "${var.prefix}-datasets"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -28,6 +40,24 @@ resource "aws_vpc" "notebooks" {
 
   lifecycle {
     create_before_destroy = true
+  }
+}
+
+resource "aws_vpc_peering_connection" "jupyterhub" {
+  peer_vpc_id = aws_vpc.notebooks.id
+  vpc_id      = aws_vpc.main.id
+  auto_accept = true
+
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  tags = {
+    Name = "${var.prefix}"
   }
 }
 
@@ -58,20 +88,6 @@ data "aws_iam_policy_document" "vpc_notebooks_flow_log_vpc_flow_logs_assume_role
   }
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
-
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "${var.prefix}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
 
 resource "aws_vpc_dhcp_options" "main" {
   domain_name_servers = ["AmazonProvidedDNS"]
@@ -298,20 +314,7 @@ resource "aws_service_discovery_private_dns_namespace" "jupyterhub" {
   vpc         = aws_vpc.main.id
 }
 
-resource "aws_vpc" "datasets" {
-  cidr_block = var.vpc_datasets_cidr
 
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "${var.prefix}-datasets"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
 
 resource "aws_route53_resolver_firewall_domain_list" "datasets_amazonaws" {
   name    = "${var.prefix}-datasets-amazonaws"
@@ -515,14 +518,7 @@ resource "aws_vpc_endpoint" "ecs" {
   private_dns_enabled = true
 }
 
-resource "aws_vpc_endpoint" "sns" {
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.sns"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = ["${aws_security_group.ecs.id}"]
-  subnet_ids          = ["${aws_subnet.private_with_egress.*.id[0]}"]
-  private_dns_enabled = true
-}
+
 
 resource "aws_vpc_endpoint" "datasets_s3_endpoint" {
   count           = var.arango_on ? 1 : 0
@@ -884,6 +880,43 @@ data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
       "sagemaker:ListEndpoints",
       "sagemaker:DescribeEndpoint",
       "sagemaker:DescibeTransformJob"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_vpc_endpoint" "sns_endpoint" {
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.eu-west-2.sns"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.notebooks_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "sns-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
+}
+
+data "aws_iam_policy_document" "sns_endpoint_policy" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    actions = [
+      "SNS:Subscribe",
+      "SNS:SetTopicAttributes",
+      "SNS:RemovePermission",
+      "SNS:Receive",
+      "SNS:Publish",
+      "SNS:ListSubscriptionsByTopic",
+      "SNS:GetTopicAttributes",
+      "SNS:DeleteTopic",
+      "SNS:AddPermission",
     ]
     resources = [
       "*"

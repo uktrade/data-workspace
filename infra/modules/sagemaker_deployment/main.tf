@@ -30,7 +30,7 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
     output_config {
       s3_output_path = var.s3_output_path
       notification_config {
-        #include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC", "ERROR_NOTIFICATION_TOPIC"]
+        include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC", "ERROR_NOTIFICATION_TOPIC"]
         success_topic = aws_sns_topic.async-sagemaker-success-topic.arn
         error_topic = aws_sns_topic.async-sagemaker-error-topic.arn
       }
@@ -40,11 +40,109 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
 
 resource "aws_sns_topic" "async-sagemaker-success-topic" {
   name = "async-sagemaker-success-topic"
+  #application_success_feedback_role_arn
+  #application_failure_feedback_role_arn
 }
 
 resource "aws_sns_topic" "async-sagemaker-error-topic" {
   name = "async-sagemaker-error-topic"
+  #application_success_feedback_role_arn
+  #application_failure_feedback_role_arn
 }
+
+resource "aws_sns_topic_policy" "async-sagemaker-success-topic" {
+  arn = aws_sns_topic.async-sagemaker-success-topic.arn
+
+  policy = data.aws_iam_policy_document.sns_topic_policy_success.json
+}
+
+resource "aws_sns_topic_policy" "async-sagemaker-error-topic" {
+  arn = aws_sns_topic.async-sagemaker-error-topic.arn
+
+  policy = data.aws_iam_policy_document.sns_topic_policy_error.json
+}
+
+data "aws_iam_policy_document" "sns_topic_policy_error" {
+  policy_id = "__default_policy_ID"
+
+  statement {
+    actions = [
+      "SNS:Subscribe",
+      "SNS:SetTopicAttributes",
+      "SNS:RemovePermission",
+      "SNS:Receive",
+      "SNS:Publish",
+      "SNS:ListSubscriptionsByTopic",
+      "SNS:GetTopicAttributes",
+      "SNS:DeleteTopic",
+      "SNS:AddPermission",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceOwner"
+
+      values = [
+        "339713044404",
+      ]
+    }
+
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    resources = [
+      aws_sns_topic.async-sagemaker-error-topic.arn
+    ]
+
+    sid = "__default_statement_ID"
+  }
+}
+
+
+data "aws_iam_policy_document" "sns_topic_policy_success" {
+  policy_id = "__default_policy_ID"
+
+  statement {
+    actions = [
+      "SNS:Subscribe",
+      "SNS:SetTopicAttributes",
+      "SNS:RemovePermission",
+      "SNS:Receive",
+      "SNS:Publish",
+      "SNS:ListSubscriptionsByTopic",
+      "SNS:GetTopicAttributes",
+      "SNS:DeleteTopic",
+      "SNS:AddPermission",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceOwner"
+
+      values = [
+        "339713044404",
+      ]
+    }
+
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    resources = [
+      aws_sns_topic.async-sagemaker-success-topic.arn
+    ]
+
+    sid = "__default_statement_ID"
+  }
+}
+
 
 # Endpoint Resource
 resource "aws_sagemaker_endpoint" "sagemaker_endpoint" {

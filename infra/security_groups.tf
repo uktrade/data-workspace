@@ -603,6 +603,8 @@ resource "aws_security_group" "ecr_api" {
   }
 }
 
+
+
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_dns_rewrite_proxy" {
   description = "ingress-https-from-dns-rewrite-proxy"
 

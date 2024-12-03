@@ -62,6 +62,31 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "main_egress_sns" {
+  description = "endpoint-egress-from-main-vpc"
+
+  security_group_id        = aws_security_group.notebooks_endpoints.id
+  cidr_blocks         = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "main_ingress_sns" {
+  description = "endpoint-egress-from-main-vpc"
+
+  security_group_id        = aws_security_group.notebooks_endpoints.id
+  cidr_blocks         = ["0.0.0.0/0"]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+
 # SageMaker Execution Role Output
 output "execution_role" {
   value       = module.iam.execution_role
@@ -90,6 +115,7 @@ output "default_sagemaker_bucket" {
 #   value       = module.security_groups.security_group_id
 #   description = "The ID of the security group for SageMaker endpoints"
 # }
+<<<<<<< HEAD
 
 # Cost monitoring
 
@@ -122,3 +148,5 @@ module "budgets" {
   sns_topic_arn = module.sns.sns_topic_arn
   notification_email = var.sagemaker_budget_emails
 }
+=======
+>>>>>>> 9803961 (latest:)
