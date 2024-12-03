@@ -811,7 +811,7 @@ resource "aws_launch_configuration" "gitlab_runner_data_science" {
   # types of infrastructure
   image_id             = "ami-0749bd3fac17dc2cc"
   instance_type        = var.gitlab_runner_data_science_instance_type
-  iam_instance_profile = aws_iam_instance_profile.gitlab_runner[count.index].name
+  iam_instance_profile = aws_iam_instance_profile.gitlab_runner_data_science[count.index].name
   security_groups      = ["${aws_security_group.gitlab_runner[count.index].id}"]
   key_name             = aws_key_pair.shared.key_name
 
@@ -1034,10 +1034,6 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
       "ecr:ListImages",
       "ecr:DescribeImages",
       "ecr:BatchGetImage",
-      "ecr:InitiateLayerUpload",
-      "ecr:UploadLayerPart",
-      "ecr:CompleteLayerUpload",
-      "ecr:PutImage",
     ]
     resources = [
       "${aws_ecr_repository.user_provided.arn}",
