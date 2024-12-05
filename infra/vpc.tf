@@ -1,48 +1,3 @@
-resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
-
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "${var.prefix}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_vpc" "datasets" {
-  cidr_block = var.vpc_datasets_cidr
-
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "${var.prefix}-datasets"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_vpc" "notebooks" {
-  cidr_block = var.vpc_notebooks_cidr
-
-  enable_dns_support   = false
-  enable_dns_hostnames = false
-
-  tags = {
-    Name = "${var.prefix}-notebooks"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_vpc_peering_connection" "jupyterhub" {
   peer_vpc_id = aws_vpc.notebooks.id
   vpc_id      = aws_vpc.main.id
@@ -58,6 +13,21 @@ resource "aws_vpc_peering_connection" "jupyterhub" {
 
   tags = {
     Name = "${var.prefix}"
+  }
+}
+
+resource "aws_vpc" "notebooks" {
+  cidr_block = var.vpc_notebooks_cidr
+
+  enable_dns_support   = false
+  enable_dns_hostnames = false
+
+  tags = {
+    Name = "${var.prefix}-notebooks"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -88,6 +58,20 @@ data "aws_iam_policy_document" "vpc_notebooks_flow_log_vpc_flow_logs_assume_role
   }
 }
 
+resource "aws_vpc" "main" {
+  cidr_block = var.vpc_cidr
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
 resource "aws_vpc_dhcp_options" "main" {
   domain_name_servers = ["AmazonProvidedDNS"]
@@ -314,7 +298,20 @@ resource "aws_service_discovery_private_dns_namespace" "jupyterhub" {
   vpc         = aws_vpc.main.id
 }
 
+resource "aws_vpc" "datasets" {
+  cidr_block = var.vpc_datasets_cidr
 
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "${var.prefix}-datasets"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
 resource "aws_route53_resolver_firewall_domain_list" "datasets_amazonaws" {
   name    = "${var.prefix}-datasets-amazonaws"
@@ -517,8 +514,6 @@ resource "aws_vpc_endpoint" "ecs" {
   subnet_ids          = ["${aws_subnet.private_with_egress.*.id[0]}"]
   private_dns_enabled = true
 }
-
-
 
 resource "aws_vpc_endpoint" "datasets_s3_endpoint" {
   count           = var.arango_on ? 1 : 0
@@ -886,6 +881,7 @@ data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
     ]
   }
 }
+
 
 resource "aws_vpc_endpoint" "sns_endpoint" {
   vpc_id             = aws_vpc.main.id
