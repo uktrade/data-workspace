@@ -3,30 +3,30 @@
 #################################################################################################################
 
 module "gpt_neo_125_deployment" {
-  source                          = "./modules/sagemaker_deployment"
-  model_name                      = "gpt-neo-125m"
-  execution_role_arn              = module.iam.inference_role
-  container_image                 = var.hugging_face_model_image
-  model_data_url                  = "${var.sagemaker_models_folder}/gpt-neo-125m.tar.gz"
-  environment                     = {
+  source             = "./modules/sagemaker_deployment"
+  model_name         = "gpt-neo-125m"
+  execution_role_arn = module.iam.inference_role
+  container_image    = var.hugging_face_model_image
+  model_data_url     = "${var.sagemaker_models_folder}/gpt-neo-125m.tar.gz"
+  environment = {
     "HF_MODEL_ID"      = "/opt/ml/model/"
     "SM_NUM_GPUS"      = 1
     "MAX_INPUT_LENGTH" = 1024
     "MAX_TOTAL_TOKENS" = 2048
   }
-  security_group_ids              = [aws_security_group.notebooks.id]
-  subnets                         = aws_subnet.private_without_egress.*.id
-  endpoint_config_name            = "sagemaker-endpoint-config-gpt-neo-125m"
-  endpoint_name                   = "gpt-neo-125-endpoint"
-  variant_name                    = "gpt-neo-125m-endpoint-example"
-  instance_type                   = "ml.g5.2xlarge"
-  s3_output_path                  = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
-  initial_instance_count          = 1
-  max_capacity                    = 2
-  min_capacity                    = 0
-  scale_up_adjustment             = 1
-  scale_up_cooldown               = 60
-  scale_in_to_zero_cooldown       = 120
+  security_group_ids        = [aws_security_group.notebooks.id]
+  subnets                   = aws_subnet.private_without_egress.*.id
+  endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
+  endpoint_name             = "gpt-neo-125-endpoint"
+  variant_name              = "gpt-neo-125m-endpoint-example"
+  instance_type             = "ml.g5.2xlarge"
+  s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  initial_instance_count    = 1
+  max_capacity              = 2
+  min_capacity              = 0
+  scale_up_adjustment       = 1
+  scale_up_cooldown         = 60
+  scale_in_to_zero_cooldown = 120
 
   alarms = [
     {
@@ -89,7 +89,7 @@ module "gpt_neo_125_deployment" {
       comparison_operator = "GreaterThanThreshold"
       threshold           = 80
       evaluation_periods  = 2
-      datapoints_to_alarm = 1 
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
@@ -102,7 +102,7 @@ module "gpt_neo_125_deployment" {
       comparison_operator = "GreaterThanThreshold"
       threshold           = 70
       evaluation_periods  = 2
-      datapoints_to_alarm = 1 
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
@@ -125,7 +125,7 @@ module "gpt_neo_125_deployment" {
       metric_name         = "DiskUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 80 
+      threshold           = 80
       evaluation_periods  = 2
       datapoints_to_alarm = 2
       period              = 30
@@ -168,7 +168,7 @@ module "gpt_neo_125_deployment" {
       statistic           = "Sum"
     }
   ]
-  
+
 }
 
 
@@ -177,33 +177,33 @@ module "gpt_neo_125_deployment" {
 #################################################################################################################
 
 module "llama_3_2_1b_deployment" {
-  source                          = "./modules/sagemaker_deployment"
-  model_name                      = "Llama-3-2-1B"
-  execution_role_arn              = module.iam.inference_role
-  container_image                 = var.hugging_face_model_image
-  model_data_url                  = "${var.sagemaker_models_folder}/Llama-3.2-1B.tar.gz"
-  environment                     = {
+  source             = "./modules/sagemaker_deployment"
+  model_name         = "Llama-3-2-1B"
+  execution_role_arn = module.iam.inference_role
+  container_image    = var.hugging_face_model_image
+  model_data_url     = "${var.sagemaker_models_folder}/Llama-3.2-1B.tar.gz"
+  environment = {
     "HF_MODEL_ID"      = "/opt/ml/model/"
     "SM_NUM_GPUS"      = 1
     "MAX_INPUT_LENGTH" = 1024
     "MAX_TOTAL_TOKENS" = 2048
   }
-  security_group_ids              = [aws_security_group.notebooks.id]
-  subnets                         = aws_subnet.private_without_egress.*.id
-  endpoint_config_name            = "sagemaker-endpoint-config-llama-3-2-1B"
-  endpoint_name                   = "llama-3-2-1b-endpoint"
-  variant_name                    = "llama-3-2-1B-endpoint-example"
-  instance_type                   = "ml.g5.2xlarge"
-  initial_instance_count          = 1
-  s3_output_path                  = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
-  max_capacity                    = 2
-  min_capacity                    = 0
-  scale_up_adjustment             = 1
-  scale_up_cooldown               = 30
-  scale_in_to_zero_cooldown       = 120
+  security_group_ids        = [aws_security_group.notebooks.id]
+  subnets                   = aws_subnet.private_without_egress.*.id
+  endpoint_config_name      = "sagemaker-endpoint-config-llama-3-2-1B"
+  endpoint_name             = "llama-3-2-1b-endpoint"
+  variant_name              = "llama-3-2-1B-endpoint-example"
+  instance_type             = "ml.g5.2xlarge"
+  initial_instance_count    = 1
+  s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  max_capacity              = 2
+  min_capacity              = 0
+  scale_up_adjustment       = 1
+  scale_up_cooldown         = 30
+  scale_in_to_zero_cooldown = 120
 
   alarms = [
-     {
+    {
       alarm_name          = "backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
       alarm_description   = "Scale up to 1 when queries are in the backlog, if 0 instances"
       metric_name         = "HasBacklogWithoutCapacity"
@@ -263,7 +263,7 @@ module "llama_3_2_1b_deployment" {
       comparison_operator = "GreaterThanThreshold"
       threshold           = 80
       evaluation_periods  = 2
-      datapoints_to_alarm = 1 
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
@@ -276,7 +276,7 @@ module "llama_3_2_1b_deployment" {
       comparison_operator = "GreaterThanThreshold"
       threshold           = 70
       evaluation_periods  = 2
-      datapoints_to_alarm = 1 
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
@@ -299,7 +299,7 @@ module "llama_3_2_1b_deployment" {
       metric_name         = "DiskUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 80 
+      threshold           = 80
       evaluation_periods  = 2
       datapoints_to_alarm = 2
       period              = 30
