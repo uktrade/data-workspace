@@ -108,7 +108,7 @@ resource "aws_ecr_repository" "arango" {
 }
 
 resource "aws_ecr_repository" "sagemaker" {
-  name  = "${var.prefix}-sagemaker"
+  name = "${var.prefix}-sagemaker"
 }
 
 resource "aws_vpc_endpoint" "ecr_dkr" {
