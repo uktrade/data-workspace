@@ -252,7 +252,7 @@ data "aws_ecr_lifecycle_policy_document" "expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "sagemaker" {
-  name  = "${var.prefix}-sagemaker"
+  name = "${var.prefix}-sagemaker"
 }
 
 resource "aws_vpc_endpoint" "ecr_dkr" {
