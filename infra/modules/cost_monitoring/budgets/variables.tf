@@ -21,10 +21,10 @@ variable "notification_thresholds" {
     description = "list of notification thresholds in %"
 }
 
-# variable "notification_email" {
-#     type = string
-#     description = "email for who recieves budget alerts - likely not going to work "
-# }
+variable "notification_email" {
+    type = list(string)
+    description = "email for who recieves budget alerts"
+}
 
 variable "sns_topic_arn" {
     type = string

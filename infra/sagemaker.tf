@@ -120,4 +120,5 @@ module "budgets" {
   cost_filter_service = "Amazon SageMaker"
   budget_name = "sagemaker-budget"
   sns_topic_arn = module.sns.sns_topic_arn
+  notification_email = var.sagemaker_budget_emails
 }

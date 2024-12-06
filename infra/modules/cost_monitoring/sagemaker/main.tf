@@ -15,7 +15,7 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
           ],
           "period" : 86400,
           "stat" : "Maximum",
-          "region" : "eu-west-2",
+          "region" : "us-east-1",
           "title" : "Monthly AWS Costs"
         }
       },
@@ -27,13 +27,13 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
         "height" : 6,
         "properties" : {
           "metrics" : [
-            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "SageMaker", "Currency", "USD" ],
-            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "EC2-Instances", "Currency", "USD" ],
-            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "S3", "Currency", "USD" ]
+            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonSageMaker", "Currency", "USD" ],
+            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonEC2", "Currency", "USD" ],
+            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonS3", "Currency", "USD" ]
           ],
           "period" : 86400,
           "stat" : "Maximum",
-          "region" : "eu-west-2",
+          "region" : "us-east-1",
           "title" : "Service-Level Costs (SageMaker, EC2, S3)"
         }
       },
@@ -49,7 +49,7 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
           ],
           "period" : 3600,
           "stat" : "Average",
-          "region" : "eu-west-2",
+          "region" : "us-east-1",
           "title" : "Hourly AWS Costs"
         }
       }
