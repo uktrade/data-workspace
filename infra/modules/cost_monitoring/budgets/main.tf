@@ -17,7 +17,7 @@ resource "aws_budgets_budget" "monthly_cost_budget" {
     comparison_operator  = "GREATER_THAN"
     threshold            = 80
 
-    subscriber_email_addresses = [ "joseph.hearnshaw@digital.trade.gov.uk" ]
+    subscriber_email_addresses = [ ] # Secrets to be passed
     subscriber_sns_topic_arns = [var.sns_topic_arn]
   }
 
