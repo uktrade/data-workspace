@@ -15,8 +15,8 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
           ],
           "period" : 86400,
           "stat" : "Maximum",
-          "region" : "eu-west-2",
-          "title" : "Monthly AWS Costs (USD)"
+          "region" : "us-east-1",
+          "title" : "Monthly AWS Costs"
         }
       },
       {
@@ -33,7 +33,7 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
           ],
           "period" : 86400,
           "stat" : "Maximum",
-          "region" : "eu-west-2",
+          "region" : "us-east-1",
           "title" : "Service-Level Costs (SageMaker, EC2, S3)"
         }
       },
@@ -49,7 +49,7 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
           ],
           "period" : 3600,
           "stat" : "Average",
-          "region" : "eu-west-2",
+          "region" : "us-east-1",
           "title" : "Hourly AWS Costs"
         }
       }
