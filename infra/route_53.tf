@@ -1,13 +1,13 @@
 data "aws_route53_zone" "aws_route53_zone" {
   # provider = "aws.route53"
-  name     = var.aws_route53_zone
+  name = var.aws_route53_zone
 }
 
 resource "aws_route53_record" "admin" {
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = var.admin_domain
-  type     = "A"
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = var.admin_domain
+  type    = "A"
 
   alias {
     name                   = aws_alb.admin.dns_name
@@ -22,9 +22,9 @@ resource "aws_route53_record" "admin" {
 
 resource "aws_route53_record" "applications" {
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = "*.${var.admin_domain}"
-  type     = "A"
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = "*.${var.admin_domain}"
+  type    = "A"
 
   alias {
     name                   = aws_alb.admin.dns_name
@@ -53,9 +53,9 @@ resource "aws_acm_certificate_validation" "admin" {
 
 resource "aws_route53_record" "healthcheck" {
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = var.healthcheck_domain
-  type     = "A"
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = var.healthcheck_domain
+  type    = "A"
 
   alias {
     name                   = aws_alb.healthcheck.dns_name
@@ -83,9 +83,9 @@ resource "aws_acm_certificate_validation" "healthcheck" {
 
 resource "aws_route53_record" "prometheus" {
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = var.prometheus_domain
-  type     = "A"
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = var.prometheus_domain
+  type    = "A"
 
   alias {
     name                   = aws_alb.prometheus.dns_name
@@ -112,11 +112,11 @@ resource "aws_acm_certificate_validation" "prometheus" {
 }
 
 resource "aws_route53_record" "gitlab" {
-  count    = var.gitlab_on ? 1 : 0
+  count = var.gitlab_on ? 1 : 0
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = var.gitlab_domain
-  type     = "A"
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = var.gitlab_domain
+  type    = "A"
 
   alias {
     name                   = aws_lb.gitlab[count.index].dns_name
@@ -130,11 +130,11 @@ resource "aws_route53_record" "gitlab" {
 }
 
 resource "aws_route53_record" "superset_internal" {
-  count    = var.superset_on ? 1 : 0
+  count = var.superset_on ? 1 : 0
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = var.superset_internal_domain
-  type     = "A"
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = var.superset_internal_domain
+  type    = "A"
 
   alias {
     name                   = aws_lb.superset[count.index].dns_name
@@ -148,13 +148,13 @@ resource "aws_route53_record" "superset_internal" {
 }
 
 resource "aws_route53_record" "mlflow_internal" {
-  count    = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count = var.mlflow_on ? length(var.mlflow_instances) : 0
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = "mlflow--${var.mlflow_instances_long[count.index]}--internal.${var.admin_domain}"
-  type     = "A"
-  ttl      = "60"
-  records  = [aws_lb.mlflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]]
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = "mlflow--${var.mlflow_instances_long[count.index]}--internal.${var.admin_domain}"
+  type    = "A"
+  ttl     = "60"
+  records = [aws_lb.mlflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]]
 
   lifecycle {
     create_before_destroy = true
@@ -162,13 +162,13 @@ resource "aws_route53_record" "mlflow_internal" {
 }
 
 resource "aws_route53_record" "mlflow_data_flow" {
-  count    = var.mlflow_on ? length(var.mlflow_instances) : 0
+  count = var.mlflow_on ? length(var.mlflow_instances) : 0
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = "mlflow--${var.mlflow_instances_long[count.index]}--data-flow.${var.admin_domain}"
-  type     = "A"
-  ttl      = "60"
-  records  = [aws_lb.mlflow_dataflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]]
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = "mlflow--${var.mlflow_instances_long[count.index]}--data-flow.${var.admin_domain}"
+  type    = "A"
+  ttl     = "60"
+  records = [aws_lb.mlflow_dataflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]]
 
   lifecycle {
     create_before_destroy = true
@@ -191,11 +191,11 @@ resource "aws_acm_certificate_validation" "superset_internal" {
 }
 
 resource "aws_route53_record" "arango" {
-  count    = var.arango_on ? 1 : 0
+  count = var.arango_on ? 1 : 0
   # provider = "aws.route53"
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = "arango.${var.admin_domain}"
-  type     = "A"
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = "arango.${var.admin_domain}"
+  type    = "A"
 
   alias {
     name                   = aws_lb.arango[0].dns_name
@@ -209,11 +209,11 @@ resource "aws_route53_record" "arango" {
 }
 
 resource "aws_route53_record" "airflow_webserver" {
-  count    = var.airflow_on ? 1 : 0
+  count = var.airflow_on ? 1 : 0
   # provider = aws.route53
-  zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
-  name     = var.airflow_domain
-  type     = "A"
+  zone_id = data.aws_route53_zone.aws_route53_zone.zone_id
+  name    = var.airflow_domain
+  type    = "A"
 
   alias {
     name                   = aws_lb.airflow_webserver[count.index].dns_name

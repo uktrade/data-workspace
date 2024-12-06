@@ -431,7 +431,7 @@ resource "random_string" "aws_arangodb_root_password" {
 resource "aws_backup_vault" "arango_backup_vault" {
   count = var.arango_on ? 1 : 0 # TEMPORARY 
   # count = 1 
-  name  = "${var.prefix}-arangodb-backup-vault"
+  name = "${var.prefix}-arangodb-backup-vault"
 }
 
 resource "aws_backup_plan" "arango_backup_plan" {
