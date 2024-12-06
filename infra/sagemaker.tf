@@ -91,3 +91,33 @@ output "default_sagemaker_bucket" {
 #   description = "The ID of the security group for SageMaker endpoints"
 # }
 
+# Cost monitoring
+
+module "cost_monitoring_dashboard" {
+  source      = "./modules/cost_monitoring/sagemaker"
+  dashboard_name      = "aws-cost-monitoring-dashboard"
+  services_to_monitor       = [
+    "AmazonSageMaker",
+    "AmazonEC2",
+    "AmazonS3"
+  ]
+}
+
+module "sns" {
+  source = "./modules/sns"
+  prefix = "data-workspace-sagemaker"
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
+}
+
+module "log_group" {
+  source = "./modules/logs"
+  prefix = "data-workspace-sagemaker"
+}
+
+module "budgets" {
+  source = "./modules/cost_monitoring/budgets"
+  budget_limit = "1000"
+  cost_filter_service = "Amazon SageMaker"
+  budget_name = "sagemaker-budget"
+  sns_topic_arn = module.sns.sns_topic_arn
+}

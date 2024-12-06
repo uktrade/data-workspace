@@ -11,7 +11,7 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
         "height" : 6,
         "properties" : {
           "metrics" : [
-            [ "AWS/Billing", "EstimatedCharges", "Currency", "GBP" ]
+            [ "AWS/Billing", "EstimatedCharges", "Currency", "USD" ]
           ],
           "period" : 86400,
           "stat" : "Maximum",
@@ -27,9 +27,9 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
         "height" : 6,
         "properties" : {
           "metrics" : [
-            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonSageMaker", "Currency", "GBP" ],
-            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonEC2", "Currency", "GBP" ],
-            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonS3", "Currency", "GBP" ]
+            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "SageMaker", "Currency", "USD" ],
+            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "EC2-Instances", "Currency", "USD" ],
+            [ "AWS/Billing", "EstimatedCharges", "ServiceName", "S3", "Currency", "USD" ]
           ],
           "period" : 86400,
           "stat" : "Maximum",
@@ -45,7 +45,7 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
         "height" : 6,
         "properties" : {
           "metrics" : [
-            [ "AWS/Billing", "EstimatedCharges", "Currency", "GBP", { "stat": "Average" } ]
+            [ "AWS/Billing", "EstimatedCharges", "Currency", "USD", { "stat": "Average" } ]
           ],
           "period" : 3600,
           "stat" : "Average",
