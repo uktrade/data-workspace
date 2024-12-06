@@ -38,18 +38,6 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
   }
 }
 
-resource "aws_sns_topic" "async-sagemaker-success-topic" {
-  name = "async-sagemaker-success-topic"
-  #application_success_feedback_role_arn
-  #application_failure_feedback_role_arn
-}
-
-resource "aws_sns_topic" "async-sagemaker-error-topic" {
-  name = "async-sagemaker-error-topic"
-  #application_success_feedback_role_arn
-  #application_failure_feedback_role_arn
-}
-
 # Endpoint Resource
 resource "aws_sagemaker_endpoint" "sagemaker_endpoint" {
   name                 = var.endpoint_name
