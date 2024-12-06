@@ -115,7 +115,6 @@ output "default_sagemaker_bucket" {
 #   value       = module.security_groups.security_group_id
 #   description = "The ID of the security group for SageMaker endpoints"
 # }
-<<<<<<< HEAD
 
 # Cost monitoring
 
@@ -148,5 +147,3 @@ module "budgets" {
   sns_topic_arn = module.sns.sns_topic_arn
   notification_email = var.sagemaker_budget_emails
 }
-=======
->>>>>>> 9803961 (latest:)

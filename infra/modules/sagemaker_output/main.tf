@@ -52,3 +52,57 @@ resource "aws_lambda_function" "lambda_s3_move_output" {
   handler       = "s3_move_output.lambda_handler"
   runtime = "python3.12"
   }
+
+
+resource "aws_sns_topic" "async-sagemaker-success-topic" {
+  name = "async-sagemaker-success-topic"
+  #application_success_feedback_role_arn
+  #application_failure_feedback_role_arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "SNS:Subscribe",
+          "SNS:SetTopicAttributes",
+          "SNS:RemovePermission",
+          "SNS:Receive",
+          "SNS:Publish",
+          "SNS:ListSubscriptionsByTopic",
+          "SNS:GetTopicAttributes",
+          "SNS:DeleteTopic",
+          "SNS:AddPermission",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+
+}
+
+resource "aws_sns_topic" "async-sagemaker-error-topic" {
+  name = "async-sagemaker-error-topic"
+  #application_success_feedback_role_arn
+  #application_failure_feedback_role_arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "SNS:Subscribe",
+          "SNS:SetTopicAttributes",
+          "SNS:RemovePermission",
+          "SNS:Receive",
+          "SNS:Publish",
+          "SNS:ListSubscriptionsByTopic",
+          "SNS:GetTopicAttributes",
+          "SNS:DeleteTopic",
+          "SNS:AddPermission",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+}
