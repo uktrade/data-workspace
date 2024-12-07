@@ -18,3 +18,11 @@ output "scale_in_to_zero_based_on_backlog_arn" {
   description = "ARN of the autoscaling policy to scale in to zero for backlog queries when 0 for x minutes"
   value = aws_appautoscaling_policy.scale_in_to_zero_based_on_backlog.arn
 }
+
+output "sns_error_topic_arn" {
+  value = aws_sns_topic.async-sagemaker-error-topic
+}
+
+output "sns_success_topic_arn" {
+  value = aws_sns_topic.async-sagemaker-success-topic
+}
