@@ -30,9 +30,8 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
     output_config {
       s3_output_path = var.s3_output_path
       notification_config {
-        include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC", "ERROR_NOTIFICATION_TOPIC"]
-        success_topic = aws_sns_topic.async-sagemaker-success-topic.arn
-        error_topic = aws_sns_topic.async-sagemaker-error-topic.arn
+        include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC"]
+        success_topic = var.sns_success_topic_arn
       }
     }
   }
@@ -42,7 +41,7 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
 resource "aws_sagemaker_endpoint" "sagemaker_endpoint" {
   name                 = var.endpoint_name
   endpoint_config_name = aws_sagemaker_endpoint_configuration.endpoint_config.name
-  depends_on = [aws_sagemaker_endpoint_configuration.endpoint_config, aws_sns_topic.async-sagemaker-error-topic, aws_sns_topic.async-sagemaker-success-topic]
+  depends_on = [aws_sagemaker_endpoint_configuration.endpoint_config, var.sns_success_topic_arn]
 }
 
 # Autoscaling Target Resource
@@ -161,113 +160,4 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   }
 
   alarm_actions = var.alarms[count.index].alarm_actions != null ? var.alarms[count.index].alarm_actions : []
-}
-
-resource "aws_iam_role" "iam_for_lambda" {
-  name               = "iam_for_lambda"
-  assume_role_policy =  jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }]})
-}
-
-resource "aws_iam_role_policy" "policy_for_lambda" {
-  name = "test_policy"
-  role = aws_iam_role.iam_for_lambda.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "SNS:Subscribe",
-          "SNS:SetTopicAttributes",
-          "SNS:RemovePermission",
-          "SNS:Receive",
-          "SNS:Publish",
-          "SNS:ListSubscriptionsByTopic",
-          "SNS:GetTopicAttributes",
-          "SNS:DeleteTopic",
-          "SNS:AddPermission",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
-}
-
-data "archive_file" "lambda_payload" {
-  type        = "zip"
-  source_dir = "./lambda_function/s3_move_output.py"
-  output_path = "./lambda_function/payload.zip"
-}
-
-resource "aws_lambda_function" "lambda_s3_move_output" {
-  filename      = data.archive_file.lambda_payload.output_path
-  source_code_hash = data.archive_file.lambda_payload.output_base64sha256
-  function_name = "lambda_s3_move_output"
-  role          = aws_iam_role.iam_for_lambda.arn
-  handler       = "s3_move_output.lambda_handler"
-  runtime = "python3.12"
-  }
-
-
-resource "aws_sns_topic" "async-sagemaker-success-topic" {
-  name = "async-sagemaker-success-topic"
-  #application_success_feedback_role_arn
-  #application_failure_feedback_role_arn
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "SNS:Subscribe",
-          "SNS:SetTopicAttributes",
-          "SNS:RemovePermission",
-          "SNS:Receive",
-          "SNS:Publish",
-          "SNS:ListSubscriptionsByTopic",
-          "SNS:GetTopicAttributes",
-          "SNS:DeleteTopic",
-          "SNS:AddPermission",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
-
-}
-
-resource "aws_sns_topic" "async-sagemaker-error-topic" {
-  name = "async-sagemaker-error-topic"
-  #application_success_feedback_role_arn
-  #application_failure_feedback_role_arn
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "SNS:Subscribe",
-          "SNS:SetTopicAttributes",
-          "SNS:RemovePermission",
-          "SNS:Receive",
-          "SNS:Publish",
-          "SNS:ListSubscriptionsByTopic",
-          "SNS:GetTopicAttributes",
-          "SNS:DeleteTopic",
-          "SNS:AddPermission",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
 }

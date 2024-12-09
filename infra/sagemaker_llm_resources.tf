@@ -5,6 +5,7 @@
 module "gpt_neo_125_deployment" {
   source             = "./modules/sagemaker_deployment"
   model_name         = "gpt-neo-125m"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn = module.iam.inference_role
   container_image    = var.hugging_face_model_image
   model_data_url     = "${var.sagemaker_models_folder}/gpt-neo-125m.tar.gz"
@@ -179,6 +180,7 @@ module "gpt_neo_125_deployment" {
 module "llama_3_2_1b_deployment" {
   source             = "./modules/sagemaker_deployment"
   model_name         = "Llama-3-2-1B"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn = module.iam.inference_role
   container_image    = var.hugging_face_model_image
   model_data_url     = "${var.sagemaker_models_folder}/Llama-3.2-1B.tar.gz"
