@@ -48,9 +48,7 @@ variable "appstream_domain" {}
 variable "support_domain" {}
 
 variable "admin_db_instance_class" {}
-variable "admin_db_instance_version" {
-  default = "10.15"
-}
+variable "admin_db_instance_version" {}
 variable "admin_db_instance_allocated_storage" {
   type    = number
   default = 200
