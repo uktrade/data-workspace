@@ -1,3 +1,8 @@
+variable "sns_success_topic_arn" {
+  type        = string
+  description = "ARN of the SNS topic for Sagemaker successful async outputs"
+}
+
 variable "model_name" {
   type        = string
   description = "Name of the SageMaker model"

@@ -13,6 +13,7 @@ module "iam" {
   prefix                        = var.prefix
   sagemaker_default_bucket_name = var.sagemaker_default_bucket
   aws_s3_bucket_notebook        = aws_s3_bucket.notebooks
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
 }
 
 
@@ -62,6 +63,31 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "main_egress_sns" {
+  description = "endpoint-egress-from-main-vpc"
+
+  security_group_id   = aws_security_group.notebooks_endpoints.id
+  cidr_blocks         = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "main_ingress_sns" {
+  description = "endpoint-ingress-to-main-vpc"
+
+  security_group_id   = aws_security_group.notebooks_endpoints.id
+  cidr_blocks         = ["0.0.0.0/0"]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+
 # SageMaker Execution Role Output
 output "execution_role" {
   value       = module.iam.execution_role
@@ -107,6 +133,13 @@ module "sns" {
   source = "./modules/sns"
   prefix = "data-workspace-sagemaker"
   account_id = data.aws_caller_identity.aws_caller_identity.account_id
+}
+
+module "sagemaker_output_mover" {
+  source = "./modules/sagemaker_output_mover"
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  aws_region = data.aws_region.aws_region.name
+  s3_bucket_notebooks_arn = aws_s3_bucket.notebooks.arn
 }
 
 module "log_group" {

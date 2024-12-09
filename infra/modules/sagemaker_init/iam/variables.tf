@@ -3,7 +3,6 @@ variable "prefix" {
   description = "Prefix for naming IAM resources"
 }
 
-
 variable "sagemaker_default_bucket_name" {
   type        = string
   description = "name of the default S3 bucket used by sagemaker"
@@ -12,4 +11,9 @@ variable "sagemaker_default_bucket_name" {
 variable "aws_s3_bucket_notebook" {
   type = any
   description = "S3 bucket for notebooks"
+}
+
+variable "account_id" {
+  type        = string
+  description = "AWS Account ID"
 }
