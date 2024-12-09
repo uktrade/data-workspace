@@ -34,6 +34,11 @@ resource "aws_iam_role_policy" "policy_for_lambda_s3_move" {
         Action   = ["s3:PutObject"]
         Effect   = "Allow"
         Resource = "${var.s3_bucket_notebooks_arn}*"
+      },
+      {
+        Action   = ["logs:CreateLogGroup","logs:CreateLogStream","logs:PutLogEvents","logs:DescribeLogStreams"]
+        Effect   = "Allow"
+        Resource = "arn:aws:logs:*:*:*"
       }
     ]
   })

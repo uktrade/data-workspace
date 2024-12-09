@@ -66,7 +66,7 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
 resource "aws_security_group_rule" "main_egress_sns" {
   description = "endpoint-egress-from-main-vpc"
 
-  security_group_id        = aws_security_group.notebooks_endpoints.id
+  security_group_id   = aws_security_group.notebooks_endpoints.id
   cidr_blocks         = ["0.0.0.0/0"]
 
   type      = "egress"
@@ -76,9 +76,9 @@ resource "aws_security_group_rule" "main_egress_sns" {
 }
 
 resource "aws_security_group_rule" "main_ingress_sns" {
-  description = "endpoint-egress-from-main-vpc"
+  description = "endpoint-ingress-to-main-vpc"
 
-  security_group_id        = aws_security_group.notebooks_endpoints.id
+  security_group_id   = aws_security_group.notebooks_endpoints.id
   cidr_blocks         = ["0.0.0.0/0"]
 
   type      = "ingress"
