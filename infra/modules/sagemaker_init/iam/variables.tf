@@ -12,3 +12,8 @@ variable "aws_s3_bucket_notebook" {
   type = any
   description = "S3 bucket for notebooks"
 }
+
+variable "account_id" {
+  type        = string
+  description = "AWS Account ID"
+}
