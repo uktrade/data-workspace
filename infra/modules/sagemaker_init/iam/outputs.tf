@@ -9,7 +9,6 @@ output "inference_role" {
 }
 
 output "default_sagemaker_bucket" {
-    description = "Default sagemaker bucket data object"
-    value = data.aws_s3_bucket.sagemaker_default_bucket
+    description = "Default sagemaker bucket full object"
+    value = aws_s3_bucket.sagemaker_default_bucket
 }
-

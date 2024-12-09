@@ -1,8 +1,34 @@
-# Use the data source to get the bucket ARN from the bucket name
-data "aws_s3_bucket" "sagemaker_default_bucket" {
+resource "aws_s3_bucket" "sagemaker_default_bucket" {
   bucket = var.sagemaker_default_bucket_name
 }
 
+resource "aws_s3_bucket_policy" "sagemaker_default_bucket" {
+  bucket = aws_s3_bucket.sagemaker_default_bucket.id
+  policy = data.aws_iam_policy_document.sagemaker_default_bucket.json
+}
+
+data "aws_iam_policy_document" "sagemaker_default_bucket" {
+  statement {
+    effect = "Deny"
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    actions = [
+      "s3:*",
+    ]
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.sagemaker_default_bucket.id}/*",
+    ]
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values = [
+        "false"
+      ]
+    }
+  }
+}
 
 # Assume Role Policy for SageMaker Execution Role
 data "aws_iam_policy_document" "sagemaker_assume_role" {
@@ -54,7 +80,8 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
       "s3:ListBucket",
       "s3:GetObject",
       "s3:PutObject",
-      "s3:DeleteObject"
+      "s3:DeleteObject",
+      "s3:CreateBucket"
     ]
     resources = [
       "arn:aws:s3:::*sagemaker*",
@@ -159,10 +186,3 @@ resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
   role       = aws_iam_role.inference_role.name
   policy_arn = aws_iam_policy.sagemaker_access_policy.arn
 }
-
-
-
-
-
-
-
