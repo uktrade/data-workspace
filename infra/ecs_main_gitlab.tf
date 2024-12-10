@@ -927,7 +927,13 @@ data "aws_iam_policy_document" "gitlab_runner" {
       "ecr:GetDownloadUrlForLayer",
     ]
 
-    resources = "${aws_ecr_repository.theia.arn}"
+    resources = [
+      "${aws_ecr_repository.visualisation_base.arn}",
+      "${aws_ecr_repository.visualisation_base_r.arn}",
+      "${aws_ecr_repository.visualisation_base_rv4.arn}",
+      "${aws_ecr_repository.vscode.arn}",
+      "${aws_ecr_repository.theia.arn}",
+    ]
   }
 
 }
@@ -990,13 +996,7 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
       "ecr:GetDownloadUrlForLayer",
     ]
 
-    resources = [
-      "${aws_ecr_repository.visualisation_base.arn}",
-      "${aws_ecr_repository.visualisation_base_r.arn}",
-      "${aws_ecr_repository.visualisation_base_rv4.arn}",
-      "${aws_ecr_repository.vscode.arn}",
-      "${aws_ecr_repository.theia.arn}",
-    ]
+    resources = "${aws_ecr_repository.theia.arn}"
   }
 
   # All for user-provided
