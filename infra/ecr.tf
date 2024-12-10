@@ -17,9 +17,9 @@ resource "aws_ecr_repository" "admin" {
   name = "${var.prefix}-admin"
 }
 
-resource "aws_ecr_lifecycle_policy" "admin_expire_untagged_after_one_day" {
+resource "aws_ecr_lifecycle_policy" "admin_expire_image_count_gt_5" {
   repository = aws_ecr_repository.admin.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
+  policy     = data.aws_ecr_lifecycle_policy_document.expire_image_count_gt_5.json
 }
 
 resource "aws_ecr_repository" "jupyterlab_python" {
@@ -237,12 +237,23 @@ resource "aws_ecr_lifecycle_policy" "arango_expire_untagged_after_one_day" {
 
 data "aws_ecr_lifecycle_policy_document" "expire_untagged_after_one_day" {
   rule {
-    priority = 1
+    priority = 2
     selection {
       tag_status   = "untagged"
       count_type   = "sinceImagePushed"
       count_unit   = "days"
       count_number = 1
+    }
+  }
+}
+
+data "aws_ecr_lifecycle_policy_document" "expire_image_count_gt_5" {
+  rule {
+    priority = 1
+    selection {
+      tag_status   = "tagged"
+      count_type   = "imageCountMoreThan"
+      count_number = 5
     }
   }
 }
