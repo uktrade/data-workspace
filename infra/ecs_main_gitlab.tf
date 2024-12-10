@@ -936,6 +936,25 @@ data "aws_iam_policy_document" "gitlab_runner" {
     ]
   }
 
+  # All for user-provided
+  statement {
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:GetRepositoryPolicy",
+      "ecr:DescribeRepositories",
+      "ecr:ListImages",
+      "ecr:DescribeImages",
+      "ecr:BatchGetImage",
+      "ecr:InitiateLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:CompleteLayerUpload",
+      "ecr:PutImage",
+    ]
+    resources = [
+      "${aws_ecr_repository.user_provided.arn}",
+    ]
+  }
 }
 
 resource "aws_iam_policy_attachment" "gitlab_runner" {
@@ -998,22 +1017,6 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
 
     resources = [
       "${aws_ecr_repository.theia.arn}",
-    ]
-  }
-
-  # All for user-provided
-  statement {
-    actions = [
-      "ecr:BatchCheckLayerAvailability",
-      "ecr:GetDownloadUrlForLayer",
-      "ecr:GetRepositoryPolicy",
-      "ecr:DescribeRepositories",
-      "ecr:ListImages",
-      "ecr:DescribeImages",
-      "ecr:BatchGetImage",
-    ]
-    resources = [
-      "${aws_ecr_repository.user_provided.arn}",
     ]
   }
 
