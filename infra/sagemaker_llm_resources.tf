@@ -5,6 +5,7 @@
 module "gpt_neo_125_deployment" {
   source             = "./modules/sagemaker_deployment"
   model_name         = "gpt-neo-125m"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn = module.iam.inference_role
   container_image    = var.hugging_face_model_image
   model_data_url     = "${var.sagemaker_models_folder}/gpt-neo-125m.tar.gz"
@@ -51,7 +52,7 @@ module "gpt_neo_125_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 5.0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 5 periods breaching then scale down to ensure 
+      datapoints_to_alarm = 2 # 2 out of 5 periods breaching then scale down to ensure
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
@@ -64,7 +65,7 @@ module "gpt_neo_125_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure 
+      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_based_on_backlog_arn]
@@ -193,6 +194,7 @@ module "gpt_neo_125_deployment" {
 module "llama_3_2_1b_deployment" {
   source             = "./modules/sagemaker_deployment"
   model_name         = "Llama-3-2-1B"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn = module.iam.inference_role
   container_image    = var.hugging_face_model_image
   model_data_url     = "${var.sagemaker_models_folder}/Llama-3.2-1B.tar.gz"
@@ -239,7 +241,7 @@ module "llama_3_2_1b_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 5.0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure 
+      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
@@ -252,7 +254,7 @@ module "llama_3_2_1b_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure 
+      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_based_on_backlog_arn]
