@@ -811,7 +811,7 @@ resource "aws_launch_configuration" "gitlab_runner_data_science" {
   # types of infrastructure
   image_id             = "ami-0749bd3fac17dc2cc"
   instance_type        = var.gitlab_runner_data_science_instance_type
-  iam_instance_profile = aws_iam_instance_profile.gitlab_runner[count.index].name
+  iam_instance_profile = aws_iam_instance_profile.gitlab_runner_data_science[count.index].name
   security_groups      = ["${aws_security_group.gitlab_runner[count.index].id}"]
   key_name             = aws_key_pair.shared.key_name
 
@@ -936,6 +936,69 @@ data "aws_iam_policy_document" "gitlab_runner" {
     ]
   }
 
+}
+
+resource "aws_iam_policy_attachment" "gitlab_runner" {
+  count      = var.gitlab_on ? 1 : 0
+  name       = "${var.prefix}-gitlab-runner"
+  roles      = ["${aws_iam_role.gitlab_runner[count.index].name}"]
+  policy_arn = aws_iam_policy.gitlab_runner[count.index].arn
+}
+
+resource "aws_iam_instance_profile" "gitlab_runner_data_science" {
+  count = var.gitlab_on ? 1 : 0
+  name  = "${var.prefix}-gitlab-runner-data-science"
+  role  = aws_iam_role.gitlab_runner_data_science[count.index].name
+}
+
+resource "aws_iam_role" "gitlab_runner_data_science" {
+  count              = var.gitlab_on ? 1 : 0
+  name               = "${var.prefix}-gitlab-runner"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.gitlab_runner_data_science_assume_role[count.index].json
+}
+
+data "aws_iam_policy_document" "gitlab_runner_data_science_assume_role" {
+  count = var.gitlab_on ? 1 : 0
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "gitlab_runner_data_science" {
+  count  = var.gitlab_on ? 1 : 0
+  name   = "${var.prefix}-gitlab-runner-data-science"
+  policy = data.aws_iam_policy_document.gitlab_runner_data_science[count.index].json
+}
+
+data "aws_iam_policy_document" "gitlab_runner_data_science" {
+  count = var.gitlab_on ? 1 : 0
+
+  statement {
+    actions = [
+      "ecr:GetAuthorizationToken",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+
+  # Read only for the base images
+  statement {
+    actions = [
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+    ]
+
+    resources = aws_ecr_repository.theia.arn
+  }
+
   # All for user-provided
   statement {
     actions = [
@@ -946,20 +1009,27 @@ data "aws_iam_policy_document" "gitlab_runner" {
       "ecr:ListImages",
       "ecr:DescribeImages",
       "ecr:BatchGetImage",
-      "ecr:InitiateLayerUpload",
-      "ecr:UploadLayerPart",
-      "ecr:CompleteLayerUpload",
-      "ecr:PutImage",
     ]
     resources = [
       "${aws_ecr_repository.user_provided.arn}",
     ]
   }
+
+  # Allow list and put object for Gitlab private package index
+  statement {
+    actions = [
+      "s3:ListBucket",
+      "s3:PutObject"
+    ]
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.notebooks.id}/shared/ddat_packages/*"
+    ]
+  }
 }
 
-resource "aws_iam_policy_attachment" "gitlab_runner" {
+resource "aws_iam_policy_attachment" "gitlab_runner_data_science" {
   count      = var.gitlab_on ? 1 : 0
-  name       = "${var.prefix}-gitlab-runner"
-  roles      = ["${aws_iam_role.gitlab_runner[count.index].name}"]
-  policy_arn = aws_iam_policy.gitlab_runner[count.index].arn
+  name       = "${var.prefix}-gitlab-runner-data-science"
+  roles      = ["${aws_iam_role.gitlab_runner_data_science[count.index].name}"]
+  policy_arn = aws_iam_policy.gitlab_runner_data_science[count.index].arn
 }
