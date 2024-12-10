@@ -130,6 +130,18 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_based_on_backlog" {
   depends_on = [aws_appautoscaling_target.autoscaling_target]
 }
 
+resource "aws_cloudwatch_log_metric_filter" "unatuhorized_operations" {
+    name = "unauthorized-operations-filter"
+    log_group_name = "${var.log_group_name}"
+    pattern = "{ $.errorCode = \"UnauthorizedOperation\" || $.errorCode = \"AccessDenied\" }"
+
+    metric_transformation {
+      name = "UnauthorizedOperationsCount"
+      namespace = "CloudTrailMetrics"
+      value = "1"
+    }
+}
+
 # Loop through the alarm definitions to create multiple CloudWatch alarms
 resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   count = length(var.alarms)

@@ -27,6 +27,7 @@ module "gpt_neo_125_deployment" {
   scale_up_adjustment       = 1
   scale_up_cooldown         = 60
   scale_in_to_zero_cooldown = 120
+  log_group_name            = "/aws/sagemaker/Endpoints/${module.gpt_neo_125_deployment.endpoint_name}"
 
   alarms = [
     {
@@ -166,6 +167,19 @@ module "gpt_neo_125_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
+    },
+    {
+      alarm_name          = "unathorized-operations-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      alarm_description   = "Triggers when unauthorized operations are detected in the CloudTrail Logs"
+      metric_name         = "UnauthorizedOperationsCount"
+      namespace           = "CloudTrailMetrics"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 300
+      statistic           = "Sum"
+      alarm_actions = [module.sns.unauthorised_access_sns_topic_arn]
     }
   ]
 
@@ -201,6 +215,7 @@ module "llama_3_2_1b_deployment" {
   scale_up_adjustment       = 1
   scale_up_cooldown         = 30
   scale_in_to_zero_cooldown = 120
+  log_group_name            = "/aws/sagemaker/Endpoints/${module.llama_3_2_1b_deployment.endpoint_name}"
 
   alarms = [
     {
@@ -340,6 +355,19 @@ module "llama_3_2_1b_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
+    },
+    {
+      alarm_name          = "unathorized-operations-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      alarm_description   = "Triggers when unauthorized operations are detected in the CloudTrail Logs"
+      metric_name         = "UnauthorizedOperationsCount"
+      namespace           = "CloudTrailMetrics"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 300
+      statistic           = "Sum"
+      alarm_actions = [module.sns.unauthorised_access_sns_topic_arn]
     }
   ]
 }

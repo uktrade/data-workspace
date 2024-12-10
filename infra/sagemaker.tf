@@ -9,10 +9,10 @@ module "sagemaker_domain" {
 
 # IAM Roles and Policies for SageMaker
 module "iam" {
-  source                        = "./modules/sagemaker_init/iam"
-  prefix                        = var.prefix
-  sagemaker_default_bucket_name = var.sagemaker_default_bucket
-  aws_s3_bucket_notebook        = aws_s3_bucket.notebooks
+  source = "./modules/sagemaker_init/iam"
+  prefix = var.prefix
+  sagemaker_default_bucket_name = "${var.sagemaker_default_bucket}"
+  aws_s3_bucket_notebook = aws_s3_bucket.notebooks
 }
 
 
@@ -41,8 +41,8 @@ resource "aws_security_group" "notebooks_endpoints" {
 resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
   description = "endpoint-ingress-from-datasets-vpc"
 
-  security_group_id = aws_security_group.notebooks_endpoints.id
-  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+  security_group_id        = aws_security_group.notebooks_endpoints.id
+  cidr_blocks         = [aws_vpc.notebooks.cidr_block]
 
   type      = "ingress"
   from_port = "0"
@@ -53,8 +53,8 @@ resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
 resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
   description = "endpoint-ingress-from-datasets-vpc"
 
-  security_group_id = aws_security_group.notebooks_endpoints.id
-  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+  security_group_id        = aws_security_group.notebooks_endpoints.id
+  cidr_blocks         = [aws_vpc.notebooks.cidr_block]
 
   type      = "egress"
   from_port = "0"
@@ -107,6 +107,7 @@ module "sns" {
   source = "./modules/sns"
   prefix = "data-workspace-sagemaker"
   account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  notification_email = var.sagemaker_budget_emails
 }
 
 module "log_group" {

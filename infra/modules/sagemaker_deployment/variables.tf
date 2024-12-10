@@ -106,3 +106,9 @@ variable "alarms" {
   }))
   description = "List of CloudWatch alarms to be created"
 }
+
+variable "log_group_name" {
+  type = string
+  description = "log group name, i.e. gpt-neo-125m..."
+  default = ""
+}
