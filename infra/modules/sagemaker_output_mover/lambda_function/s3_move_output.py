@@ -1,15 +1,24 @@
 import boto3
+import ast
 
 def lambda_handler(event, context):
-    try:
-        s3 = boto3.resource('s3')
+    for record in event['Records']:
+        process_message(record)
+    print(f"sns message processed")
 
-        sagemaker_endpoint_name = event["requestParameters"]["endpointName"]
-        input_file_uri = event["requestParameters"]["inputLocation"]
+def process_message(record):
+    try:
+        message_str = record['Sns']['Message']
+        s3 = boto3.resource('s3')
+        message_dict = ast.literal_eval(message)
+        print(message_dict)
+
+        sagemaker_endpoint_name = message_dict["requestParameters"]["endpointName"]
+        input_file_uri = message_dict["requestParameters"]["inputLocation"]
         input_file_bucket = input_file_uri.split("/user/federated/")[0].split("s3://")[1]
         federated_user_id = input_file_uri.split("/user/federated/")[1].split("/")[0]
 
-        output_file_uri = event["responseParameters"]["outputLocation"]
+        output_file_uri = message_dict["responseParameters"]["outputLocation"]
         output_file_bucket = output_file_uri.split("https://")[1].split("/")[0].split(".s3.eu-west-2.amazonaws.com")[0]
         output_file_key = output_file_uri.split("https://")[1].split("/")[1]
 
