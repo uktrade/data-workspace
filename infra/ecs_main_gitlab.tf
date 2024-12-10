@@ -972,7 +972,7 @@ resource "aws_iam_instance_profile" "gitlab_runner_data_science" {
 
 resource "aws_iam_role" "gitlab_runner_data_science" {
   count              = var.gitlab_on ? 1 : 0
-  name               = "${var.prefix}-gitlab-runner"
+  name               = "${var.prefix}-gitlab-runner-data-science"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.gitlab_runner_data_science_assume_role[count.index].json
 }
