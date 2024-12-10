@@ -996,7 +996,9 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
       "ecr:GetDownloadUrlForLayer",
     ]
 
-    resources = aws_ecr_repository.theia.arn
+    resources = [
+      "${aws_ecr_repository.theia.arn}",
+    ]
   }
 
   # All for user-provided
