@@ -19,4 +19,3 @@ resource "aws_cloudwatch_metric_alarm" "sagemaker_alarm" {
 
   alarm_actions = var.alarm_actions
 }
-

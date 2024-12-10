@@ -13,3 +13,6 @@ output "default_sagemaker_bucket" {
     value = data.aws_s3_bucket.sagemaker_default_bucket
 }
 
+# output "log_delivery_role_arn" {
+#     value = aws_iam_role.cloudwatch_to_s3_role.arn
+# }
