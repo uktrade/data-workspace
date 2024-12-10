@@ -2,7 +2,7 @@ resource "aws_ecs_task_definition" "jupyterlabpython" {
   family = "${var.prefix}-jupyterlabpython"
   container_definitions = templatefile(
     "${path.module}/ecs_notebooks_notebook_container_definitions.json", {
-      container_image = "${aws_ecr_repository.jupyterlab_python.repository_url}:${data.external.jupyterlabpython_current_tag.result.tag}"
+      container_image = "${aws_ecr_repository.jupyterlab_python.repository_url}:master"
       container_name  = "${local.notebook_container_name}"
 
       log_group  = "${aws_cloudwatch_log_group.notebook.name}"

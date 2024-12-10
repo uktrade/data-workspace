@@ -66,7 +66,7 @@ resource "aws_ecs_task_definition" "dns_rewrite_proxy_new" {
   family = "${var.prefix}-dns-rewrite-proxy-new"
   container_definitions = templatefile(
     "${path.module}/ecs_main_dns_rewrite_proxy_container_definitions.json", {
-      container_image  = "${aws_ecr_repository.dns_rewrite_proxy.repository_url}:${data.external.dns_rewrite_proxy_current_tag.result.tag}"
+      container_image  = "${aws_ecr_repository.dns_rewrite_proxy.repository_url}:latest"
       container_name   = "${local.dns_rewrite_proxy_container_name}"
       container_cpu    = "${local.dns_rewrite_proxy_container_cpu}"
       container_memory = "${local.dns_rewrite_proxy_container_memory}"

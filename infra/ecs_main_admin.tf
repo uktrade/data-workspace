@@ -1,6 +1,6 @@
 locals {
   admin_container_vars = merge({
-    container_image = "${aws_ecr_repository.admin.repository_url}:${data.external.admin_current_tag.result.tag}"
+    container_image = "${aws_ecr_repository.admin.repository_url}:latest"
     container_name  = "${local.admin_container_name}"
     container_port  = "${local.admin_container_port}"
     container_cpu   = "${local.admin_container_cpu}"

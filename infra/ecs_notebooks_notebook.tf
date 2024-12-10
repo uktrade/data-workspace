@@ -2,7 +2,7 @@ resource "aws_ecs_task_definition" "notebook" {
   family = "${var.prefix}-notebook"
   container_definitions = templatefile(
     "${path.module}/ecs_notebooks_notebook_container_definitions.json", {
-      container_image = "${var.notebook_container_image}:${data.external.notebook_current_tag.result.tag}"
+      container_image = "${var.notebook_container_image}:master"
       container_name  = "${local.notebook_container_name}"
 
       log_group  = "${aws_cloudwatch_log_group.notebook.name}"
@@ -11,8 +11,8 @@ resource "aws_ecs_task_definition" "notebook" {
       sentry_dsn         = "${var.sentry_notebooks_dsn}"
       sentry_environment = "${var.sentry_environment}"
 
-      metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:${data.external.notebook_metrics_current_tag.result.tag}"
-      s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:${data.external.notebook_s3sync_current_tag.result.tag}"
+      metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:master"
+      s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:master"
 
       cloudwatch_namespace = "${var.cloudwatch_namespace}"
       cloudwatch_region    = "${var.cloudwatch_region}"
