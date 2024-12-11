@@ -180,7 +180,12 @@ variable "airflow_on" {
 variable "airflow_db_instance_class" {}
 variable "airflow_domain" {}
 variable "airflow_dag_processors" {
-  type    = list(object({ name = string, assume_roles = list(string), buckets = list(string) }))
+  type = list(object({
+    name         = string,
+    assume_roles = list(string),
+    buckets      = list(string),
+    keys         = list(string),
+  }))
   default = []
 }
 variable "airflow_bucket_infix" {}
