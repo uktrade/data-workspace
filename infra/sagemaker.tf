@@ -9,10 +9,11 @@ module "sagemaker_domain" {
 
 # IAM Roles and Policies for SageMaker
 module "iam" {
-  source = "./modules/sagemaker_init/iam"
-  prefix = var.prefix
-  sagemaker_default_bucket_name = "${var.sagemaker_default_bucket}"
-  aws_s3_bucket_notebook = aws_s3_bucket.notebooks
+  source                        = "./modules/sagemaker_init/iam"
+  prefix                        = var.prefix
+  sagemaker_default_bucket_name = var.sagemaker_default_bucket
+  aws_s3_bucket_notebook        = aws_s3_bucket.notebooks
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
 }
 
 
@@ -108,6 +109,13 @@ module "sns" {
   prefix = "data-workspace-sagemaker"
   account_id = data.aws_caller_identity.aws_caller_identity.account_id
   notification_email = var.sagemaker_budget_emails
+}
+
+module "sagemaker_output_mover" {
+  source = "./modules/sagemaker_output_mover"
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  aws_region = data.aws_region.aws_region.name
+  s3_bucket_notebooks_arn = aws_s3_bucket.notebooks.arn
 }
 
 module "log_group" {

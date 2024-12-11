@@ -62,6 +62,12 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     ]
   }
 
+  statement {
+    actions = [
+      "SNS:Publish",
+    ]
+    resources = ["arn:aws:sns:eu-west-2:${var.account_id}:async-sagemaker-success-topic"]
+  }
 
   statement {
     actions = [
@@ -159,49 +165,3 @@ resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
   role       = aws_iam_role.inference_role.name
   policy_arn = aws_iam_policy.sagemaker_access_policy.arn
 }
-
-
-
-# Cloudwatch perms for s3 bucket
-# resource "aws_iam_role" "log_delivery_role" {
-#     name = var.log_role_name
-#     assume_role_policy = data.cloudwatch_to_s3_assume_role_policy.cloudwatch_to_s3_policy.json
-# }
-
-# data "aws_iam_policy_document" "cloudwatch_to_s3_assume_role_policy" {
-#     statement {
-#        actions = ["sts:AssumeRole"]
-    
-#     principals {
-#         type = "Service"
-#         identifiers = ["logs.eu-west-2.amazonaws.com"]
-#      }
-
-#     }
-# }
-
-# data "aws_iam_policy_document" "cloudwatch_to_s3_policy" {
-#     statement {
-#         effect = "Allow"
-#         actions = ["s3:PutObject", "s3:GetbucketLocation", "s3:ListBucket"]
-#         resources = [
-#           "${var.s3_bucket_arn}/*",
-#           "${var.s3_bucket_arn}"
-#           ]
-#     }
-# }
-
-# resource "aws_iam_policy" "cloudwatch_to_s3_policy" {
-#     name = "cloudwatch-to-s3-policy"
-#     policy = data.aws_iam_policy_document.cloudwatch_to_s3_policy.json
-# }
-
-# resource "aws_iam_role_policy_attachment" "attach_cloudwatch_to_s3_policy" {
-#   role = aws_iam_role.cloudwatch_to_s3_role.name
-#   policy_arn = aws_iam_policy.cloudwatch_to_s3_policy.arn
-# }
-
-
-
-
-

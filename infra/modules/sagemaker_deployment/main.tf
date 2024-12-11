@@ -29,6 +29,10 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
   async_inference_config {
     output_config {
       s3_output_path = var.s3_output_path
+      notification_config {
+        include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC"]
+        success_topic = var.sns_success_topic_arn
+      }
     }
   }
 }
@@ -37,6 +41,7 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
 resource "aws_sagemaker_endpoint" "sagemaker_endpoint" {
   name                 = var.endpoint_name
   endpoint_config_name = aws_sagemaker_endpoint_configuration.endpoint_config.name
+  depends_on = [aws_sagemaker_endpoint_configuration.endpoint_config, var.sns_success_topic_arn]
 }
 
 # Autoscaling Target Resource
@@ -78,7 +83,7 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_policy" {
 
   step_scaling_policy_configuration {
     adjustment_type = "ExactCapacity"
-  
+
 
     step_adjustment {
       metric_interval_lower_bound = null # No lower bound to cover everything
@@ -108,7 +113,7 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_based_on_backlog" {
 
   step_scaling_policy_configuration {
     adjustment_type = "ExactCapacity"       # Set the capacity exactly to zero
-   
+
     # Step adjustment for when there are zero queries in the backlog
     step_adjustment {
       metric_interval_lower_bound = null    # No lower bound (cover everything below 0)
@@ -157,7 +162,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   period              = var.alarms[count.index].period
   statistic           = var.alarms[count.index].statistic
 
-  # Define dimensions based on the count index - 
+  # Define dimensions based on the count index -
   # first alarm will not have a null variantName
   dimensions = count.index == 0 ? {
     EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name
