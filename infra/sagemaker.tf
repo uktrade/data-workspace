@@ -10,9 +10,18 @@ module "sagemaker_domain" {
 # IAM Roles and Policies for SageMaker
 module "iam" {
   source = "./modules/sagemaker_init/iam"
-  prefix = var.prefix
+  prefix = "sagemaker"
   sagemaker_default_bucket_name = "${var.sagemaker_default_bucket}"
   aws_s3_bucket_notebook = aws_s3_bucket.notebooks
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  s3_bucket_arn = module.s3.s3_bucket_arn
+  lambda_function_arn = module.lambda_logs.lambda_function_arn
+
+}
+
+module "s3" {
+  source ="./modules/s3"
+  prefix = "sagemaker-logs"
 }
 
 
@@ -113,6 +122,17 @@ module "sns" {
 module "log_group" {
   source = "./modules/logs"
   prefix = "data-workspace-sagemaker"
+  sagemaker_log_group = "/aws/sagemaker/Endpoints/llama-3-2-1b-endpoint"
+  lambda_function_arn = module.lambda_logs.lambda_function_arn
+}
+
+# TODO: make this accept a list, and make all dependencies iterative so it can go over every endpoint, dynamically updating from sagemaker_llm_resources
+# Also test that the lambda is actually working
+module "lambda_logs" {
+  source = "./modules/lambda"
+  s3_bucket_name = "sagemaker-logs-centralized"
+  log_delivery_role_arn = module.iam.lambda_execution_role_arn
+  sagemaker_log_group_arn = "arn:aws:logs:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:/aws/sagemaker/Endpoints/llama-3-2-1b-endpoint:*"
 }
 
 module "budgets" {
@@ -123,3 +143,5 @@ module "budgets" {
   sns_topic_arn = module.sns.sns_topic_arn
   notification_email = var.sagemaker_budget_emails
 }
+
+
