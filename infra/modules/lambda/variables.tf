@@ -8,6 +8,10 @@ variable "log_delivery_role_arn" {
     description = "ARN of the iAM role for Lambda"
 }
 
-variable "sagemaker_log_group_arn" {
-    type = string
+variable "sagemaker_log_group_arns" {
+    type = list(string)
+}
+
+variable "account_id" {
+  type = string
 }

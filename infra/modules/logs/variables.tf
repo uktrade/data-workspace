@@ -10,8 +10,8 @@ variable "retention_in_days" {
     description = "number of days ot retain cloudwatch logs"
 }
 
-variable "sagemaker_log_group" {
-    type = string 
+variable "endpoint_names" {
+    type = list(string) 
 }
 
 variable "lambda_function_arn" {

@@ -4,12 +4,14 @@ resource "aws_cloudwatch_log_group" "budget_alert_log_group" {
 }
 
 data "aws_cloudwatch_log_group" "sagemaker_logs" {
-  name = var.sagemaker_log_group
+   for_each = toset(var.endpoint_names)
+   name = "/aws/sagemaker/Endpoints/${each.key}"
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "sagemaker_logs" {
-    name = "sagemaker-log-filter"
-    log_group_name = data.aws_cloudwatch_log_group.sagemaker_logs.name
+    for_each = toset(var.endpoint_names)
+    name = "sagemaker-log-filter-${each.key}"
+    log_group_name  = data.aws_cloudwatch_log_group.sagemaker_logs[each.key].name
     destination_arn = var.lambda_function_arn
     filter_pattern = ""
 }

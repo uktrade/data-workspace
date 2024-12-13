@@ -122,8 +122,16 @@ module "sns" {
 module "log_group" {
   source = "./modules/logs"
   prefix = "data-workspace-sagemaker"
-  sagemaker_log_group = "/aws/sagemaker/Endpoints/llama-3-2-1b-endpoint"
+  endpoint_names = local.all_endpoint_names
   lambda_function_arn = module.lambda_logs.lambda_function_arn
+}
+
+output "all_subscription_filter_names" {
+  value = module.log_group.subscription_filter_names
+}
+
+output "all_log_group_arns" {
+  value = module.log_group.sagemaker_log_group_arns
 }
 
 # TODO: make this accept a list, and make all dependencies iterative so it can go over every endpoint, dynamically updating from sagemaker_llm_resources
@@ -132,7 +140,11 @@ module "lambda_logs" {
   source = "./modules/lambda"
   s3_bucket_name = "sagemaker-logs-centralized"
   log_delivery_role_arn = module.iam.lambda_execution_role_arn
-  sagemaker_log_group_arn = "arn:aws:logs:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:/aws/sagemaker/Endpoints/llama-3-2-1b-endpoint:*"
+  sagemaker_log_group_arns = [
+    for endpoint_name in local.all_endpoint_names :
+    "arn:aws:logs:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:/aws/sagemaker/Endpoints/${endpoint_name}:*"
+  ]
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
 }
 
 module "budgets" {

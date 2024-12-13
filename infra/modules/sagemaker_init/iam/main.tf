@@ -62,6 +62,12 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     ]
   }
 
+  statement {
+    actions = [
+      "SNS:Publish",
+    ]
+    resources = ["arn:aws:sns:eu-west-2:${var.account_id}:async-sagemaker-success-topic"]
+  }
 
   statement {
     actions = [
@@ -140,6 +146,27 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
 }
 
 
+# Create IAM Policy for SageMaker Permissions
+resource "aws_iam_policy" "sagemaker_access_policy" {
+  name   = "${var.prefix}-sagemaker-domain"
+  policy = data.aws_iam_policy_document.sagemaker_inference_policy_document.json
+}
+
+
+# Attach Policy to SageMaker Role
+resource "aws_iam_role_policy_attachment" "sagemaker_managed_policy" {
+  role       = aws_iam_role.sagemaker.name
+  policy_arn = aws_iam_policy.sagemaker_access_policy.arn
+}
+
+
+# Attach Policy to Inference Role
+resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
+  role       = aws_iam_role.inference_role.name
+  policy_arn = aws_iam_policy.sagemaker_access_policy.arn
+}
+
+# Lambdas
 data "aws_iam_policy_document" "lambda_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -171,7 +198,7 @@ data "aws_iam_policy_document" "lambda_execution_policy" {
       "logs:PutLogEvents"
     ]
     resources = [
-     "*" # "arn:aws:logs:eu-west-2:${var.account_id}:log-group:*"
+    "arn:aws:logs:eu-west-2:${var.account_id}:log-group:*"
     ]
   }
 }
@@ -182,7 +209,7 @@ data "aws_iam_policy_document" "cloudwatch_log_invoke_policy" {
       "lambda:InvokeFunction"
     ]
     resources = [
-      "*" # var.lambda_function_arn
+     var.lambda_function_arn
     ]
   }
 }
