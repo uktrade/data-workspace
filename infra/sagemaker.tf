@@ -134,8 +134,7 @@ output "all_log_group_arns" {
   value = module.log_group.sagemaker_log_group_arns
 }
 
-# TODO: make this accept a list, and make all dependencies iterative so it can go over every endpoint, dynamically updating from sagemaker_llm_resources
-# Also test that the lambda is actually working
+
 module "lambda_logs" {
   source = "./modules/lambda"
   s3_bucket_name = "sagemaker-logs-centralized"

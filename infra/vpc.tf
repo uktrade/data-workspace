@@ -881,3 +881,35 @@ data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
     ]
   }
 }
+
+
+resource "aws_vpc_endpoint" "sns_endpoint" {
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.eu-west-2.sns"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.notebooks_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "sns-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
+}
+
+data "aws_iam_policy_document" "sns_endpoint_policy" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    actions = [
+      "SNS:Subscribe",
+      "SNS:Receive",
+      "SNS:Publish",
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}

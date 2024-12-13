@@ -166,6 +166,7 @@ resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
   policy_arn = aws_iam_policy.sagemaker_access_policy.arn
 }
 
+
 # Lambdas
 data "aws_iam_policy_document" "lambda_assume_role_policy" {
   statement {
@@ -238,3 +239,4 @@ resource "aws_iam_role_policy_attachment" "attach_cloudwatch_log_invoke_policy" 
   role = aws_iam_role.lambda_execution_role.name
   policy_arn = aws_iam_policy.cloudwatch_log_invoke_policy.arn
 }
+
