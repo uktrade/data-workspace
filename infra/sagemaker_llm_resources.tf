@@ -373,3 +373,10 @@ module "llama_3_2_1b_deployment" {
     }
   ]
 }
+
+locals {
+  all_endpoint_names = [
+    module.gpt_neo_125_deployment.endpoint_name,
+    module.llama_3_2_1b_deployment.endpoint_name
+  ]
+}

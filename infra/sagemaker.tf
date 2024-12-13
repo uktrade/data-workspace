@@ -9,11 +9,19 @@ module "sagemaker_domain" {
 
 # IAM Roles and Policies for SageMaker
 module "iam" {
-  source                        = "./modules/sagemaker_init/iam"
-  prefix                        = var.prefix
-  sagemaker_default_bucket_name = var.sagemaker_default_bucket
-  aws_s3_bucket_notebook        = aws_s3_bucket.notebooks
+  source = "./modules/sagemaker_init/iam"
+  prefix = "sagemaker"
+  sagemaker_default_bucket_name = "${var.sagemaker_default_bucket}"
+  aws_s3_bucket_notebook = aws_s3_bucket.notebooks
   account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  s3_bucket_arn = module.s3.s3_bucket_arn
+  lambda_function_arn = module.lambda_logs.lambda_function_arn
+
+}
+
+module "s3" {
+  source ="./modules/s3"
+  prefix = "sagemaker-logs"
 }
 
 
@@ -111,16 +119,31 @@ module "sns" {
   notification_email = var.sagemaker_budget_emails
 }
 
-module "sagemaker_output_mover" {
-  source = "./modules/sagemaker_output_mover"
-  account_id = data.aws_caller_identity.aws_caller_identity.account_id
-  aws_region = data.aws_region.aws_region.name
-  s3_bucket_notebooks_arn = aws_s3_bucket.notebooks.arn
-}
-
 module "log_group" {
   source = "./modules/logs"
   prefix = "data-workspace-sagemaker"
+  endpoint_names = local.all_endpoint_names
+  lambda_function_arn = module.lambda_logs.lambda_function_arn
+}
+
+output "all_subscription_filter_names" {
+  value = module.log_group.subscription_filter_names
+}
+
+output "all_log_group_arns" {
+  value = module.log_group.sagemaker_log_group_arns
+}
+
+
+module "lambda_logs" {
+  source = "./modules/lambda"
+  s3_bucket_name = "sagemaker-logs-centralized"
+  log_delivery_role_arn = module.iam.lambda_execution_role_arn
+  sagemaker_log_group_arns = [
+    for endpoint_name in local.all_endpoint_names :
+    "arn:aws:logs:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:/aws/sagemaker/Endpoints/${endpoint_name}:*"
+  ]
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
 }
 
 module "budgets" {
@@ -131,3 +154,5 @@ module "budgets" {
   sns_topic_arn = module.sns.sns_topic_arn
   notification_email = var.sagemaker_budget_emails
 }
+
+
