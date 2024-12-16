@@ -4,9 +4,9 @@ resource "aws_sagemaker_model" "sagemaker_model" {
   execution_role_arn = var.execution_role_arn
 
   primary_container {
-    image           = var.container_image
-    model_data_url  = var.model_data_url
-    environment     = var.environment
+    image          = var.container_image
+    model_data_url = var.model_data_url
+    environment    = var.environment
   }
 
   vpc_config {
@@ -31,7 +31,7 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
       s3_output_path = var.s3_output_path
       notification_config {
         include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC"]
-        success_topic = var.sns_success_topic_arn
+        success_topic                 = var.sns_success_topic_arn
       }
     }
   }
@@ -41,7 +41,7 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
 resource "aws_sagemaker_endpoint" "sagemaker_endpoint" {
   name                 = var.endpoint_name
   endpoint_config_name = aws_sagemaker_endpoint_configuration.endpoint_config.name
-  depends_on = [aws_sagemaker_endpoint_configuration.endpoint_config, var.sns_success_topic_arn]
+  depends_on           = [aws_sagemaker_endpoint_configuration.endpoint_config, var.sns_success_topic_arn]
 }
 
 # Autoscaling Target Resource
@@ -62,9 +62,9 @@ resource "aws_appautoscaling_policy" "scale_up_policy" {
   service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
 
   step_scaling_policy_configuration {
-    adjustment_type          = "ChangeInCapacity"
-    metric_aggregation_type  = "Average"
-    cooldown                 = var.scale_up_cooldown
+    adjustment_type         = "ChangeInCapacity"
+    metric_aggregation_type = "Average"
+    cooldown                = var.scale_up_cooldown
 
     step_adjustment {
       metric_interval_lower_bound = 0
@@ -87,14 +87,14 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_policy" {
 
     step_adjustment {
       metric_interval_lower_bound = null # No lower bound to cover everything
-      metric_interval_upper_bound = 5 # Upper bound is 5%
+      metric_interval_upper_bound = 5    # Upper bound is 5%
       scaling_adjustment          = 0
     }
 
     step_adjustment {
-      metric_interval_lower_bound = 5 # Lower bound starts at 5%
+      metric_interval_lower_bound = 5    # Lower bound starts at 5%
       metric_interval_upper_bound = null # No upper bound
-      scaling_adjustment          = 1 # Maintains min capacity of one instance
+      scaling_adjustment          = 1    # Maintains min capacity of one instance
     }
 
     cooldown = var.scale_in_to_zero_cooldown
@@ -104,28 +104,28 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_policy" {
 
 # Scale-In Policy to Reduce Capacity to Zero Based on backlog size
 resource "aws_appautoscaling_policy" "scale_in_to_zero_based_on_backlog" {
-  name                  = "scale-in-to-zero-backlog-policy-${var.model_name}"
-  policy_type           = "StepScaling"
-  resource_id           = aws_appautoscaling_target.autoscaling_target.resource_id
-  scalable_dimension    = aws_appautoscaling_target.autoscaling_target.scalable_dimension
-  service_namespace     = aws_appautoscaling_target.autoscaling_target.service_namespace
+  name               = "scale-in-to-zero-backlog-policy-${var.model_name}"
+  policy_type        = "StepScaling"
+  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
 
 
   step_scaling_policy_configuration {
-    adjustment_type = "ExactCapacity"       # Set the capacity exactly to zero
+    adjustment_type = "ExactCapacity" # Set the capacity exactly to zero
 
     # Step adjustment for when there are zero queries in the backlog
     step_adjustment {
-      metric_interval_lower_bound = null    # No lower bound (cover everything below 0)
-      metric_interval_upper_bound = 0       # Exact match for zero backlog size
-      scaling_adjustment          = 0       # Set capacity to zero instances
+      metric_interval_lower_bound = null # No lower bound (cover everything below 0)
+      metric_interval_upper_bound = 0    # Exact match for zero backlog size
+      scaling_adjustment          = 0    # Set capacity to zero instances
     }
 
     # Falllback for any value above 0 to prevent overlap
     step_adjustment {
       metric_interval_lower_bound = 0    # No lower bound (cover everything below 0)
-      metric_interval_upper_bound = null       # Exact match for zero backlog size
-      scaling_adjustment          = 1       # Set capacity to zero instances
+      metric_interval_upper_bound = null # Exact match for zero backlog size
+      scaling_adjustment          = 1    # Set capacity to zero instances
     }
 
     cooldown = var.scale_in_to_zero_cooldown
@@ -136,15 +136,15 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_based_on_backlog" {
 }
 
 resource "aws_cloudwatch_log_metric_filter" "unatuhorized_operations" {
-    name = "unauthorized-operations-filter"
-    log_group_name = "${var.log_group_name}"
-    pattern = "{ $.errorCode = \"UnauthorizedOperation\" || $.errorCode = \"AccessDenied\" }"
+  name           = "unauthorized-operations-filter"
+  log_group_name = var.log_group_name
+  pattern        = "{ $.errorCode = \"UnauthorizedOperation\" || $.errorCode = \"AccessDenied\" }"
 
-    metric_transformation {
-      name = "UnauthorizedOperationsCount"
-      namespace = "CloudTrailMetrics"
-      value = "1"
-    }
+  metric_transformation {
+    name      = "UnauthorizedOperationsCount"
+    namespace = "CloudTrailMetrics"
+    value     = "1"
+  }
 }
 
 # Loop through the alarm definitions to create multiple CloudWatch alarms
@@ -166,7 +166,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   # first alarm will not have a null variantName
   dimensions = count.index == 0 ? {
     EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name
-  } : {
+    } : {
     EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name,
     VariantName  = var.variant_name
   }

@@ -9,18 +9,18 @@ module "sagemaker_domain" {
 
 # IAM Roles and Policies for SageMaker
 module "iam" {
-  source = "./modules/sagemaker_init/iam"
-  prefix = "sagemaker"
-  sagemaker_default_bucket_name = "${var.sagemaker_default_bucket}"
-  aws_s3_bucket_notebook = aws_s3_bucket.notebooks
-  account_id = data.aws_caller_identity.aws_caller_identity.account_id
-  s3_bucket_arn = module.s3.s3_bucket_arn
-  lambda_function_arn = module.lambda_logs.lambda_function_arn
+  source                        = "./modules/sagemaker_init/iam"
+  prefix                        = "sagemaker"
+  sagemaker_default_bucket_name = var.sagemaker_default_bucket
+  aws_s3_bucket_notebook        = aws_s3_bucket.notebooks
+  account_id                    = data.aws_caller_identity.aws_caller_identity.account_id
+  s3_bucket_arn                 = module.s3.s3_bucket_arn
+  lambda_function_arn           = module.lambda_logs.lambda_function_arn
 
 }
 
 module "s3" {
-  source ="./modules/s3"
+  source = "./modules/s3"
   prefix = "sagemaker-logs"
 }
 
@@ -50,8 +50,8 @@ resource "aws_security_group" "notebooks_endpoints" {
 resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
   description = "endpoint-ingress-from-datasets-vpc"
 
-  security_group_id        = aws_security_group.notebooks_endpoints.id
-  cidr_blocks         = [aws_vpc.notebooks.cidr_block]
+  security_group_id = aws_security_group.notebooks_endpoints.id
+  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
 
   type      = "ingress"
   from_port = "0"
@@ -62,8 +62,8 @@ resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
 resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
   description = "endpoint-ingress-from-datasets-vpc"
 
-  security_group_id        = aws_security_group.notebooks_endpoints.id
-  cidr_blocks         = [aws_vpc.notebooks.cidr_block]
+  security_group_id = aws_security_group.notebooks_endpoints.id
+  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
 
   type      = "egress"
   from_port = "0"
@@ -103,9 +103,9 @@ output "default_sagemaker_bucket" {
 # Cost monitoring
 
 module "cost_monitoring_dashboard" {
-  source      = "./modules/cost_monitoring/sagemaker"
-  dashboard_name      = "aws-cost-monitoring-dashboard"
-  services_to_monitor       = [
+  source         = "./modules/cost_monitoring/sagemaker"
+  dashboard_name = "aws-cost-monitoring-dashboard"
+  services_to_monitor = [
     "AmazonSageMaker",
     "AmazonEC2",
     "AmazonS3"
@@ -113,16 +113,16 @@ module "cost_monitoring_dashboard" {
 }
 
 module "sns" {
-  source = "./modules/sns"
-  prefix = "data-workspace-sagemaker"
-  account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  source             = "./modules/sns"
+  prefix             = "data-workspace-sagemaker"
+  account_id         = data.aws_caller_identity.aws_caller_identity.account_id
   notification_email = var.sagemaker_budget_emails
 }
 
 module "log_group" {
-  source = "./modules/logs"
-  prefix = "data-workspace-sagemaker"
-  endpoint_names = local.all_endpoint_names
+  source              = "./modules/logs"
+  prefix              = "data-workspace-sagemaker"
+  endpoint_names      = local.all_endpoint_names
   lambda_function_arn = module.lambda_logs.lambda_function_arn
 }
 
@@ -136,8 +136,8 @@ output "all_log_group_arns" {
 
 
 module "lambda_logs" {
-  source = "./modules/lambda"
-  s3_bucket_name = "sagemaker-logs-centralized"
+  source                = "./modules/lambda"
+  s3_bucket_name        = "sagemaker-logs-centralized"
   log_delivery_role_arn = module.iam.lambda_execution_role_arn
   sagemaker_log_group_arns = [
     for endpoint_name in local.all_endpoint_names :
@@ -147,12 +147,12 @@ module "lambda_logs" {
 }
 
 module "budgets" {
-  source = "./modules/cost_monitoring/budgets"
-  budget_limit = "1000"
+  source              = "./modules/cost_monitoring/budgets"
+  budget_limit        = "1000"
   cost_filter_service = "Amazon SageMaker"
-  budget_name = "sagemaker-budget"
-  sns_topic_arn = module.sns.sns_topic_arn
-  notification_email = var.sagemaker_budget_emails
+  budget_name         = "sagemaker-budget"
+  sns_topic_arn       = module.sns.sns_topic_arn
+  notification_email  = var.sagemaker_budget_emails
 }
 
 

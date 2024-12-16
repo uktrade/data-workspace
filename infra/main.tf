@@ -264,10 +264,10 @@ variable "s3_prefixes_for_external_role_copy" {
 
 variable "sagemaker_example_inference_image" { default = "" }
 
-variable "sagemaker_models_folder" {default = ""}
-variable "hugging_face_model_image" {default = ""}
-variable "sagemaker_default_bucket" {default = ""}
-variable "sagemaker_budget_emails" {default = [""]}
+variable "sagemaker_models_folder" { default = "" }
+variable "hugging_face_model_image" { default = "" }
+variable "sagemaker_default_bucket" { default = "" }
+variable "sagemaker_budget_emails" { default = [""] }
 
 
 locals {

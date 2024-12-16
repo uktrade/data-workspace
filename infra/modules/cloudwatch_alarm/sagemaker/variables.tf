@@ -39,24 +39,24 @@ variable "alarm_actions" {
 }
 
 variable "datapoints_to_alarm" {
-    type      = number
-    description = "Data points that must be breaching to trigger alarm"
-  
+  type        = number
+  description = "Data points that must be breaching to trigger alarm"
+
 }
 
 variable "alarm_description" {
-  type    = string
+  type        = string
   description = "Description of the Alarm"
 }
 
 variable "endpoint_name" {
-  type    = string 
+  type        = string
   description = "Endpoint name - typically /aws/sagemaker/Endpoints for sagemaker"
 }
 
 
 variable "variant_name" {
-  type    = string 
+  type        = string
   description = "Vairant name of the endpoint"
   nullable    = true
   default     = ""
