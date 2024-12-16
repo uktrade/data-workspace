@@ -136,7 +136,7 @@ output "all_log_group_arns" {
 
 
 module "lambda_logs" {
-  source = "./modules/lambda"
+  source = "./modules/lambda/cloudwatch"
   s3_bucket_name = "sagemaker-logs-centralized"
   log_delivery_role_arn = module.iam.lambda_execution_role_arn
   sagemaker_log_group_arns = [
@@ -155,4 +155,10 @@ module "budgets" {
   notification_email = var.sagemaker_budget_emails
 }
 
+module "sagemaker_output_mover" {
+  source = "./modules/sagemaker_output_mover"
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  aws_region = data.aws_region.aws_region.name
+  s3_bucket_notebooks_arn = aws_s3_bucket.notebooks.arn
+}
 
