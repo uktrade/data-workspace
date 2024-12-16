@@ -2,7 +2,7 @@
 module "sagemaker_domain" {
   source             = "./modules/sagemaker_init/domain"
   domain_name        = "SageMaker"
-  vpc_id             = aws_vpc.notebooks.id
+  vpc_id             = aws_vpc.sagemaker.id
   subnet_ids         = aws_subnet.private_without_egress.*.id
   execution_role_arn = module.iam.execution_role
 }
@@ -36,7 +36,7 @@ module "s3" {
 resource "aws_security_group" "notebooks_endpoints" {
   name        = "${var.prefix}-notebooks-endpoints"
   description = "${var.prefix}-notebooks-endpoints"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.sagemaker.id
 
   tags = {
     Name = "${var.prefix}-notebooks-endpoints"
