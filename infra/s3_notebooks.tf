@@ -57,24 +57,4 @@ data "aws_iam_policy_document" "notebooks" {
       ]
     }
   }
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-    actions = [
-      "s3:GetObject",
-    ]
-    resources = [
-      "arn:aws:s3:::${aws_s3_bucket.notebooks.id}/shared/*",
-    ]
-    condition {
-      test     = "StringEquals"
-      variable = "aws:SourceVpce"
-      values = [
-        aws_vpc_endpoint.s3.id
-      ]
-    }
-  }
 }
