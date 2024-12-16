@@ -1024,6 +1024,14 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
   statement {
     actions = [
       "s3:ListBucket",
+    ]
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.notebooks.id}",
+    ]
+  }
+
+  statement {
+    actions = [
       "s3:PutObject"
     ]
     resources = [
