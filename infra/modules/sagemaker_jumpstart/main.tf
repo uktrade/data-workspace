@@ -29,8 +29,8 @@ resource "aws_sagemaker_model" "mistral_sagemaker_model" {
 
     model_data_source {
       s3_data_source {
-        s3_uri = "s3://jumpstart-cache-prod-us-east-1/huggingface-llm/huggingface-llm-mistral-7b-instruct/artifacts/inference-prepack/v1.0.0/"
-        s3_data_type = "S3Prefix"
+        s3_uri           = "s3://jumpstart-cache-prod-us-east-1/huggingface-llm/huggingface-llm-mistral-7b-instruct/artifacts/inference-prepack/v1.0.0/"
+        s3_data_type     = "S3Prefix"
         compression_type = "None"
       }
     }
