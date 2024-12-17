@@ -295,7 +295,7 @@ data "aws_ecr_lifecycle_policy_document" "keep_last_five_releases" {
     }
   }
   # keep five other images (from PR merge builds etc)
-    rule {
+  rule {
     priority = 2
     selection {
       tag_status   = "tagged"
@@ -303,7 +303,7 @@ data "aws_ecr_lifecycle_policy_document" "keep_last_five_releases" {
       count_number = 5
     }
   }
-    # ... and just in case we somehow end up with untagged images, expire them after 1 day
+  # ... and just in case we somehow end up with untagged images, expire them after 1 day
   rule {
     priority = 3
     selection {
