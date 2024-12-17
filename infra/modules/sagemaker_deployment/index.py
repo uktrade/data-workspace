@@ -7,7 +7,7 @@ http = urllib3.PoolManager()
 # Environment variable containing SNS -> webhook URL mapping
 SNS_TO_WEBHOOK_JSON = json.loads(os.environ["SNS_TO_WEBHOOK_JSON"])
 
-def handler(event, context):
+def lambda_handler(event, context):
     for record in event["Records"]:
         sns_message = json.loads(record["Sns"]["Message"])
         topic_arn = record["Sns"]["TopicArn"]  # SNS Topic ARN
@@ -18,7 +18,7 @@ def handler(event, context):
         # Determine the webhook URL for the SNS topic
         webhook_url = SNS_TO_WEBHOOK_JSON.get(topic_arn)
         if not webhook_url:
-            print(f"No webhook URL found for SNS topic: {topic_arn}")
+            print(f"No webhook URL found for SNS topic: {topic_arn} with alert {alert_name} in as shown here with webhook_url of {webhook_url}")
             continue
 
         payload = {
@@ -28,7 +28,7 @@ def handler(event, context):
         # Send the alert to Slack
         response = http.request(
             "POST",
-            webhook_url,
+            f"https://hooks.slack.com/services/{webhook_url}",
             body=json.dumps(payload).encode("utf-8"),
             headers={"Content-Type": "application/json"}
         )
