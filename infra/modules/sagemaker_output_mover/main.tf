@@ -1,7 +1,7 @@
 
 resource "aws_iam_role" "iam_for_lambda_s3_move" {
   name = "iam_for_lambda_s3_move"
-  assume_role_policy =  jsonencode({
+  assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
@@ -10,7 +10,7 @@ resource "aws_iam_role" "iam_for_lambda_s3_move" {
         Principal = {
           Service = "lambda.amazonaws.com"
         }
-      }]})
+  }] })
 }
 
 resource "aws_iam_role_policy" "policy_for_lambda_s3_move" {
@@ -21,7 +21,7 @@ resource "aws_iam_role_policy" "policy_for_lambda_s3_move" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = ["SNS:Receive", "SNS:Subscribe"]
+        Action   = ["SNS:Receive", "SNS:Subscribe"]
         Effect   = "Allow"
         Resource = aws_sns_topic.async-sagemaker-success-topic.arn
       },
@@ -36,7 +36,7 @@ resource "aws_iam_role_policy" "policy_for_lambda_s3_move" {
         Resource = "${var.s3_bucket_notebooks_arn}*"
       },
       {
-        Action   = ["logs:CreateLogGroup","logs:CreateLogStream","logs:PutLogEvents","logs:DescribeLogStreams"]
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
         Effect   = "Allow"
         Resource = "arn:aws:logs:*:*:*"
       }
@@ -51,18 +51,18 @@ data "archive_file" "lambda_payload" {
 }
 
 resource "aws_lambda_function" "lambda_s3_move_output" {
-  filename      = data.archive_file.lambda_payload.output_path
+  filename         = data.archive_file.lambda_payload.output_path
   source_code_hash = data.archive_file.lambda_payload.output_base64sha256
-  function_name = "lambda_s3_move_output"
-  role          = aws_iam_role.iam_for_lambda_s3_move.arn
-  handler       = "s3_move_output.lambda_handler"
-  runtime       = "python3.12"
-  timeout       = 30
-  }
+  function_name    = "lambda_s3_move_output"
+  role             = aws_iam_role.iam_for_lambda_s3_move.arn
+  handler          = "s3_move_output.lambda_handler"
+  runtime          = "python3.12"
+  timeout          = 30
+}
 
 
 resource "aws_sns_topic" "async-sagemaker-success-topic" {
-  name = "async-sagemaker-success-topic"
+  name   = "async-sagemaker-success-topic"
   policy = data.aws_iam_policy_document.sns_publish_and_read_policy.json
 }
 
@@ -73,32 +73,32 @@ resource "aws_sns_topic_subscription" "topic_lambda" {
 }
 
 resource "aws_lambda_permission" "with_sns" {
-    statement_id = "AllowExecutionFromSNS"
-    action = "lambda:InvokeFunction"
-    function_name = aws_lambda_function.lambda_s3_move_output.function_name
-    principal = "sns.amazonaws.com"
-    source_arn = aws_sns_topic.async-sagemaker-success-topic.arn
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_s3_move_output.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.async-sagemaker-success-topic.arn
 }
 
 data "aws_iam_policy_document" "sns_publish_and_read_policy" {
-    statement {
-        sid = "sns_publish_and_read_policy_1"
-        actions = ["SNS:Publish"]
-        effect = "Allow"
-        principals {
-          type = "Service"
-          identifiers = ["sagemaker.amazonaws.com"]
-        }
-        resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:async-sagemaker-success-topic"]
+  statement {
+    sid     = "sns_publish_and_read_policy_1"
+    actions = ["SNS:Publish"]
+    effect  = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["sagemaker.amazonaws.com"]
     }
-    statement {
-        sid = "sns_publish_and_read_policy_2"
-        actions = ["SNS:Receive","SNS:Subscribe"]
-        effect = "Allow"
-        principals {
-            type = "Service"
-            identifiers = ["lambda.amazonaws.com"]
-        }
-        resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:async-sagemaker-success-topic"]
+    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:async-sagemaker-success-topic"]
+  }
+  statement {
+    sid     = "sns_publish_and_read_policy_2"
+    actions = ["SNS:Receive", "SNS:Subscribe"]
+    effect  = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
     }
+    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:async-sagemaker-success-topic"]
+  }
 }

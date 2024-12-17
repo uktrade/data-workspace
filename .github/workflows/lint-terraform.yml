@@ -2,9 +2,9 @@ name: Lint Terraform
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feat/sagemaker-llms" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "feat/sagemaker-llms" ]
 
 jobs:
   test:

@@ -93,7 +93,7 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     ]
     resources = ["*"]
   }
- statement {
+  statement {
     actions = [
       "application-autoscaling:DeleteScalingPolicy",
       "application-autoscaling:DeleteScheduledAction",
@@ -106,7 +106,7 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
       "application-autoscaling:PutScheduledAction",
       "application-autoscaling:RegisterScalableTarget",
     ]
-    resources = ["*",]
+    resources = ["*", ]
   }
 
   statement {
@@ -124,7 +124,7 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
       "ec2:DescribeVpcEndpoints",
       "ec2:DescribeVpcs",
     ]
-    resources = ["*",]
+    resources = ["*", ]
   }
 
   statement {
@@ -141,7 +141,7 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
       "logs:PutResourcePolicy",
       "logs:UpdateLogDelivery",
     ]
-    resources = ["*",]
+    resources = ["*", ]
   }
 }
 
@@ -172,7 +172,7 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
   }
@@ -199,7 +199,7 @@ data "aws_iam_policy_document" "lambda_execution_policy" {
       "logs:PutLogEvents"
     ]
     resources = [
-    "arn:aws:logs:eu-west-2:${var.account_id}:log-group:*"
+      "arn:aws:logs:eu-west-2:${var.account_id}:log-group:*"
     ]
   }
 }
@@ -210,33 +210,33 @@ data "aws_iam_policy_document" "cloudwatch_log_invoke_policy" {
       "lambda:InvokeFunction"
     ]
     resources = [
-     var.lambda_function_arn
+      var.lambda_function_arn
     ]
   }
 }
 
 resource "aws_iam_policy" "lambda_execution_policy" {
-  name = "${var.prefix}-lambda-execution-policy"
+  name   = "${var.prefix}-lambda-execution-policy"
   policy = data.aws_iam_policy_document.lambda_execution_policy.json
 }
 
 resource "aws_iam_policy" "cloudwatch_log_invoke_policy" {
-  name = "${var.prefix}-cloudwatch-log-invoke-policy"
+  name   = "${var.prefix}-cloudwatch-log-invoke-policy"
   policy = data.aws_iam_policy_document.cloudwatch_log_invoke_policy.json
 }
 
 resource "aws_iam_role" "lambda_execution_role" {
-  name = "${var.prefix}-lambda-execution-role"
+  name               = "${var.prefix}-lambda-execution-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "attach_lambda_execution_policy" {
-  role = aws_iam_role.lambda_execution_role.name
+  role       = aws_iam_role.lambda_execution_role.name
   policy_arn = aws_iam_policy.lambda_execution_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "attach_cloudwatch_log_invoke_policy" {
-  role = aws_iam_role.lambda_execution_role.name
+  role       = aws_iam_role.lambda_execution_role.name
   policy_arn = aws_iam_policy.cloudwatch_log_invoke_policy.arn
 }
 

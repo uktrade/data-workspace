@@ -90,8 +90,8 @@ variable "scale_up_cooldown" {
 }
 
 variable "scale_in_to_zero_cooldown" {
-    type        = number
-    description = "Cooldown period for scale down"
+  type        = number
+  description = "Cooldown period for scale down"
 }
 
 
@@ -115,9 +115,9 @@ variable "alarms" {
 }
 
 variable "log_group_name" {
-  type = string
+  type        = string
   description = "log group name, i.e. gpt-neo-125m..."
-  default = ""
+  default     = ""
 }
 
 variable "aws_account_id" {

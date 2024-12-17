@@ -9,18 +9,17 @@ variable "sagemaker_default_bucket_name" {
 }
 
 variable "aws_s3_bucket_notebook" {
-  type = any
+  type        = any
   description = "S3 bucket for notebooks"
 }
 
-
 variable "s3_bucket_arn" {
-  type = string
+  type        = string
   description = "arn of the s3 bucket for log storage"
 }
 
 variable "account_id" {
-  type = string
+  type        = string
   description = "account ID for the AWS account, dyanmic"
 }
 

@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_metric_alarm" "sagemaker_alarm" {
   alarm_name          = var.alarm_name
-  alarm_description = var.alarm_description
+  alarm_description   = var.alarm_description
   metric_name         = var.metric_name
   namespace           = var.namespace
   comparison_operator = var.comparison_operator
@@ -10,10 +10,10 @@ resource "aws_cloudwatch_metric_alarm" "sagemaker_alarm" {
   treat_missing_data  = "missing"
   statistic           = "Average"
   period              = var.period
-  
+
   dimensions = {
     EndpointName = var.endpoint_name
-    VariantName  =  var.variant_name != null ? var.variant_name : ""
+    VariantName  = var.variant_name != null ? var.variant_name : ""
 
   }
 
