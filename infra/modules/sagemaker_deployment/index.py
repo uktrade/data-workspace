@@ -5,7 +5,7 @@ import urllib3
 http = urllib3.PoolManager()
 
 # Environment variable containing SNS -> webhook URL mapping
-SNS_TO_WEBHOOK_MAPPING = json.loads(os.environ["SNS_TO_WEBHOOK_MAPPING"])
+SNS_TO_WEBHOOK_JSON = json.loads(os.environ["SNS_TO_WEBHOOK_JSON"])
 
 def handler(event, context):
     for record in event["Records"]:
@@ -16,7 +16,7 @@ def handler(event, context):
         reason = sns_message.get("NewStateReason", "No reason provided")
 
         # Determine the webhook URL for the SNS topic
-        webhook_url = SNS_TO_WEBHOOK_MAPPING.get(topic_arn)
+        webhook_url = SNS_TO_WEBHOOK_JSON.get(topic_arn)
         if not webhook_url:
             print(f"No webhook URL found for SNS topic: {topic_arn}")
             continue
