@@ -234,10 +234,10 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription" {
 
 # Lambda Function for Slack Alerts
 resource "aws_lambda_function" "slack_alert_function" {
-  filename         = "${path.module}/lambda_function_slack.zip"
-  function_name    = "slack-alert-lambda"
+  filename         = "${path.module}/lambda_function.zip"
+  function_name    = "${var.model_name}-slack-alert-lambda"
   role             = aws_iam_role.slack_lambda_role.arn
-  handler          = "lambda_function.handler"
+  handler          = "index.lambda_handler"
   runtime          = "python3.9"
   timeout          = 30
 
@@ -249,7 +249,7 @@ resource "aws_lambda_function" "slack_alert_function" {
 }
 
 resource "aws_iam_role" "slack_lambda_role" {
-  name = "slack-alert-lambda-role"
+  name = "${var.model_name}-slack-alert-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -266,7 +266,7 @@ resource "aws_iam_role" "slack_lambda_role" {
 }
 
 resource "aws_iam_policy" "slack_lambda_policy" {
-  name = "slack-alert-lambda-policy"
+  name = "${var.model_name}-slack-alert-lambda-policy"
 
   policy = jsonencode({
     Version = "2012-10-17",

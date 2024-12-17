@@ -22,3 +22,7 @@ output "scale_in_to_zero_based_on_backlog_arn" {
 output "sns_topic_arns" {
   value = [for sns in aws_sns_topic.sns_topic : sns.arn]
 }
+
+output "sns_to_webhook_mapping" {
+  value = local.sns_to_webhook_mapping
+}

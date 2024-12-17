@@ -1,6 +1,6 @@
-# ##################################################################################################################
-# # GPT Neo 125M parameter endpoint and associated alarms and policies
-# #################################################################################################################
+# # ##################################################################################################################
+# # # GPT Neo 125M parameter endpoint and associated alarms and policies
+# # #################################################################################################################
 
 # module "gpt_neo_125_deployment" {
 #   source             = "./modules/sagemaker_deployment"
@@ -11,7 +11,7 @@
 #   model_data_url     = "${var.sagemaker_models_folder}/gpt-neo-125m.tar.gz"
 #   environment = {
 #     "HF_MODEL_ID"      = "/opt/ml/model/"
-#     "SM_NUM_GPUS"      = 1
+#     "SM_NUM_GPUS"      = 0
 #     "MAX_INPUT_LENGTH" = 1024
 #     "MAX_TOTAL_TOKENS" = 2048
 #   }
@@ -20,7 +20,7 @@
 #   endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
 #   endpoint_name             = "gpt-neo-125-endpoint"
 #   variant_name              = "gpt-neo-125m-endpoint-example"
-#   instance_type             = "ml.g5.2xlarge"
+#   instance_type             = "ml.t2.medium"
 #   s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
 #   initial_instance_count    = 1
 #   max_capacity              = 2
@@ -44,6 +44,8 @@
 #       period              = 30
 #       statistic           = "Average"
 #       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+#       sns_topic_name =  "backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+#       slack_webhook_url = var.slack_webhook_resource_alerts
 #     },
 #     {
 #       alarm_name          = "low-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -58,7 +60,7 @@
 #       statistic           = "Average"
 #       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
 #       sns_topic_name      = "low-cpu-alert-${module.gpt_neo_125_deployment.endpoint_name}"
-#       slack_channel       = "#cpu-alerts"
+#       slack_webhook_url = var.slack_webhook_cpu_alerts
 #     },
 #     {
 #       alarm_name          = "no-query-in-backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -187,8 +189,7 @@
 #     }
 #   ]
 
-#   slack_lambda_arn = module.slack_alert_lambda.arn
-#   slack_lambda_name = module.slack_alert_lambda.name
+#   slack_lambda_name = "slack-integration-${module.gpt_neo_125_deployment.endpoint_name}"
 # }
 
 
