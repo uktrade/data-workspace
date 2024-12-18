@@ -299,6 +299,7 @@ data "aws_ecr_lifecycle_policy_document" "keep_last_five_releases" {
     priority = 2
     selection {
       tag_status   = "tagged"
+      tag_pattern_list = ["*"]
       count_type   = "imageCountMoreThan"
       count_number = 5
     }
