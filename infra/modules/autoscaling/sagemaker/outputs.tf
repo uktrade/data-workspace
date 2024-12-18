@@ -15,5 +15,5 @@ output "scale_out_cpu_policy_arn" {
 
 output "scale_in_to_zero_based_on_backlog_arn" {
   description = "ARN of the autoscaling policy to scale in to zero for backlog queries when 0 for x minutes"
-  value = aws_appautoscaling_policy.scale_in_to_zero_based_on_backlog.arn
+  value       = aws_appautoscaling_policy.scale_in_to_zero_based_on_backlog.arn
 }

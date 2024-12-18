@@ -180,7 +180,7 @@ variable "airflow_on" {
 variable "airflow_db_instance_class" {}
 variable "airflow_domain" {}
 variable "airflow_dag_processors" {
-  type    = list(object({ name = string, assume_roles = list(string) }))
+  type    = list(object({ name = string, assume_roles = list(string), buckets = list(string) }))
   default = []
 }
 variable "airflow_bucket_infix" {}
@@ -266,10 +266,10 @@ variable "s3_prefixes_for_external_role_copy" {
 
 variable "sagemaker_example_inference_image" { default = "" }
 
-variable "sagemaker_models_folder" {default = ""}
-variable "hugging_face_model_image" {default = ""}
-variable "sagemaker_default_bucket" {default = ""}
-variable "sagemaker_budget_emails" {default = [""]}
+variable "sagemaker_models_folder" { default = "" }
+variable "hugging_face_model_image" { default = "" }
+variable "sagemaker_default_bucket" { default = "" }
+variable "sagemaker_budget_emails" { default = [""] }
 
 
 locals {
