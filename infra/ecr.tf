@@ -298,10 +298,10 @@ data "aws_ecr_lifecycle_policy_document" "keep_last_five_releases" {
   rule {
     priority = 2
     selection {
-      tag_status   = "tagged"
+      tag_status       = "tagged"
       tag_pattern_list = ["*"]
-      count_type   = "imageCountMoreThan"
-      count_number = 5
+      count_type       = "imageCountMoreThan"
+      count_number     = 5
     }
   }
   # ... and just in case we somehow end up with untagged images, expire them after 1 day
