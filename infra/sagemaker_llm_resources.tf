@@ -227,7 +227,7 @@ module "llama_3_2_1b_deployment" {
   scale_up_cooldown         = 30
   scale_in_to_zero_cooldown = 120
   log_group_name            = "/aws/sagemaker/Endpoints/${module.llama_3_2_1b_deployment.endpoint_name}"
-  aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
+  aws_account_id            = data.aws_caller_identity.aws_caller_identity.account_id
 
   alarms = [
     {
@@ -242,8 +242,8 @@ module "llama_3_2_1b_deployment" {
       period              = 30
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
-      sns_topic_name =  "backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
-      slack_webhook_url = var.slack_webhook_resource_alerts
+      sns_topic_name      = "backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "low-cpu-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -258,7 +258,7 @@ module "llama_3_2_1b_deployment" {
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
       sns_topic_name      = "low-cpu-alert-${module.llama_3_2_1b_deployment.endpoint_name}"
-      slack_webhook_url       = var.slack_webhook_cpu_alerts
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "no-query-in-backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"

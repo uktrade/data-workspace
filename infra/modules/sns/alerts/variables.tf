@@ -1,10 +1,10 @@
 variable "create" {
-  default = true
+  default     = true
   description = "bool Whether to create the SNS topic"
 }
 
 variable "sns_topic_name" {
-  type        = string
+  type = string
 }
 
 variable "tags" {

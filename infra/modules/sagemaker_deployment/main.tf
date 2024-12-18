@@ -212,8 +212,8 @@ resource "aws_sns_topic" "sns_topic" {
         Principal = {
           Service = "cloudwatch.amazonaws.com"
         },
-        Action    = "sns:Publish",
-        Resource  = "arn:aws:sns:eu-west-2:${var.aws_account_id}:${local.alarms_with_sns[count.index].sns_topic_name}"
+        Action   = "sns:Publish",
+        Resource = "arn:aws:sns:eu-west-2:${var.aws_account_id}:${local.alarms_with_sns[count.index].sns_topic_name}"
       }
     ]
   })
@@ -234,12 +234,12 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription" {
 
 # Lambda Function for Slack Alerts
 resource "aws_lambda_function" "slack_alert_function" {
-  filename         = "${path.module}/lambda_function.zip"
-  function_name    = "${var.model_name}-slack-alert-lambda"
-  role             = aws_iam_role.slack_lambda_role.arn
-  handler          = "index.lambda_handler"
-  runtime          = "python3.9"
-  timeout          = 30
+  filename      = "${path.module}/lambda_function.zip"
+  function_name = "${var.model_name}-slack-alert-lambda"
+  role          = aws_iam_role.slack_lambda_role.arn
+  handler       = "index.lambda_handler"
+  runtime       = "python3.9"
+  timeout       = 30
 
   environment {
     variables = {
@@ -281,8 +281,8 @@ resource "aws_iam_policy" "slack_lambda_policy" {
         Resource = "arn:aws:logs:*:*:*"
       },
       {
-        Effect = "Allow",
-        Action = "sns:Publish",
+        Effect   = "Allow",
+        Action   = "sns:Publish",
         Resource = "*"
       }
     ]
