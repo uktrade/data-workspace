@@ -833,12 +833,165 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ecr" {
   }
 }
 
+#############################
+### New VPC for SageMaker ###
+#############################
+
+resource "aws_vpc" "sagemaker" {
+  cidr_block = var.vpc_sagemaker_cidr
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_subnet" "sagemaker_private_without_egress" {
+  count      = length(var.aws_availability_zones)
+  vpc_id     = aws_vpc.sagemaker.id
+  cidr_block = cidrsubnet(aws_vpc.sagemaker.cidr_block, var.vpc_sagemaker_subnets_num_bits, count.index)
+
+  availability_zone = var.aws_availability_zones[count.index]
+
+  tags = {
+    Name = "${var.prefix}-sagemaker-private-without-egress-${var.aws_availability_zones_short[count.index]}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# To enable use of VPC endpoints in main
+resource "aws_vpc_peering_connection" "main_to_sagemaker" {
+  peer_vpc_id = aws_vpc.sagemaker.id
+  vpc_id      = aws_vpc.main.id
+  auto_accept = true
+
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  tags = {
+    Name = "${var.prefix}-main-to-sagemaker"
+  }
+}
+
+# To enable use of VPC endpoints in datasets
+resource "aws_vpc_peering_connection" "datasets_to_sagemaker" {
+  peer_vpc_id = aws_vpc.datasets.id
+  vpc_id      = aws_vpc.sagemaker.id
+  auto_accept = true
+
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  tags = {
+    Name = "${var.prefix}-datasets-to-sagemaker"
+  }
+}
+
+# To enable connection between tools in the notebooks VPC and Sagemaker
+resource "aws_vpc_peering_connection" "sagemaker_to_notebooks" {
+  peer_vpc_id = aws_vpc.sagemaker.id
+  vpc_id      = aws_vpc.notebooks.id
+  auto_accept = true
+
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  tags = {
+    Name = "${var.prefix}-sagemaker-to-notebooks"
+  }
+}
+
+resource "aws_route_table" "sagemaker" {
+  vpc_id = aws_vpc.sagemaker.id
+  tags = {
+    Name = "${var.prefix}-sagemaker"
+  }
+}
+
+resource "aws_main_route_table_association" "sagemaker" {
+  vpc_id         = aws_vpc.sagemaker.id
+  route_table_id = aws_route_table.sagemaker.id
+}
+
+resource "aws_route" "main_private_with_egress_to_sagemaker" {
+  count = length(var.aws_availability_zones)
+
+  route_table_id            = aws_route_table.private_with_egress.id
+  destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
+  vpc_peering_connection_id = aws_vpc_peering_connection.main_to_sagemaker.id
+}
+
+resource "aws_route" "pcx_sagemaker_to_notebooks" {
+  route_table_id            = aws_route_table.sagemaker.id
+  destination_cidr_block    = aws_vpc.notebooks.cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.sagemaker_to_notebooks.id
+}
+
+resource "aws_route" "pcx_datasets_to_notebooks" {
+  route_table_id            = aws_route_table.datasets.id
+  destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
+  vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_sagemaker.id
+}
+
+# Cloudwatch logging for SageMaker VPC
+resource "aws_flow_log" "sagemaker" {
+  log_destination = aws_cloudwatch_log_group.vpc_sagemaker_flow_log.arn
+  iam_role_arn    = aws_iam_role.vpc_sagemaker_flow_log.arn
+  vpc_id          = aws_vpc.sagemaker.id
+  traffic_type    = "ALL"
+}
+
+resource "aws_cloudwatch_log_group" "vpc_sagemaker_flow_log" {
+  name              = "${var.prefix}-vpc-sagemaker-flow-log"
+  retention_in_days = "3653"
+}
+
+resource "aws_iam_role" "vpc_sagemaker_flow_log" {
+  name               = "${var.prefix}-vpc-sagemaker-flow-log"
+  assume_role_policy = data.aws_iam_policy_document.vpc_sagemaker_flow_log_vpc_flow_logs_assume_role.json
+}
+
+data "aws_iam_policy_document" "vpc_sagemaker_flow_log_vpc_flow_logs_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["vpc-flow-logs.amazonaws.com"]
+    }
+  }
+}
+
+# Move SageMaker endpoints into VPC
 resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
   # source                                = "./modules/sagemaker_init/security"
-  vpc_id             = aws_vpc.main.id
+  vpc_id             = aws_vpc.sagemaker.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_with_egress.*.id
+  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
   security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -853,7 +1006,7 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint" {
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_with_egress.*.id
+  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
   security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -882,12 +1035,11 @@ data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
   }
 }
 
-
 resource "aws_vpc_endpoint" "sns_endpoint" {
-  vpc_id             = aws_vpc.main.id
+  vpc_id             = aws_vpc.sagemaker.id
   service_name       = "com.amazonaws.eu-west-2.sns"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_with_egress.*.id
+  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
   security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix

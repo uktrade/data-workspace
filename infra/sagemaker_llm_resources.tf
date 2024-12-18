@@ -16,7 +16,7 @@ module "gpt_neo_125_deployment" {
     "MAX_TOTAL_TOKENS" = 2048
   }
   security_group_ids        = [aws_security_group.notebooks.id]
-  subnets                   = aws_subnet.private_without_egress.*.id
+  subnets                   = aws_subnet.sagemaker_private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
   endpoint_name             = "gpt-neo-125-endpoint"
   variant_name              = "gpt-neo-125m-endpoint-example"
@@ -205,7 +205,7 @@ module "llama_3_2_1b_deployment" {
     "MAX_TOTAL_TOKENS" = 2048
   }
   security_group_ids        = [aws_security_group.notebooks.id]
-  subnets                   = aws_subnet.private_without_egress.*.id
+  subnets                   = aws_subnet.sagemaker_private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-2-1B"
   endpoint_name             = "llama-3-2-1b-endpoint"
   variant_name              = "llama-3-2-1B-endpoint-example"
