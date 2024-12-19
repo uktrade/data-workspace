@@ -58,7 +58,8 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     ]
     resources = [
       "arn:aws:s3:::*sagemaker*",
-      "${var.aws_s3_bucket_notebook.arn}/*"
+      "${var.aws_s3_bucket_notebook.arn}/*",
+      "arn:aws:s3:::jumpstart-cache-prod-eu-west-2*"
     ]
   }
 
@@ -239,4 +240,3 @@ resource "aws_iam_role_policy_attachment" "attach_cloudwatch_log_invoke_policy" 
   role       = aws_iam_role.lambda_execution_role.name
   policy_arn = aws_iam_policy.cloudwatch_log_invoke_policy.arn
 }
-
