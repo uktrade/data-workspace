@@ -161,12 +161,3 @@ module "budgets" {
   sns_topic_arn       = module.sns.sns_topic_arn
   notification_email  = var.sagemaker_budget_emails
 }
-
-
-module "sagemaker_output_mover" {
-  source                  = "./modules/sagemaker_output_mover"
-  account_id              = data.aws_caller_identity.aws_caller_identity.account_id
-  aws_region              = data.aws_region.aws_region.name
-  s3_bucket_notebooks_arn = aws_s3_bucket.notebooks.arn
-}
-
