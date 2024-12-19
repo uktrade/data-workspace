@@ -143,7 +143,7 @@ output "all_log_group_arns" {
 
 
 module "lambda_logs" {
-  source                = "./modules/lambda"
+  source                = "./modules/lambda/cloudwatch"
   s3_bucket_name        = "sagemaker-logs-centralized"
   log_delivery_role_arn = module.iam.lambda_execution_role_arn
   sagemaker_log_group_arns = [

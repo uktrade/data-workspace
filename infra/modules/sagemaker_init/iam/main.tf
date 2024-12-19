@@ -83,7 +83,7 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
   }
   statement {
     actions = [
-      "SNS:Publish",
+      "sns:Publish",
     ]
     resources = ["arn:aws:sns:eu-west-2:${var.account_id}:async-sagemaker-success-topic"]
   }
