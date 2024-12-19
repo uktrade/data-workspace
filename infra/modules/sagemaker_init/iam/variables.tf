@@ -26,4 +26,3 @@ variable "account_id" {
 variable "lambda_function_arn" {
   type = string
 }
-

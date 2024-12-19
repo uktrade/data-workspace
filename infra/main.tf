@@ -268,8 +268,6 @@ variable "sagemaker_models_folder" { default = "" }
 variable "hugging_face_model_image" { default = "" }
 variable "sagemaker_default_bucket" { default = "" }
 variable "sagemaker_budget_emails" { default = [""] }
-variable "slack_webhook_resource_alerts" { default = [""] }
-variable "slack_webhook_cpu_alerts" { default = [""] }
 
 
 locals {
