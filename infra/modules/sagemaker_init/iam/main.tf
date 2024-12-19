@@ -108,7 +108,7 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
       "cloudwatch:GetMetricStatistics",
       "cloudwatch:ListMetrics",
       "cloudwatch:PutMetricAlarm",
-      "cloudwatch:PutMetricData"    ]
+    "cloudwatch:PutMetricData"]
     resources = ["*"]
   }
   statement {
