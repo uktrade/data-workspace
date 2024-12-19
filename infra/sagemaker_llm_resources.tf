@@ -41,7 +41,6 @@ module "gpt_neo_125_deployment" {
   scale_up_cooldown         = 60
   scale_in_to_zero_cooldown = 120
   log_group_name            = "/aws/sagemaker/Endpoints/${module.gpt_neo_125_deployment.endpoint_name}"
-  aws_account_id            = data.aws_caller_identity.aws_caller_identity.account_id
 
   alarms = [
     {
@@ -200,18 +199,14 @@ module "gpt_neo_125_deployment" {
       alarm_actions = [module.sns.unauthorised_access_sns_topic_arn]
     }
   ]
-
-  slack_lambda_name = "slack-integration-${module.gpt_neo_125_deployment.endpoint_name}"
 }
-
 
 
 ###############
 # Llama 3.2 1B
 ###############
-
 module "llama_3_2_1b_deployment" {
-  source                 = "./modules/sagemaker_deployment"
+  source                = "./modules/sagemaker_deployment"
   model_name             = "Llama-3-2-1B"
   sns_success_topic_arn  = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn     = module.iam.inference_role
@@ -240,7 +235,6 @@ module "llama_3_2_1b_deployment" {
   scale_up_cooldown         = 30
   scale_in_to_zero_cooldown = 120
   log_group_name            = "/aws/sagemaker/Endpoints/${module.llama_3_2_1b_deployment.endpoint_name}"
-  aws_account_id            = data.aws_caller_identity.aws_caller_identity.account_id
 
   alarms = [
     {
@@ -255,8 +249,6 @@ module "llama_3_2_1b_deployment" {
       period              = 30
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "low-cpu-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -270,8 +262,6 @@ module "llama_3_2_1b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
-      sns_topic_name      = "low-cpu-alert-${module.llama_3_2_1b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "no-query-in-backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -399,6 +389,4 @@ module "llama_3_2_1b_deployment" {
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
     }
   ]
-
-  slack_lambda_name = "slack-integration-${module.llama_3_2_1b_deployment.endpoint_name}"
 }
