@@ -1,3 +1,10 @@
+locals {
+  all_endpoint_names = [
+    module.gpt_neo_125_deployment.endpoint_name,
+    module.llama_3_2_1b_deployment.endpoint_name
+  ]
+}
+
 ################
 # GPT Neo 125m
 ###############
@@ -379,12 +386,5 @@ module "llama_3_2_1b_deployment" {
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
     }
-  ]
-}
-
-locals {
-  all_endpoint_names = [
-    module.gpt_neo_125_deployment.endpoint_name,
-    module.llama_3_2_1b_deployment.endpoint_name
   ]
 }
