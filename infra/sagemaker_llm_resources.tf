@@ -420,6 +420,7 @@ module "mistral_7b_deployment" {
   scale_up_cooldown         = 30
   scale_in_to_zero_cooldown = 120
   log_group_name            = "/aws/sagemaker/Endpoints/${module.mistral_7b_deployment.endpoint_name}"
+  aws_account_id            = data.aws_caller_identity.aws_caller_identity.account_id
 
   alarms = [
     {
@@ -434,6 +435,8 @@ module "mistral_7b_deployment" {
       period              = 30
       statistic           = "Average"
       alarm_actions       = [module.mistral_7b_deployment.scale_up_policy_arn]
+      sns_topic_name      = "backlog-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
       alarm_name          = "low-cpu-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -447,6 +450,8 @@ module "mistral_7b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.mistral_7b_deployment.scale_in_to_zero_policy_arn]
+      sns_topic_name      = "low-cpu-alert-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "no-query-in-backlog-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -460,6 +465,8 @@ module "mistral_7b_deployment" {
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.mistral_7b_deployment.scale_in_to_zero_based_on_backlog_arn]
+      sns_topic_name      = "no-query-in-backlog-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
       alarm_name          = "high-cpu-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -473,6 +480,8 @@ module "mistral_7b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.mistral_7b_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-cpu-alert-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "high-memory-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -486,6 +495,8 @@ module "mistral_7b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.mistral_7b_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-memory-alert-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "high-GPU-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -499,6 +510,8 @@ module "mistral_7b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.mistral_7b_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-gpu-alert-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -511,6 +524,8 @@ module "mistral_7b_deployment" {
       datapoints_to_alarm = 2
       period              = 30
       statistic           = "Average"
+      sns_topic_name      = "network-spike-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "disk-util-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -523,6 +538,8 @@ module "mistral_7b_deployment" {
       datapoints_to_alarm = 2
       period              = 30
       statistic           = "Average"
+      sns_topic_name      = "dik-util-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "error-rate-high-${module.mistral_7b_deployment.endpoint_name}"
@@ -535,6 +552,8 @@ module "mistral_7b_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
+      sns_topic_name      = "High-error-rate-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "unathorized-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -548,6 +567,9 @@ module "mistral_7b_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
+      sns_topic_name      = "unauthorised-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
+  slack_lambda_name = "slack-integration-${module.mistral_7b_deployment.endpoint_name}"
 }
