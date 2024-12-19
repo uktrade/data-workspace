@@ -17,3 +17,4 @@ variable "endpoint_names" {
 variable "lambda_function_arn" {
   type = string
 }
+
