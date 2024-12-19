@@ -275,6 +275,7 @@ variable "slack_webhook_security_alerts" { default = [""] }
 variable "slack_webhook_backlog_alerts" { default = [""] }
 
 
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"
