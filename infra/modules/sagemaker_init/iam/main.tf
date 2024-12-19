@@ -70,16 +70,16 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     ]
   }
   statement {
-      actions = [
-         "s3:ListBucket",
-         "s3:GetBucketLocation",
-      ]
+    actions = [
+      "s3:ListBucket",
+      "s3:GetBucketLocation",
+    ]
 
-      resources = [
-        "arn:aws:s3:::jumpstart-cache-prod-eu-west-2",
-        "${var.aws_s3_bucket_notebook.arn}",
-        "arn:aws:s3:::*sagemaker*"
-      ]
+    resources = [
+      "arn:aws:s3:::jumpstart-cache-prod-eu-west-2",
+      "${var.aws_s3_bucket_notebook.arn}",
+      "arn:aws:s3:::*sagemaker*"
+    ]
   }
   statement {
     actions = [

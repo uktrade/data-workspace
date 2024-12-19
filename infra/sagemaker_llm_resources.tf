@@ -3,23 +3,23 @@
 ###############
 
 module "gpt_neo_125_deployment" {
-  source                = "./modules/sagemaker_deployment"
-  model_name            = "gpt-neo-125m"
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
-  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
+  source                 = "./modules/sagemaker_deployment"
+  model_name             = "gpt-neo-125m"
+  sns_success_topic_arn  = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn     = module.iam.inference_role
+  container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
   uncompressed_model_uri = "s3://jumpstart-cache-prod-eu-west-2/huggingface-textgeneration1/huggingface-textgeneration1-gpt-neo-125m/artifacts/inference-prepack/v2.0.0/"
   environment_variables = {
-            "ENDPOINT_SERVER_TIMEOUT": "3600",
-            "HF_MODEL_ID": "/opt/ml/model",
-            "MAX_INPUT_LENGTH": "1024",
-            "MAX_TOTAL_TOKENS": "2048",
-            "MODEL_CACHE_ROOT": "/opt/ml/model",
-            "SAGEMAKER_ENV": "1",
-            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-            "SAGEMAKER_PROGRAM": "inference.py",
-            "SM_NUM_GPUS": "1"
-                }
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MAX_INPUT_LENGTH" : "1024",
+    "MAX_TOTAL_TOKENS" : "2048",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py",
+    "SM_NUM_GPUS" : "1"
+  }
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
@@ -197,21 +197,21 @@ module "gpt_neo_125_deployment" {
 ###############
 
 module "llama_3_2_1b_deployment" {
-  source                = "./modules/sagemaker_deployment"
-  model_name            = "Llama-3-2-1B"
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
-  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
+  source                 = "./modules/sagemaker_deployment"
+  model_name             = "Llama-3-2-1B"
+  sns_success_topic_arn  = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn     = module.iam.inference_role
+  container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
   uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-1b/artifacts/inference-prepack/v1.0.0/"
   environment_variables = {
-            "ENDPOINT_SERVER_TIMEOUT": "3600",
-            "HF_MODEL_ID": "/opt/ml/model",
-            "MODEL_CACHE_ROOT": "/opt/ml/model",
-            "OPTION_ENABLE_CHUNKED_PREFILL": "true",
-            "SAGEMAKER_ENV": "1",
-            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-            "SAGEMAKER_PROGRAM": "inference.py"
-        }
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "OPTION_ENABLE_CHUNKED_PREFILL" : "true",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
+  }
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-2-1B"

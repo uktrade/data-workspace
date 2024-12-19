@@ -4,10 +4,10 @@ resource "aws_sagemaker_model" "sagemaker_model" {
   execution_role_arn = var.execution_role_arn
 
   primary_container {
-    image          = var.container_image
-    environment    = var.environment_variables
+    image       = var.container_image
+    environment = var.environment_variables
 
-  model_data_source {
+    model_data_source {
       s3_data_source {
         s3_uri           = var.uncompressed_model_uri
         s3_data_type     = "S3Prefix"
@@ -16,7 +16,7 @@ resource "aws_sagemaker_model" "sagemaker_model" {
           accept_eula = true
         }
       }
-  }
+    }
   }
 
   vpc_config {

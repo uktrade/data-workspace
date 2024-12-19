@@ -554,7 +554,7 @@ data "aws_iam_policy_document" "datasets_s3_endpoint" {
       }
 
       actions = [
-         "s3:ListBucket",
+        "s3:ListBucket",
       ]
 
       resources = [
