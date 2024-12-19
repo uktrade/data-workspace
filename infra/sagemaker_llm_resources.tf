@@ -525,14 +525,14 @@ module "gemma_2_27b_deployment" {
   container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.4.0-tgi2.3.1-gpu-py311-cu124-ubuntu22.04"
   uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-gemma-2-27b/artifacts/inference-prepack/v1.0.0/"
   environment_variables = {
-            "ENDPOINT_SERVER_TIMEOUT": "3600",
-            "HF_MODEL_ID": "/opt/ml/model",
-            "MAX_BATCH_PREFILL_TOKENS": "8191",
-            "MAX_INPUT_LENGTH": "8191",
-            "MAX_TOTAL_TOKENS": "8192",
-            "MODEL_CACHE_ROOT": "/opt/ml/model",
-            "SAGEMAKER_PROGRAM": "inference.py",
-            "SM_NUM_GPUS": "8"
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MAX_BATCH_PREFILL_TOKENS" : "8191",
+    "MAX_INPUT_LENGTH" : "8191",
+    "MAX_TOTAL_TOKENS" : "8192",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "SAGEMAKER_PROGRAM" : "inference.py",
+    "SM_NUM_GPUS" : "8"
   }
   instance_type             = "ml.g5.48xlarge"
   security_group_ids        = [aws_security_group.notebooks.id]
@@ -693,15 +693,15 @@ module "llama_3_70b_deployment" {
   container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.28.0-lmi10.0.0-cu124"
   uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-70b/artifacts/inference-prepack/v1.1.0/"
   environment_variables = {
-            "ENDPOINT_SERVER_TIMEOUT": "3600",
-            "HF_MODEL_ID": "/opt/ml/model",
-            "MODEL_CACHE_ROOT": "/opt/ml/model",
-            "OPTION_ENFORCE_EAGER": "true",
-            "OPTION_GPU_MEMORY_UTILIZATION": "0.85",
-            "OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
-            "SAGEMAKER_ENV": "1",
-            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-            "SAGEMAKER_PROGRAM": "inference.py"
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "OPTION_ENFORCE_EAGER" : "true",
+    "OPTION_GPU_MEMORY_UTILIZATION" : "0.85",
+    "OPTION_SPECULATIVE_DRAFT_MODEL" : "/opt/ml/additional-model-data-sources/draft_model",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
   }
   instance_type             = "ml.p4d.24xlarge"
   security_group_ids        = [aws_security_group.notebooks.id]
