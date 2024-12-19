@@ -18,12 +18,12 @@ variable "container_image" {
   description = "Container image for the model"
 }
 
-variable "model_data_url" {
+variable "uncompressed_model_uri" {
   type        = string
   description = "S3 URL where the model data is located"
 }
 
-variable "environment" {
+variable "environment_variables" {
   type        = map(string)
   description = "Environment variables for the container"
 }

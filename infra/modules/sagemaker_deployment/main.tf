@@ -4,15 +4,26 @@ resource "aws_sagemaker_model" "sagemaker_model" {
   execution_role_arn = var.execution_role_arn
 
   primary_container {
-    image          = var.container_image
-    model_data_url = var.model_data_url
-    environment    = var.environment
+    image       = var.container_image
+    environment = var.environment_variables
+
+    model_data_source {
+      s3_data_source {
+        s3_uri           = var.uncompressed_model_uri
+        s3_data_type     = "S3Prefix"
+        compression_type = "None"
+        model_access_config {
+          accept_eula = true
+        }
+      }
+    }
   }
 
   vpc_config {
     security_group_ids = var.security_group_ids
     subnets            = var.subnets
   }
+
 }
 
 # Endpoint Configuration
@@ -51,6 +62,7 @@ resource "aws_appautoscaling_target" "autoscaling_target" {
   resource_id        = "endpoint/${aws_sagemaker_endpoint.sagemaker_endpoint.name}/variant/${var.variant_name}"
   scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
   service_namespace  = "sagemaker"
+  depends_on         = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sagemaker_endpoint_configuration.endpoint_config]
 }
 
 # Autoscaling Policy for Scaling Up
@@ -135,7 +147,7 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_based_on_backlog" {
   depends_on = [aws_appautoscaling_target.autoscaling_target]
 }
 
-resource "aws_cloudwatch_log_metric_filter" "unatuhorized_operations" {
+resource "aws_cloudwatch_log_metric_filter" "unauthorized_operations" {
   name           = "unauthorized-operations-filter"
   log_group_name = var.log_group_name
   pattern        = "{ $.errorCode = \"UnauthorizedOperation\" || $.errorCode = \"AccessDenied\" }"
