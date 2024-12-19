@@ -270,6 +270,9 @@ variable "sagemaker_default_bucket" { default = "" }
 variable "sagemaker_budget_emails" { default = [""] }
 variable "slack_webhook_resource_alerts" { default = [""] }
 variable "slack_webhook_cpu_alerts" { default = [""] }
+variable "slack_webhook_gpu_alerts" { default = [""] }
+variable "slack_webhook_security_alerts" { default = [""] }
+variable "slack_webhook_backlog_alerts" { default = [""] }
 
 
 locals {
