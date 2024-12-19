@@ -241,11 +241,11 @@ data "archive_file" "lambda_payload" {
 resource "aws_lambda_function" "slack_alert_function" {
   filename         = data.archive_file.lambda_payload.output_path
   source_code_hash = data.archive_file.lambda_payload.output_base64sha256
-  function_name = "${var.model_name}-slack-alert-lambda"
-  role          = aws_iam_role.slack_lambda_role.arn
-  handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.12"
-  timeout       = 30
+  function_name    = "${var.model_name}-slack-alert-lambda"
+  role             = aws_iam_role.slack_lambda_role.arn
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.12"
+  timeout          = 30
 
   environment {
     variables = {
