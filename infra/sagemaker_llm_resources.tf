@@ -55,7 +55,7 @@ module "gpt_neo_125_deployment" {
       period              = 30
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
-      sns_topic_name =  "backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      sns_topic_name      = "backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
     },
     {
       alarm_name          = "low-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -194,7 +194,7 @@ module "gpt_neo_125_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
-      alarm_actions = [module.sns.unauthorised_access_sns_topic_arn]
+      alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
     }
   ]
 }
@@ -204,7 +204,7 @@ module "gpt_neo_125_deployment" {
 # Llama 3.2 1B
 ###############
 module "llama_3_2_1b_deployment" {
-  source                = "./modules/sagemaker_deployment"
+  source                 = "./modules/sagemaker_deployment"
   model_name             = "llama-3-2-1b"
   sns_success_topic_arn  = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn     = module.iam.inference_role
