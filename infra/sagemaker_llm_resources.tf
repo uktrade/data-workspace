@@ -205,7 +205,7 @@ module "gpt_neo_125_deployment" {
 ###############
 module "llama_3_2_1b_deployment" {
   source                = "./modules/sagemaker_deployment"
-  model_name             = "Llama-3-2-1B"
+  model_name             = "llama-3-2-1b"
   sns_success_topic_arn  = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn     = module.iam.inference_role
   container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
@@ -223,7 +223,7 @@ module "llama_3_2_1b_deployment" {
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-2-1B"
   endpoint_name             = "llama-3-2-1b-endpoint"
-  variant_name              = "llama-3-2-1B-endpoint-dev"
+  variant_name              = "llama-3-2-1b-endpoint-dev"
   instance_type             = "ml.g6.xlarge"
   initial_instance_count    = 1
   s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
