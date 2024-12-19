@@ -56,7 +56,6 @@ module "gpt_neo_125_deployment" {
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
       sns_topic_name =  "backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
-      slack_webhook_url = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "low-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -71,7 +70,6 @@ module "gpt_neo_125_deployment" {
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
       sns_topic_name      = "low-cpu-alert-${module.gpt_neo_125_deployment.endpoint_name}"
-      slack_webhook_url = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "no-query-in-backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
