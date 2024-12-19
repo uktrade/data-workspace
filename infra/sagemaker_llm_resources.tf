@@ -1,6 +1,12 @@
-##################################################################################################################
-# GPT Neo 125M parameter endpoint and associated alarms and policies
-#################################################################################################################
+locals {
+  all_endpoint_names = [
+    module.gpt_neo_125_deployment.endpoint_name,
+    module.llama_3_2_1b_deployment.endpoint_name
+  ]
+}
+# # ##################################################################################################################
+# # # GPT Neo 125M parameter endpoint and associated alarms and policies
+# # #################################################################################################################
 
 module "gpt_neo_125_deployment" {
   source                = "./modules/sagemaker_deployment"
@@ -11,7 +17,7 @@ module "gpt_neo_125_deployment" {
   model_data_url        = "${var.sagemaker_models_folder}/gpt-neo-125m.tar.gz"
   environment = {
     "HF_MODEL_ID"      = "/opt/ml/model/"
-    "SM_NUM_GPUS"      = 1
+    "SM_NUM_GPUS"      = 0
     "MAX_INPUT_LENGTH" = 1024
     "MAX_TOTAL_TOKENS" = 2048
   }
@@ -20,7 +26,7 @@ module "gpt_neo_125_deployment" {
   endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
   endpoint_name             = "gpt-neo-125-endpoint"
   variant_name              = "gpt-neo-125m-endpoint-example"
-  instance_type             = "ml.g5.2xlarge"
+  instance_type             = "ml.t2.medium"
   s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   initial_instance_count    = 1
   max_capacity              = 2
@@ -29,6 +35,7 @@ module "gpt_neo_125_deployment" {
   scale_up_cooldown         = 60
   scale_in_to_zero_cooldown = 120
   log_group_name            = "/aws/sagemaker/Endpoints/${module.gpt_neo_125_deployment.endpoint_name}"
+  aws_account_id            = data.aws_caller_identity.aws_caller_identity.account_id
 
   alarms = [
     {
@@ -43,6 +50,8 @@ module "gpt_neo_125_deployment" {
       period              = 30
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+      sns_topic_name      = "backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
       alarm_name          = "low-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -56,6 +65,8 @@ module "gpt_neo_125_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
+      sns_topic_name      = "low-cpu-alert-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "no-query-in-backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -69,6 +80,8 @@ module "gpt_neo_125_deployment" {
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_based_on_backlog_arn]
+      sns_topic_name      = "no-query-backlog-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
       alarm_name          = "high-cpu-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -82,6 +95,8 @@ module "gpt_neo_125_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-cpu-alert-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "high-memory-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -95,6 +110,8 @@ module "gpt_neo_125_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-memory-alert-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "high-GPU-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -108,6 +125,8 @@ module "gpt_neo_125_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-gpu-alert-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -120,6 +139,8 @@ module "gpt_neo_125_deployment" {
       datapoints_to_alarm = 2
       period              = 30
       statistic           = "Average"
+      sns_topic_name      = "network-spike-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "disk-util-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -132,6 +153,8 @@ module "gpt_neo_125_deployment" {
       datapoints_to_alarm = 2
       period              = 30
       statistic           = "Average"
+      sns_topic_name      = "disk-util-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     # {
     #   alarm_name          = "latency-p95-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -168,6 +191,8 @@ module "gpt_neo_125_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
+      sns_topic_name      = "error-rate-high-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "unathorized-operations-alarm-${module.gpt_neo_125_deployment.endpoint_name}"
@@ -181,9 +206,12 @@ module "gpt_neo_125_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
+      sns_topic_name      = "unauthorised-operations-${module.gpt_neo_125_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
 
+  slack_lambda_name = "slack-integration-${module.gpt_neo_125_deployment.endpoint_name}"
 }
 
 
@@ -200,7 +228,7 @@ module "llama_3_2_1b_deployment" {
   model_data_url        = "${var.sagemaker_models_folder}/Llama-3.2-1B.tar.gz"
   environment = {
     "HF_MODEL_ID"      = "/opt/ml/model/"
-    "SM_NUM_GPUS"      = 1
+    "SM_NUM_GPUS"      = 0
     "MAX_INPUT_LENGTH" = 1024
     "MAX_TOTAL_TOKENS" = 2048
   }
@@ -218,6 +246,7 @@ module "llama_3_2_1b_deployment" {
   scale_up_cooldown         = 30
   scale_in_to_zero_cooldown = 120
   log_group_name            = "/aws/sagemaker/Endpoints/${module.llama_3_2_1b_deployment.endpoint_name}"
+  aws_account_id            = data.aws_caller_identity.aws_caller_identity.account_id
 
   alarms = [
     {
@@ -232,6 +261,8 @@ module "llama_3_2_1b_deployment" {
       period              = 30
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
+      sns_topic_name      = "backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
       alarm_name          = "low-cpu-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -245,6 +276,8 @@ module "llama_3_2_1b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
+      sns_topic_name      = "low-cpu-alert-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "no-query-in-backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -258,6 +291,8 @@ module "llama_3_2_1b_deployment" {
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_based_on_backlog_arn]
+      sns_topic_name      = "no-query-in-backlog-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
       alarm_name          = "high-cpu-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -271,6 +306,8 @@ module "llama_3_2_1b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-cpu-alert-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
     },
     {
       alarm_name          = "high-memory-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -284,6 +321,8 @@ module "llama_3_2_1b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-memory-alert-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "high-GPU-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -297,6 +336,8 @@ module "llama_3_2_1b_deployment" {
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_up_policy_arn]
+      sns_topic_name      = "high-gpu-alert-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -309,6 +350,8 @@ module "llama_3_2_1b_deployment" {
       datapoints_to_alarm = 2
       period              = 30
       statistic           = "Average"
+      sns_topic_name      = "network-spike-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "disk-util-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -321,6 +364,8 @@ module "llama_3_2_1b_deployment" {
       datapoints_to_alarm = 2
       period              = 30
       statistic           = "Average"
+      sns_topic_name      = "dik-util-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     # {
     #   alarm_name          = "latency-p95-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -357,6 +402,8 @@ module "llama_3_2_1b_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
+      sns_topic_name      = "High-error-rate-operations-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
       alarm_name          = "unathorized-operations-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
@@ -370,13 +417,10 @@ module "llama_3_2_1b_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
+      sns_topic_name      = "unauthorised-operations-alarm-${module.llama_3_2_1b_deployment.endpoint_name}"
+      slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
-}
 
-locals {
-  all_endpoint_names = [
-    module.gpt_neo_125_deployment.endpoint_name,
-    module.llama_3_2_1b_deployment.endpoint_name
-  ]
+  slack_lambda_name = "slack-integration-${module.llama_3_2_1b_deployment.endpoint_name}"
 }

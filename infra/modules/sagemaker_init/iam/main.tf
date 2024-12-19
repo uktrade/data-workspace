@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
 
   statement {
     actions = [
-      "SNS:Publish",
+      "sns:Publish",
     ]
     resources = ["arn:aws:sns:eu-west-2:${var.account_id}:async-sagemaker-success-topic"]
   }
@@ -239,4 +239,3 @@ resource "aws_iam_role_policy_attachment" "attach_cloudwatch_log_invoke_policy" 
   role       = aws_iam_role.lambda_execution_role.name
   policy_arn = aws_iam_policy.cloudwatch_log_invoke_policy.arn
 }
-

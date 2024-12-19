@@ -107,6 +107,8 @@ variable "alarms" {
     datapoints_to_alarm = number
     period              = number
     statistic           = string
+    sns_topic_name      = optional(string, null)
+    slack_webhook_url   = optional(string, null)
     alarm_actions       = optional(list(string), null)
   }))
   description = "List of CloudWatch alarms to be created"
@@ -116,4 +118,12 @@ variable "log_group_name" {
   type        = string
   description = "log group name, i.e. gpt-neo-125m..."
   default     = ""
+}
+
+variable "aws_account_id" {
+  type = string
+}
+
+variable "slack_lambda_name" {
+  type = string
 }
