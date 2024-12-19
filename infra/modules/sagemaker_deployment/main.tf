@@ -1,4 +1,3 @@
-# SageMaker Model Resource
 resource "aws_sagemaker_model" "sagemaker_model" {
   name               = var.model_name
   execution_role_arn = var.execution_role_arn
@@ -26,7 +25,6 @@ resource "aws_sagemaker_model" "sagemaker_model" {
 
 }
 
-# Endpoint Configuration
 resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
   name = var.endpoint_config_name
 
@@ -48,14 +46,12 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
   }
 }
 
-# Endpoint Resource
 resource "aws_sagemaker_endpoint" "sagemaker_endpoint" {
   name                 = var.endpoint_name
   endpoint_config_name = aws_sagemaker_endpoint_configuration.endpoint_config.name
   depends_on           = [aws_sagemaker_endpoint_configuration.endpoint_config, var.sns_success_topic_arn]
 }
 
-# Autoscaling Target Resource
 resource "aws_appautoscaling_target" "autoscaling_target" {
   max_capacity       = var.max_capacity
   min_capacity       = var.min_capacity
@@ -65,7 +61,6 @@ resource "aws_appautoscaling_target" "autoscaling_target" {
   depends_on         = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sagemaker_endpoint_configuration.endpoint_config]
 }
 
-# Autoscaling Policy for Scaling Up
 resource "aws_appautoscaling_policy" "scale_up_policy" {
   name               = "scale-up-policy-${var.model_name}"
   policy_type        = "StepScaling"
@@ -85,7 +80,6 @@ resource "aws_appautoscaling_policy" "scale_up_policy" {
   }
 }
 
-# Autoscaling Policy for Scaling In to Zero
 resource "aws_appautoscaling_policy" "scale_in_to_zero_policy" {
   name               = "scale-in-to-zero-policy-${var.model_name}"
   policy_type        = "StepScaling"
@@ -114,7 +108,6 @@ resource "aws_appautoscaling_policy" "scale_in_to_zero_policy" {
   depends_on = [aws_appautoscaling_target.autoscaling_target]
 }
 
-# Scale-In Policy to Reduce Capacity to Zero Based on backlog size
 resource "aws_appautoscaling_policy" "scale_in_to_zero_based_on_backlog" {
   name               = "scale-in-to-zero-backlog-policy-${var.model_name}"
   policy_type        = "StepScaling"
@@ -159,7 +152,23 @@ resource "aws_cloudwatch_log_metric_filter" "unauthorized_operations" {
   }
 }
 
-# Loop through the alarm definitions to create multiple CloudWatch alarms
+# Local for alarms with SNS topics
+locals {
+  alarms_with_sns = [
+    for alarm in var.alarms : alarm
+    if alarm.sns_topic_name != null
+  ]
+}
+
+
+# Local for mapping SNS topic ARNs to Slack webhook URLs
+locals {
+  sns_to_webhook_mapping = {
+    for idx, alarm in local.alarms_with_sns :
+    aws_sns_topic.sns_topic[idx].arn => alarm.slack_webhook_url
+  }
+}
+
 resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   count = length(var.alarms)
 
@@ -183,5 +192,132 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
     VariantName  = var.variant_name
   }
 
-  alarm_actions = var.alarms[count.index].alarm_actions != null ? var.alarms[count.index].alarm_actions : []
+  # Conditionally add SNS topics as alarm actions & lazy eval
+  alarm_actions = concat(
+    var.alarms[count.index].alarm_actions != null ? var.alarms[count.index].alarm_actions : [],
+    var.alarms[count.index].sns_topic_name != null ? [
+      lookup(
+        { for idx, alarm in local.alarms_with_sns :
+          alarm.sns_topic_name => aws_sns_topic.sns_topic[idx].arn
+        },
+        var.alarms[count.index].sns_topic_name,
+        null
+      )
+    ] : []
+  )
+
+}
+
+resource "aws_sns_topic" "sns_topic" {
+  count = length(local.alarms_with_sns)
+
+  name = local.alarms_with_sns[count.index].sns_topic_name
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "cloudwatch.amazonaws.com"
+        },
+        Action   = "sns:Publish",
+        Resource = "arn:aws:sns:eu-west-2:${var.aws_account_id}:${local.alarms_with_sns[count.index].sns_topic_name}"
+      }
+    ]
+  })
+
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
+
+resource "aws_sns_topic_subscription" "sns_lambda_subscription" {
+  count = length(local.alarms_with_sns)
+
+  topic_arn = aws_sns_topic.sns_topic[count.index].arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.slack_alert_function.arn
+}
+
+
+data "archive_file" "lambda_payload" {
+  type        = "zip"
+  source_file = "${path.module}/lambda_function.py"
+  output_path = "${path.module}/payload.zip"
+}
+
+
+# Lambda Function for Slack Alerts
+resource "aws_lambda_function" "slack_alert_function" {
+  filename         = data.archive_file.lambda_payload.output_path
+  source_code_hash = data.archive_file.lambda_payload.output_base64sha256
+  function_name    = "${var.model_name}-slack-alert-lambda"
+  role             = aws_iam_role.slack_lambda_role.arn
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.12"
+  timeout          = 30
+
+  environment {
+    variables = {
+      SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping)
+    }
+  }
+}
+
+resource "aws_iam_role" "slack_lambda_role" {
+  name = "${var.model_name}-slack-alert-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "slack_lambda_policy" {
+  name = "${var.model_name}-slack-alert-lambda-policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect   = "Allow",
+        Action   = "sns:Publish",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "slack_lambda_policy_attachment" {
+  role       = aws_iam_role.slack_lambda_role.name
+  policy_arn = aws_iam_policy.slack_lambda_policy.arn
+}
+
+resource "aws_lambda_permission" "allow_sns" {
+  count = length(local.alarms_with_sns)
+
+  statement_id  = "AllowSNS-${count.index}"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.slack_alert_function.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.sns_topic[count.index].arn
 }
