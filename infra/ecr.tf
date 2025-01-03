@@ -1,8 +1,8 @@
 // We only ever deploy tagged images, so all ECR repos have a lifecycle policy to delete untagged
 // images.
 //
-// The current exceptions are the visualisation_base repos, where historically images were used
-// using the sha256 hash, although at the time of writing we're moving away from this.
+// Some repos also expire certain tagged images because they are either kaniko-generated cached
+// layers, or no-longer deployed images
 
 resource "aws_ecr_repository" "user_provided" {
   name = "${var.prefix}-user-provided"
@@ -153,12 +153,9 @@ resource "aws_ecr_repository" "visualisation_base" {
   name = "${var.prefix}-visualisation-base"
 }
 
-resource "aws_ecr_repository" "visualisation_base_r" {
-  name = "${var.prefix}-visualisation-base-r"
-}
-
-resource "aws_ecr_repository" "visualisation_base_rv4" {
-  name = "${var.prefix}-visualisation-base-rv4"
+resource "aws_ecr_lifecycle_policy" "visualisation_base_expire_old_after_one_day" {
+  repository = aws_ecr_repository.visualisation_base.name
+  policy     = data.aws_ecr_lifecycle_policy_document.visualisation_base_expire_old_after_one_day.json
 }
 
 resource "aws_ecr_repository" "mirrors_sync" {
@@ -272,6 +269,41 @@ data "aws_ecr_lifecycle_policy_document" "expire_preview_and_untagged_after_one_
     }
   }
   # ... and just in case we somehow end up with untagged images, expire them after 1 day as well
+  rule {
+    priority = 3
+    selection {
+      tag_status   = "untagged"
+      count_type   = "sinceImagePushed"
+      count_unit   = "days"
+      count_number = 1
+    }
+  }
+}
+
+data "aws_ecr_lifecycle_policy_document" "visualisation_base_expire_old_after_one_day" {
+  # Match tagged python and rv4 images, but expire them in 1000 years...
+  rule {
+    priority = 1
+    selection {
+      tag_status       = "tagged"
+      tag_pattern_list = ["python", "rv4"]
+      count_type       = "sinceImagePushed"
+      count_unit       = "days"
+      count_number     = 365000
+    }
+  }
+  # ... and images that don't match python and rv4, but have a tag, are cached layers
+  rule {
+    priority = 2
+    selection {
+      tag_status       = "tagged"
+      tag_pattern_list = ["*"]
+      count_type       = "sinceImagePushed"
+      count_unit       = "days"
+      count_number     = 1
+    }
+  }
+  # ... and for when we end up with untagged images, expire them after 1 day as well
   rule {
     priority = 3
     selection {
@@ -531,8 +563,6 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
 
       resources = [
         "${aws_ecr_repository.visualisation_base.arn}",
-        "${aws_ecr_repository.visualisation_base_r.arn}",
-        "${aws_ecr_repository.visualisation_base_rv4.arn}",
       ]
     }
   }
