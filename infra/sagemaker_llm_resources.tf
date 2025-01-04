@@ -4,7 +4,7 @@ locals {
     module.llama_3_2_1b_deployment.endpoint_name,
     module.mistral_7b_deployment.endpoint_name,
     module.gemma_2_27b_deployment.endpoint_name,
-    module.llama_3_70b_deployment.endpoint_name,
+    #module.llama_3_70b_deployment.endpoint_name,
   ]
 }
 
@@ -30,7 +30,7 @@ module "gpt_neo_125_deployment" {
     "SAGEMAKER_PROGRAM" : "inference.py",
     "SM_NUM_GPUS" : "1"
   }
-  instance_type             = "ml.g5.2xlarge"
+  instance_type             = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
@@ -68,9 +68,9 @@ module "gpt_neo_125_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
-      threshold           = 5.0
+      threshold           = 5 * 8 # TODO: Number of vCPUs
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 5 periods breaching then scale down to ensure
+      datapoints_to_alarm = 2
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_policy_arn]
@@ -85,7 +85,7 @@ module "gpt_neo_125_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
+      datapoints_to_alarm = 2
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.gpt_neo_125_deployment.scale_in_to_zero_based_on_backlog_arn]
@@ -98,7 +98,7 @@ module "gpt_neo_125_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 8 # TODO: Number of vCPUs
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -128,7 +128,7 @@ module "gpt_neo_125_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 1 # TODO: Number of GPUs
       evaluation_periods  = 2
       datapoints_to_alarm = 1
       period              = 60
@@ -143,7 +143,7 @@ module "gpt_neo_125_deployment" {
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 10 # More than 10 requests requires scale up
+      threshold           = 10
       evaluation_periods  = 2
       datapoints_to_alarm = 2
       period              = 30
@@ -218,7 +218,7 @@ module "llama_3_2_1b_deployment" {
     "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
     "SAGEMAKER_PROGRAM" : "inference.py"
   }
-  instance_type             = "ml.g6.xlarge"
+  instance_type             = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-2-1b"
@@ -256,9 +256,9 @@ module "llama_3_2_1b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
-      threshold           = 5.0
+      threshold           = 5 * 4 # TODO: Number of vCPUs
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
+      datapoints_to_alarm = 2
       period              = 60
       statistic           = "Average"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_policy_arn]
@@ -273,7 +273,7 @@ module "llama_3_2_1b_deployment" {
       comparison_operator = "LessThanThreshold"
       threshold           = 0
       evaluation_periods  = 3
-      datapoints_to_alarm = 2 # 2 out of 3 periods breaching then scale down to ensure
+      datapoints_to_alarm = 2
       period              = 60
       statistic           = "Sum"
       alarm_actions       = [module.llama_3_2_1b_deployment.scale_in_to_zero_based_on_backlog_arn]
@@ -286,7 +286,7 @@ module "llama_3_2_1b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 4 # TODO: Number of vCPUs
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -316,7 +316,7 @@ module "llama_3_2_1b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 1 # TODO: Number of GPUs
       evaluation_periods  = 2
       datapoints_to_alarm = 1
       period              = 60
@@ -408,7 +408,7 @@ module "mistral_7b_deployment" {
     "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
     "SAGEMAKER_PROGRAM" : "inference.py"
   }
-  instance_type             = "ml.g5.12xlarge"
+  instance_type             = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-mistral-7b"
@@ -446,7 +446,7 @@ module "mistral_7b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
-      threshold           = 5.0
+      threshold           = 5 * 48 # TODO: Number of vCPUs
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -476,7 +476,7 @@ module "mistral_7b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 48 # TODO: Number of vCPUs
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -506,7 +506,7 @@ module "mistral_7b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 4 # TODO: Number of GPUs
       evaluation_periods  = 2
       datapoints_to_alarm = 1
       period              = 60
@@ -597,7 +597,7 @@ module "gemma_2_27b_deployment" {
     "SAGEMAKER_PROGRAM" : "inference.py",
     "SM_NUM_GPUS" : "8"
   }
-  instance_type             = "ml.g5.48xlarge"
+  instance_type             = "ml.g5.48xlarge" # 192 vCPU and 8 GPU and 768 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-gemma-2-27b"
@@ -635,7 +635,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
-      threshold           = 5.0
+      threshold           = 5 * 192 # TODO: Number of vCPUs
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -665,7 +665,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 192 # TODO: Number of vCPUs
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -695,7 +695,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 8 # TODO: Number of GPUs
       evaluation_periods  = 2
       datapoints_to_alarm = 1
       period              = 60
@@ -770,6 +770,7 @@ module "gemma_2_27b_deployment" {
 ###############
 # Llama 3 70b
 ###############
+/*
 module "llama_3_70b_deployment" {
   source                 = "./modules/sagemaker_deployment"
   model_name             = "llama-3-70b"
@@ -787,7 +788,7 @@ module "llama_3_70b_deployment" {
             "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
             "SAGEMAKER_PROGRAM": "inference.py"
   }
-  instance_type             = "ml.p4d.24xlarge"
+  instance_type             = "ml.p4d.24xlarge"  # 96 vCPU and 8 GPU and 1152 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-70b"
@@ -825,7 +826,7 @@ module "llama_3_70b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
-      threshold           = 5.0
+      threshold           = 5 * 96  # TODO: Number of vCPUs
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -855,7 +856,7 @@ module "llama_3_70b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 96  # TODO: Number of vCPUs
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -885,7 +886,7 @@ module "llama_3_70b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70
+      threshold           = 70 * 8  # TODO: Number of GPUs
       evaluation_periods  = 2
       datapoints_to_alarm = 1
       period              = 60
@@ -954,3 +955,4 @@ module "llama_3_70b_deployment" {
   ]
   slack_lambda_name = "slack-integration-${module.llama_3_70b_deployment.endpoint_name}"
 }
+ */
