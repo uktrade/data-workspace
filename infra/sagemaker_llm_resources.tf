@@ -20,16 +20,16 @@ module "gpt_neo_125_deployment" {
   container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
   uncompressed_model_uri = "s3://jumpstart-cache-prod-eu-west-2/huggingface-textgeneration1/huggingface-textgeneration1-gpt-neo-125m/artifacts/inference-prepack/v2.0.0/"
   environment_variables = {
-    "ENDPOINT_SERVER_TIMEOUT" : "3600",
-    "HF_MODEL_ID" : "/opt/ml/model",
-    "MAX_INPUT_LENGTH" : "1024",
-    "MAX_TOTAL_TOKENS" : "2048",
-    "MODEL_CACHE_ROOT" : "/opt/ml/model",
-    "SAGEMAKER_ENV" : "1",
-    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
-    "SAGEMAKER_PROGRAM" : "inference.py",
-    "SM_NUM_GPUS" : "1"
-  }
+            "ENDPOINT_SERVER_TIMEOUT": "3600",
+            "HF_MODEL_ID": "/opt/ml/model",
+            "MAX_INPUT_LENGTH": "1024",
+            "MAX_TOTAL_TOKENS": "2048",
+            "MODEL_CACHE_ROOT": "/opt/ml/model",
+            "SAGEMAKER_ENV": "1",
+            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
+            "SAGEMAKER_PROGRAM": "inference.py",
+            "SM_NUM_GPUS": "1"
+        }
   instance_type             = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
@@ -398,16 +398,17 @@ module "mistral_7b_deployment" {
   container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
   uncompressed_model_uri = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-v3/artifacts/inference-prepack/v1.0.0/"
   environment_variables = {
-    "ENDPOINT_SERVER_TIMEOUT" : "3600",
-    "HF_MODEL_ID" : "/opt/ml/model",
-    "MAX_BATCH_PREFILL_TOKENS" : "8191",
-    "MAX_INPUT_LENGTH" : "8191",
-    "MAX_TOTAL_TOKENS" : "8192",
-    "MODEL_CACHE_ROOT" : "/opt/ml/model",
-    "SAGEMAKER_ENV" : "1",
-    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
-    "SAGEMAKER_PROGRAM" : "inference.py"
-  }
+            "ENDPOINT_SERVER_TIMEOUT": "3600",
+            "HF_MODEL_ID": "/opt/ml/model",
+            "MAX_BATCH_PREFILL_TOKENS": "8191",
+            "MAX_INPUT_LENGTH": "8191",
+            "MAX_TOTAL_TOKENS": "8192",
+            "MODEL_CACHE_ROOT": "/opt/ml/model",
+            "SAGEMAKER_ENV": "1",
+            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
+            "SAGEMAKER_PROGRAM": "inference.py",
+            "SM_NUM_GPUS": "4"
+        }
   instance_type             = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id

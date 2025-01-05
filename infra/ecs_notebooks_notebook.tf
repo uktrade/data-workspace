@@ -182,7 +182,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     ]
 
     resources = [
-      "${aws_s3_bucket.notebooks.arn}",
+      "${aws_s3_bucket.notebooks.arn}", "arn:aws:s3:::jumpstart-cache-prod-eu-west-2", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
     ]
 
     condition {
@@ -212,7 +212,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
       "s3:ListBucket"
     ]
 
-    resources = ["arn:aws:s3:::*sagemaker*"]
+    resources = ["arn:aws:s3:::*sagemaker*", "arn:aws:s3:::jumpstart-cache-prod-eu-west-2", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2"]
 
   }
 
@@ -221,9 +221,9 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
       "s3:ListBucket",
     ]
 
-    resources = [
+    resources = concat([
       "arn:aws:s3:::${var.mirrors_data_bucket_name != "" ? var.mirrors_data_bucket_name : var.mirrors_bucket_name}",
-    ]
+    ], ["arn:aws:s3:::jumpstart-cache-prod-eu-west-2", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2"])
   }
 
   statement {
@@ -318,7 +318,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "s3:ListBucket",
     ]
     resources = concat([
-      "${aws_s3_bucket.notebooks.arn}",
+      "${aws_s3_bucket.notebooks.arn}", "arn:aws:s3:::jumpstart-cache-prod-eu-west-2", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
       ], [
       for bucket in aws_s3_bucket.mlflow : bucket.arn
     ])
@@ -337,7 +337,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
     ]
 
     resources = concat([
-      "${aws_s3_bucket.notebooks.arn}/*",
+      "${aws_s3_bucket.notebooks.arn}/*", "arn:aws:s3:::jumpstart-cache-prod-eu-west-2", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
       ], [
       for bucket in aws_s3_bucket.mlflow : "${bucket.arn}/*"
     ])
@@ -356,7 +356,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
     resources = concat([
       for bucket in aws_s3_bucket.mlflow : bucket.arn
-    ], ["arn:aws:s3:::jumpstart-cache-prod-eu-west-2"])
+    ], ["arn:aws:s3:::jumpstart-cache-prod-eu-west-2", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2"])
   }
 
   statement {
@@ -371,7 +371,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
     resources = concat([
       "arn:aws:s3:::${var.mirrors_data_bucket_name != "" ? var.mirrors_data_bucket_name : var.mirrors_bucket_name}/*",
-    ], ["arn:aws:s3:::jumpstart-cache-prod-eu-west-2/*"])
+    ], ["arn:aws:s3:::jumpstart-cache-prod-eu-west-2/*", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2/*"])
   }
 
   statement {
@@ -384,9 +384,9 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "s3:ListBucket",
     ]
 
-    resources = [
+    resources = concat([
       "arn:aws:s3:::${var.mirrors_data_bucket_name != "" ? var.mirrors_data_bucket_name : var.mirrors_bucket_name}",
-    ]
+    ], ["arn:aws:s3:::jumpstart-cache-prod-eu-west-2", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2"])
   }
 
   statement {
@@ -404,6 +404,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "arn:aws:s3:::prod-${data.aws_region.aws_region.name}-starport-layer-bucket/*",
       # For AWS Linux 2 packages
       "arn:aws:s3:::amazonlinux.*.amazonaws.com/*",
+      "arn:aws:s3:::jumpstart-cache-prod-eu-west-2", "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
     ]
   }
 
