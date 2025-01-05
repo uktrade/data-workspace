@@ -5,6 +5,7 @@ resource "aws_sagemaker_model" "sagemaker_model" {
   primary_container {
     image       = var.container_image
     environment = var.environment_variables
+    mode        = "SingleModel"
 
     model_data_source {
       s3_data_source {
@@ -29,7 +30,7 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
   name = var.endpoint_config_name
 
   production_variants {
-    variant_name           = var.variant_name
+    variant_name           = "Alltraffic"
     model_name             = aws_sagemaker_model.sagemaker_model.name
     instance_type          = var.instance_type
     initial_instance_count = var.initial_instance_count

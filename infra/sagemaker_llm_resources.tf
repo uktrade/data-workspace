@@ -35,7 +35,6 @@ module "gpt_neo_125_deployment" {
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
   endpoint_name             = "gpt-neo-125-endpoint"
-  variant_name              = "gpt-neo-125m-endpoint-dev"
   s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   initial_instance_count    = 1
   max_capacity              = 2
@@ -223,7 +222,6 @@ module "llama_3_2_1b_deployment" {
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-2-1b"
   endpoint_name             = "llama-3-2-1b-endpoint"
-  variant_name              = "llama-3-2-1b-endpoint-dev"
   initial_instance_count    = 1
   s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   max_capacity              = 2
@@ -413,7 +411,6 @@ module "mistral_7b_deployment" {
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-mistral-7b"
   endpoint_name             = "mistral-7b-endpoint"
-  variant_name              = "mistral-7b-endpoint-dev"
   initial_instance_count    = 1
   s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   max_capacity              = 2
@@ -602,7 +599,6 @@ module "gemma_2_27b_deployment" {
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-gemma-2-27b"
   endpoint_name             = "gemma-2-27b-endpoint"
-  variant_name              = "gemma-2-27b-endpoint-dev"
   initial_instance_count    = 1
   s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   max_capacity              = 2
@@ -770,14 +766,14 @@ module "gemma_2_27b_deployment" {
 ###############
 # Llama 3 70b
 ###############
-/*
+
 module "llama_3_70b_deployment" {
   source                 = "./modules/sagemaker_deployment"
   model_name             = "llama-3-70b"
   sns_success_topic_arn  = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn     = module.iam.inference_role
   container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
-  uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-1b/artifacts/inference-prepack/v1.0.0/"
+  uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-1-70b/artifacts/inference-prepack/v2.0.0/"
   environment_variables = {
             "ENDPOINT_SERVER_TIMEOUT": "3600",
             "HF_MODEL_ID": "/opt/ml/model",
@@ -793,7 +789,6 @@ module "llama_3_70b_deployment" {
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-70b"
   endpoint_name             = "llama-3-70b-endpoint"
-  variant_name              = "llama-3-70b-endpoint-dev"
   initial_instance_count    = 1
   s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   max_capacity              = 2
@@ -955,4 +950,3 @@ module "llama_3_70b_deployment" {
   ]
   slack_lambda_name = "slack-integration-${module.llama_3_70b_deployment.endpoint_name}"
 }
- */
