@@ -897,22 +897,6 @@ data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
       "*"
     ]
   }
-  statement {
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    actions = [
-      "s3:ListBucket",
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject",
-      "s3:GetBucketLocation",
-    ]
-    resources = [
-      "arn:aws:s3:::*",  # TODO: reduce to jumpstart-cache-prod-eu-west-2, jumpstart-private-cache-prod-eu-west-2
-    ]
-  }
 }
 
 

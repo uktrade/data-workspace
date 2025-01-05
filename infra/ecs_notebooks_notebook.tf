@@ -354,9 +354,9 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "s3:ListBucket",
     ]
 
-    resources = concat([
+    resources = [
       for bucket in aws_s3_bucket.mlflow : bucket.arn
-    ], ["arn:aws:s3:::jumpstart-cache-prod-eu-west-2"])
+    ]
   }
 
   statement {
@@ -369,9 +369,9 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "s3:GetObject",
     ]
 
-    resources = concat([
+    resources = [
       "arn:aws:s3:::${var.mirrors_data_bucket_name != "" ? var.mirrors_data_bucket_name : var.mirrors_bucket_name}/*",
-    ], ["arn:aws:s3:::jumpstart-cache-prod-eu-west-2/*"])
+    ]
   }
 
   statement {
