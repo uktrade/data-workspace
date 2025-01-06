@@ -15,7 +15,7 @@ module "gpt_neo_125_deployment" {
     "MAX_INPUT_LENGTH" = 1024
     "MAX_TOTAL_TOKENS" = 2048
   }
-  security_group_ids        = [aws_security_group.notebooks.id]
+  security_group_ids        = [aws_security_group.sagemaker_endpoints.id]
   subnets                   = aws_subnet.sagemaker_private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
   endpoint_name             = "gpt-neo-125-endpoint"
@@ -204,7 +204,7 @@ module "llama_3_2_1b_deployment" {
     "MAX_INPUT_LENGTH" = 1024
     "MAX_TOTAL_TOKENS" = 2048
   }
-  security_group_ids        = [aws_security_group.notebooks.id]
+  security_group_ids        = [aws_security_group.sagemaker_endpoints.id]
   subnets                   = aws_subnet.sagemaker_private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-2-1B"
   endpoint_name             = "llama-3-2-1b-endpoint"
