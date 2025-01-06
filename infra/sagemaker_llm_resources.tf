@@ -4,7 +4,7 @@ locals {
     module.llama_3_2_1b_deployment.endpoint_name,
     module.mistral_7b_deployment.endpoint_name,
     module.gemma_2_27b_deployment.endpoint_name,
-    #module.llama_3_70b_deployment.endpoint_name,
+    module.llama_3_70b_deployment.endpoint_name,
   ]
 }
 
@@ -770,25 +770,26 @@ module "gemma_2_27b_deployment" {
 ###############
 # Llama 3 70b
 ###############
-/*
+
 module "llama_3_70b_deployment" {
   source                 = "./modules/sagemaker_deployment"
   model_name             = "llama-3-70b"
   sns_success_topic_arn  = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn     = module.iam.inference_role
   container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
-  uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-1b/artifacts/inference-prepack/v1.0.0/"
+  uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-1-70b-instruct/artifacts/inference-prepack/v2.0.0/"
   environment_variables = {
-            "ENDPOINT_SERVER_TIMEOUT": "3600",
-            "HF_MODEL_ID": "/opt/ml/model",
-            "MODEL_CACHE_ROOT": "/opt/ml/model",
-            "OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
-            "OPTION_TENSOR_PARALLEL_DEGREE": "8",
-            "SAGEMAKER_ENV": "1",
-            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-            "SAGEMAKER_PROGRAM": "inference.py"
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "OPTION_ENFORCE_EAGER" : "true",
+    #"OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
+    "OPTION_TENSOR_PARALLEL_DEGREE" : "8",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
   }
-  instance_type             = "ml.p4d.24xlarge"  # 96 vCPU and 8 GPU and 1152 GB-RAM
+  instance_type             = "ml.p4d.24xlarge" # 96 vCPU and 8 GPU and 1152 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-llama-3-70b"
@@ -826,7 +827,7 @@ module "llama_3_70b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanThreshold"
-      threshold           = 5 * 96  # TODO: Number of vCPUs
+      threshold           = 5 * 96 # TODO: Number of vCPUs
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -856,7 +857,7 @@ module "llama_3_70b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 96  # TODO: Number of vCPUs
+      threshold           = 70 * 96 # TODO: Number of vCPUs
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -886,7 +887,7 @@ module "llama_3_70b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 8  # TODO: Number of GPUs
+      threshold           = 70 * 8 # TODO: Number of GPUs
       evaluation_periods  = 2
       datapoints_to_alarm = 1
       period              = 60
@@ -955,4 +956,3 @@ module "llama_3_70b_deployment" {
   ]
   slack_lambda_name = "slack-integration-${module.llama_3_70b_deployment.endpoint_name}"
 }
- */
