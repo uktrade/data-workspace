@@ -286,6 +286,14 @@ resource "aws_route" "private_without_egress_to_jupyterhub" {
   vpc_peering_connection_id = aws_vpc_peering_connection.jupyterhub.id
 }
 
+resource "aws_route" "pcx_notebooks_to_sagemaker_endpoints" {
+  count = length(var.aws_availability_zones)
+
+  route_table_id            = aws_route_table.private_without_egress.id
+  destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
+  vpc_peering_connection_id = aws_vpc_peering_connection.sagemaker_to_notebooks.id
+}
+
 resource "aws_route_table_association" "jupyterhub_private_without_egress" {
   count          = length(var.aws_availability_zones)
   subnet_id      = aws_subnet.private_without_egress.*.id[count.index]
@@ -844,7 +852,7 @@ resource "aws_vpc" "sagemaker" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "${var.prefix}"
+    Name = "${var.prefix}-sagemaker"
   }
 
   lifecycle {
@@ -937,6 +945,12 @@ resource "aws_main_route_table_association" "sagemaker" {
   route_table_id = aws_route_table.sagemaker.id
 }
 
+resource "aws_route_table_association" "private_without_egress_sagemaker" {
+  count          = length(var.aws_availability_zones)
+  subnet_id      = aws_subnet.sagemaker_private_without_egress.*.id[count.index]
+  route_table_id = aws_route_table.sagemaker.id
+}
+
 resource "aws_route" "main_private_with_egress_to_sagemaker" {
   count = length(var.aws_availability_zones)
 
@@ -951,7 +965,9 @@ resource "aws_route" "pcx_sagemaker_to_notebooks" {
   vpc_peering_connection_id = aws_vpc_peering_connection.sagemaker_to_notebooks.id
 }
 
-resource "aws_route" "pcx_datasets_to_notebooks" {
+resource "aws_route" "pcx_datasets_to_sagemaker" {
+  count = length(var.aws_availability_zones)
+
   route_table_id            = aws_route_table.datasets.id
   destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
   vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_sagemaker.id
@@ -960,7 +976,7 @@ resource "aws_route" "pcx_datasets_to_notebooks" {
 # Cloudwatch logging for SageMaker VPC
 resource "aws_flow_log" "sagemaker" {
   log_destination = aws_cloudwatch_log_group.vpc_sagemaker_flow_log.arn
-  iam_role_arn    = aws_iam_role.vpc_sagemaker_flow_log.arn
+  iam_role_arn    = aws_iam_role.vpc_sagemaker_flow_log.arn 
   vpc_id          = aws_vpc.sagemaker.id
   traffic_type    = "ALL"
 }
@@ -992,7 +1008,7 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
   vpc_endpoint_type  = "Interface"
   subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-  security_group_ids = [aws_security_group.notebooks_endpoints.id]
+  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
   tags = {
     Environment = var.prefix
     Name        = "notebooks-sagemaker-runtime-endpoint"
@@ -1003,11 +1019,11 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
 
 resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint" {
   # source                                = "./modules/sagemaker_init/security"
-  vpc_id             = aws_vpc.main.id
+  vpc_id             = aws_vpc.sagemaker.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
   vpc_endpoint_type  = "Interface"
   subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-  security_group_ids = [aws_security_group.notebooks_endpoints.id]
+  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
   tags = {
     Environment = var.prefix
     Name        = "notebooks-sagemaker-api-endpoint"
@@ -1040,7 +1056,7 @@ resource "aws_vpc_endpoint" "sns_endpoint" {
   service_name       = "com.amazonaws.eu-west-2.sns"
   vpc_endpoint_type  = "Interface"
   subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-  security_group_ids = [aws_security_group.notebooks_endpoints.id]
+  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
   tags = {
     Environment = var.prefix
     Name        = "sns-endpoint"
