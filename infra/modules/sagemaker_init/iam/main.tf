@@ -60,7 +60,6 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     resources = [
       "arn:aws:s3:::*sagemaker*",
       "${var.aws_s3_bucket_notebook.arn}/*",
-      "arn:aws:s3:::*",  # TODO: reduce to jumpstart-cache-prod-eu-west-2, jumpstart-private-cache-prod-eu-west-2
     ]
   }
 
