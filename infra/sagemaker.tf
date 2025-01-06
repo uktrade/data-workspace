@@ -3,7 +3,7 @@ module "sagemaker_domain" {
   source             = "./modules/sagemaker_init/domain"
   domain_name        = "SageMaker"
   vpc_id             = aws_vpc.sagemaker.id
-  subnet_ids         = aws_subnet.private_without_egress.*.id
+  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
   execution_role_arn = module.iam.execution_role
 }
 
@@ -33,13 +33,13 @@ module "s3" {
 #   cidr_blocks = [aws_vpc.notebooks.cidr_block]
 # }
 
-resource "aws_security_group" "notebooks_endpoints" {
-  name        = "${var.prefix}-notebooks-endpoints"
-  description = "${var.prefix}-notebooks-endpoints"
+resource "aws_security_group" "sagemaker_endpoints" {
+  name        = "${var.prefix}-sagemaker-endpoints"
+  description = "${var.prefix}-sagemaker-endpoints"
   vpc_id      = aws_vpc.sagemaker.id
 
   tags = {
-    Name = "${var.prefix}-notebooks-endpoints"
+    Name = "${var.prefix}-sagemaker-endpoints"
   }
 
   lifecycle {
@@ -48,9 +48,9 @@ resource "aws_security_group" "notebooks_endpoints" {
 }
 
 resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
-  description = "endpoint-ingress-from-datasets-vpc"
+  description = "endpoint-ingress-sagemaker-to-notebooks-vpc"
 
-  security_group_id = aws_security_group.notebooks_endpoints.id
+  security_group_id = aws_security_group.sagemaker_endpoints.id
   cidr_blocks       = [aws_vpc.notebooks.cidr_block]
 
   type      = "ingress"
@@ -60,9 +60,9 @@ resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
 }
 
 resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
-  description = "endpoint-ingress-from-datasets-vpc"
+  description = "endpoint-egress-notebooks-to-sagemaker-vpc"
 
-  security_group_id = aws_security_group.notebooks_endpoints.id
+  security_group_id = aws_security_group.sagemaker_endpoints.id
   cidr_blocks       = [aws_vpc.notebooks.cidr_block]
 
   type      = "egress"
