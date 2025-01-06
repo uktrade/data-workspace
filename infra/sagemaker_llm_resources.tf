@@ -783,7 +783,7 @@ module "llama_3_70b_deployment" {
             "HF_MODEL_ID": "/opt/ml/model",
             "MODEL_CACHE_ROOT": "/opt/ml/model",
             "OPTION_ENFORCE_EAGER": "true",
-            "OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
+            #"OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
             "OPTION_TENSOR_PARALLEL_DEGREE": "8",
             "SAGEMAKER_ENV": "1",
             "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
