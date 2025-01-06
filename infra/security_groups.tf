@@ -562,6 +562,41 @@ resource "aws_security_group_rule" "notebooks_egress_arango_lb" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_notebooks" {
+  description = "ingress-from-sagemaker-endpoints"
+
+  security_group_id        = aws_security_group.notebooks.id
+  source_security_group_id = aws_security_group.sagemaker_endpoints.id
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "sagemaker_endpoint_egress_to_notebooks" {
+  description = "egress-to-sagemaker-endpoints"
+
+  security_group_id        = aws_security_group.notebooks.id
+  source_security_group_id = aws_security_group.sagemaker_endpoints.id
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "notebooks_egress_sagemaker_vpc" {
+  description = "egress-sagemaker-vpc"
+
+  security_group_id = aws_security_group.notebooks.id
+  cidr_blocks       = ["${aws_subnet.sagemaker_private_without_egress.*.cidr_block[0]}"]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "TCP"
+}
 
 resource "aws_security_group" "cloudwatch" {
   name        = "${var.prefix}-cloudwatch"
