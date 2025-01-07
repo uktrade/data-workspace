@@ -192,7 +192,7 @@ resource "aws_iam_role_policy_attachment" "mwaa_execution_role_policy_attachment
 resource "aws_s3_bucket" "mwaa_source_bucket" {
   count         = var.mwaa_environment_name != "" ? 1 : 0
   bucket        = var.mwaa_source_bucket_name
-  force_destroy = "false"
+  force_destroy = false
 }
 
 resource "aws_s3_bucket_versioning" "mwaa_source_bucket" {

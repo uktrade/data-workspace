@@ -1,6 +1,7 @@
 resource "aws_s3_bucket" "centralized_logs" {
   # Consolidation of logs into S3 Bucket
-  bucket = "${var.prefix}-centralized"
+  bucket        = "${var.prefix}-centralized"
+  force_destroy = false
 
   tags = {
     Name = "${var.prefix} SageMaker Log Bucket"
@@ -41,5 +42,3 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "encryption" {
     }
   }
 }
-
-

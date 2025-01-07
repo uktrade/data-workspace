@@ -1,7 +1,7 @@
 resource "aws_s3_bucket" "airflow" {
   count  = var.airflow_on ? length(var.airflow_dag_processors) : 0
   bucket = "${var.prefix}-${var.airflow_bucket_infix}-${replace(var.airflow_dag_processors[count.index].name, "_", "-")}"
-
+  force_destroy = false
 
   server_side_encryption_configuration {
     rule {
