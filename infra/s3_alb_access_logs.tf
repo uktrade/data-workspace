@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "alb_access_logs" {
-  bucket = var.alb_access_logs_bucket
+  bucket        = var.alb_access_logs_bucket
   force_destroy = false
 
   server_side_encryption_configuration {
