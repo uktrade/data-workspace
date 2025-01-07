@@ -776,17 +776,20 @@ module "llama_3_70b_deployment" {
   model_name             = "llama-3-70b"
   sns_success_topic_arn  = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn     = module.iam.inference_role
-  container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
-  uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-1-70b-instruct/artifacts/inference-prepack/v2.0.0/"
+  container_image        = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
+  uncompressed_model_uri = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-3-70b-instruct/artifacts/inference-prepack/v2.0.0/"
   environment_variables = {
-    "ENDPOINT_SERVER_TIMEOUT" : "3600",
-    "HF_MODEL_ID" : "/opt/ml/model",
-    "MODEL_CACHE_ROOT" : "/opt/ml/model",
-    "OPTION_ENFORCE_EAGER" : "true",
-    "OPTION_TENSOR_PARALLEL_DEGREE" : "8",
-    "SAGEMAKER_ENV" : "1",
-    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
-    "SAGEMAKER_PROGRAM" : "inference.py"
+            "ENDPOINT_SERVER_TIMEOUT": "3600",
+            "HF_MODEL_ID": "/opt/ml/model",
+            "MODEL_CACHE_ROOT": "/opt/ml/model",
+            "OPTION_DRAFT_MODEL_TP_SIZE": "8",
+            "OPTION_ENFORCE_EAGER": "false",
+            "OPTION_GPU_MEMORY_UTILIZATION": "0.95",
+            "OPTION_MAX_ROLLING_BATCH_SIZE": "64",
+            "OPTION_TENSOR_PARALLEL_DEGREE": "8",
+            "SAGEMAKER_ENV": "1",
+            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
+            "SAGEMAKER_PROGRAM": "inference.py"
     # TODO: This speculative draft feature allows for use of an e.g. 1b parameter model in conjunction with
     # the main 70b model, but to implement it requires hosting the two models together on one instance
     # "OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
