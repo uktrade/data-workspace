@@ -8,9 +8,9 @@ resource "aws_sagemaker_model" "sagemaker_model" {
 
     model_data_source {
       s3_data_source {
-        s3_uri           = var.uncompressed_model_uri
+        s3_uri           = var.model_uri
         s3_data_type     = "S3Prefix"
-        compression_type = "None"
+        compression_type = var.model_uri_compression
         model_access_config {
           accept_eula = true
         }

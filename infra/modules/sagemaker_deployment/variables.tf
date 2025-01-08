@@ -18,9 +18,14 @@ variable "container_image" {
   description = "Container image for the model"
 }
 
-variable "uncompressed_model_uri" {
+variable "model_uri" {
   type        = string
   description = "S3 URL where the model data is located"
+}
+
+variable "model_uri_compression" {
+  type        = string
+  description = "Whether the model weights are stored compressed and if so what compression type"
 }
 
 variable "environment_variables" {
