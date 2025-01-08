@@ -562,6 +562,10 @@ resource "aws_security_group_rule" "notebooks_egress_arango_lb" {
   protocol  = "tcp"
 }
 
+###########################
+## To test SageMaker VPC ##
+###########################
+
 resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_notebooks" {
   description = "ingress-from-sagemaker-endpoints"
 
@@ -597,6 +601,8 @@ resource "aws_security_group_rule" "notebooks_egress_sagemaker_vpc" {
   to_port   = "65535"
   protocol  = "TCP"
 }
+
+#######################
 
 resource "aws_security_group" "cloudwatch" {
   name        = "${var.prefix}-cloudwatch"

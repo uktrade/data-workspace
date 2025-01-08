@@ -34,7 +34,7 @@ module "gpt_neo_125m_deployment" {
   }
   instance_type             = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
-  subnets                   = aws_subnet.private_without_egress.*.id
+  subnets                   = aws_subnet.sagemaker_private_without_egress.*.id
   endpoint_config_name      = "sagemaker-endpoint-config-gpt-neo-125m"
   endpoint_name             = "gpt-neo-125m-endpoint"
   variant_name              = "gpt-neo-125m-endpoint-dev"
