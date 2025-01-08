@@ -11,6 +11,9 @@ resource "aws_s3_bucket" "notebooks" {
     noncurrent_version_expiration {
       days = 365
     }
+    expiration {
+      expired_object_delete_marker = true
+    }
     abort_incomplete_multipart_upload_days = 7
   }
 
