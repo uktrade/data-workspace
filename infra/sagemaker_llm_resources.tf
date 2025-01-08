@@ -14,14 +14,14 @@ locals {
 ###############
 
 module "gpt_neo_125m_deployment" {
-  source                  = "./modules/sagemaker_deployment"
-  model_name              = "gpt-neo-125m"
-  sns_success_topic_arn   = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn      = module.iam.inference_role
-  container_image         = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
-  model_uri               = "s3://jumpstart-cache-prod-eu-west-2/huggingface-textgeneration1/huggingface-textgeneration1-gpt-neo-125m/artifacts/inference-prepack/v2.0.0/"
-  model_uri_compression   = "None"
-  environment_variables   = {
+  source                = "./modules/sagemaker_deployment"
+  model_name            = "gpt-neo-125m"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn    = module.iam.inference_role
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
+  model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-textgeneration1/huggingface-textgeneration1-gpt-neo-125m/artifacts/inference-prepack/v2.0.0/"
+  model_uri_compression = "None"
+  environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
     "HF_MODEL_ID" : "/opt/ml/model",
     "MAX_INPUT_LENGTH" : "1024",
@@ -206,23 +206,23 @@ module "gpt_neo_125m_deployment" {
 # Phi 2 3b
 ###############
 module "phi_2_3b_deployment" {
-  source                  = "./modules/sagemaker_deployment"
-  model_name              = "phi-2-3b"
-  sns_success_topic_arn   = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn      = module.iam.inference_role
-  container_image         = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.2-gpu-py310-cu121-ubuntu22.04"
-  model_uri               = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-phi-2/artifacts/inference-prepack/v1.0.0/"
-  model_uri_compression   = "None"
-  environment_variables   =   {
-            "ENDPOINT_SERVER_TIMEOUT": "3600",
-            "HF_MODEL_ID": "/opt/ml/model",
-            "MAX_INPUT_LENGTH": "2047",
-            "MAX_TOTAL_TOKENS": "2048",
-            "MODEL_CACHE_ROOT": "/opt/ml/model",
-            "SAGEMAKER_ENV": "1",
-            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-            "SAGEMAKER_PROGRAM": "inference.py"
-        }
+  source                = "./modules/sagemaker_deployment"
+  model_name            = "phi-2-3b"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn    = module.iam.inference_role
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.2-gpu-py310-cu121-ubuntu22.04"
+  model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-phi-2/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MAX_INPUT_LENGTH" : "2047",
+    "MAX_TOTAL_TOKENS" : "2048",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
+  }
   instance_type             = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
   subnets                   = aws_subnet.private_without_egress.*.id
@@ -396,14 +396,14 @@ module "phi_2_3b_deployment" {
 # Mistral 7b
 ###############
 module "mistral_7b_deployment" {
-  source                  = "./modules/sagemaker_deployment"
-  model_name              = "mistral-7b"
-  sns_success_topic_arn   = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn      = module.iam.inference_role
-  container_image         = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
-  model_uri               = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-v3/artifacts/inference-prepack/v1.0.0/"
-  model_uri_compression   = "None"
-  environment_variables   = {
+  source                = "./modules/sagemaker_deployment"
+  model_name            = "mistral-7b"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn    = module.iam.inference_role
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
+  model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-v3/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
     "HF_MODEL_ID" : "/opt/ml/model",
     "MAX_BATCH_PREFILL_TOKENS" : "8191",
@@ -587,14 +587,14 @@ module "mistral_7b_deployment" {
 # Gemma 2 27b
 ###############
 module "gemma_2_27b_deployment" {
-  source                  = "./modules/sagemaker_deployment"
-  model_name              = "gemma-2-27b"
-  sns_success_topic_arn   = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn      = module.iam.inference_role
-  container_image         = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.4.0-tgi2.3.1-gpu-py311-cu124-ubuntu22.04"
-  model_uri               = "s3://jumpstart-private-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-gemma-2-27b/artifacts/inference-prepack/v1.0.0/"
-  model_uri_compression   = "None"
-  environment_variables   = {
+  source                = "./modules/sagemaker_deployment"
+  model_name            = "gemma-2-27b"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn    = module.iam.inference_role
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.4.0-tgi2.3.1-gpu-py311-cu124-ubuntu22.04"
+  model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-gemma-2-27b/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
     "HF_MODEL_ID" : "/opt/ml/model",
     "MAX_BATCH_PREFILL_TOKENS" : "8191",
@@ -779,25 +779,25 @@ module "gemma_2_27b_deployment" {
 ###############
 
 module "llama_3_70b_deployment" {
-  source                  = "./modules/sagemaker_deployment"
-  model_name              = "llama-3-70b"
-  sns_success_topic_arn   = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn      = module.iam.inference_role
-  container_image         = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
-  model_uri               = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-3-70b-instruct/artifacts/inference-prepack/v2.0.0/"
-  model_uri_compression   = "None"
-  environment_variables   = {
-            "ENDPOINT_SERVER_TIMEOUT": "3600",
-            "HF_MODEL_ID": "/opt/ml/model",
-            "MODEL_CACHE_ROOT": "/opt/ml/model",
-            "OPTION_DRAFT_MODEL_TP_SIZE": "8",
-            "OPTION_ENFORCE_EAGER": "false",
-            "OPTION_GPU_MEMORY_UTILIZATION": "0.95",
-            "OPTION_MAX_ROLLING_BATCH_SIZE": "64",
-            "OPTION_TENSOR_PARALLEL_DEGREE": "8",
-            "SAGEMAKER_ENV": "1",
-            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-            "SAGEMAKER_PROGRAM": "inference.py"
+  source                = "./modules/sagemaker_deployment"
+  model_name            = "llama-3-70b"
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn    = module.iam.inference_role
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
+  model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-3-70b-instruct/artifacts/inference-prepack/v2.0.0/"
+  model_uri_compression = "None"
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "OPTION_DRAFT_MODEL_TP_SIZE" : "8",
+    "OPTION_ENFORCE_EAGER" : "false",
+    "OPTION_GPU_MEMORY_UTILIZATION" : "0.95",
+    "OPTION_MAX_ROLLING_BATCH_SIZE" : "64",
+    "OPTION_TENSOR_PARALLEL_DEGREE" : "8",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
     # TODO: This speculative draft feature allows for use of an e.g. 1b parameter model in conjunction with
     # the main 70b model, but to implement it requires hosting the two models together on one instance
     # "OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",

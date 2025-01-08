@@ -24,7 +24,7 @@ variable "model_uri" {
 }
 
 variable "model_uri_compression" {
-  type = string
+  type        = string
   description = "Whether the model weights are stored compressed and if so what compression type"
 }
 
