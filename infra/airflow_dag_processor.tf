@@ -224,6 +224,16 @@ data "aws_iam_policy_document" "airflow_team" {
     }
   }
 
+  dynamic "statement" {
+    for_each = length(var.airflow_dag_processors[count.index].keys) > 0 ? [1] : []
+    content {
+      actions = [
+        "kms:Decrypt",
+      ]
+      resources = var.airflow_dag_processors[count.index].keys
+    }
+  }
+
   statement {
     actions = [
       "logs:CreateLogGroup"
