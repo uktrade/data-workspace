@@ -783,11 +783,13 @@ module "llama_3_70b_deployment" {
     "HF_MODEL_ID" : "/opt/ml/model",
     "MODEL_CACHE_ROOT" : "/opt/ml/model",
     "OPTION_ENFORCE_EAGER" : "true",
-    #"OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
     "OPTION_TENSOR_PARALLEL_DEGREE" : "8",
     "SAGEMAKER_ENV" : "1",
     "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
     "SAGEMAKER_PROGRAM" : "inference.py"
+    # TODO: This speculative draft feature allows for use of an e.g. 1b parameter model in conjunction with
+    # the main 70b model, but to implement it requires hosting the two models together on one instance
+    # "OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
   }
   instance_type             = "ml.p4d.24xlarge" # 96 vCPU and 8 GPU and 1152 GB-RAM
   security_group_ids        = [aws_security_group.notebooks.id]
