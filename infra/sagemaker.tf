@@ -3,7 +3,7 @@ module "sagemaker_domain" {
   source             = "./modules/sagemaker_init/domain"
   domain_name        = "SageMaker"
   vpc_id             = aws_vpc.notebooks.id
-  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
+  subnet_ids         = aws_subnet.private_without_egress.*.id
   execution_role_arn = module.iam.execution_role
 }
 
