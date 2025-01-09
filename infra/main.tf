@@ -274,6 +274,43 @@ variable "s3_prefixes_for_external_role_copy" {
   default = ["import-data", "export-data"]
 }
 
+variable "matchbox_on" {
+  type    = bool
+  default = false
+}
+variable "matchbox_dev_mode_on" {
+  type    = bool
+  default = false
+}
+variable "vpc_matchbox_cidr" {
+  type    = string
+  default = ""
+}
+variable "matchbox_instances" {
+  type    = list(string)
+  default = []
+}
+variable "matchbox_instances_long" {
+  type    = list(string)
+  default = []
+}
+variable "matchbox_db_instance_class" {
+  type    = string
+  default = ""
+}
+variable "vpc_matchbox_subnets_num_bits" {
+  type    = string
+  default = ""
+}
+variable "matchbox_s3_cache" {
+  type    = string
+  default = ""
+}
+variable "matchbox_s3_dev_artefacts" {
+  type    = string
+  default = ""
+}
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"
@@ -346,4 +383,9 @@ locals {
   mlflow_container_memory = 8192
   mlflow_container_cpu    = 1024
   mlflow_port             = 8004
+
+  matchbox_container_memory = 8192
+  matchbox_container_cpu    = 1024
+  matchbox_api_port         = 8000
+  matchbox_db_port          = 5432
 }
