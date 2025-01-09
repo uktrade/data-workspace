@@ -562,10 +562,6 @@ resource "aws_security_group_rule" "notebooks_egress_arango_lb" {
   protocol  = "tcp"
 }
 
-###########################
-## To test SageMaker VPC ##
-###########################
-
 resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_notebooks" {
   description = "ingress-from-sagemaker-endpoints"
 
@@ -594,6 +590,61 @@ resource "aws_security_group_rule" "notebooks_egress_sagemaker_vpc" {
   description = "egress-sagemaker-vpc"
 
   security_group_id = aws_security_group.notebooks.id
+  cidr_blocks       = ["${aws_subnet.sagemaker_private_without_egress.*.cidr_block[0]}"]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "TCP"
+}
+
+
+###########################
+## To test SageMaker VPC ##
+###########################
+
+resource "aws_security_group" "sagemaker" {
+  name        = "${var.prefix}-sagemaker"
+  description = "${var.prefix}-sagemaker"
+  vpc_id      = aws_vpc.sagemaker.id
+
+  tags = {
+    Name = "${var.prefix}-sagemaker"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_sagemaker_vpc" {
+  description = "ingress-from-sagemaker-endpoints"
+
+  security_group_id        = aws_security_group.sagemaker.id
+  source_security_group_id = aws_security_group.sagemaker_endpoints.id
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "sagemaker_endpoint_egress_to_sagemaker_vpc" {
+  description = "egress-to-sagemaker-endpoints"
+
+  security_group_id        = aws_security_group.sagemaker.id
+  source_security_group_id = aws_security_group.sagemaker_endpoints.id
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "egress_sagemaker_vpc" {
+  description = "egress-sagemaker-vpc"
+
+  security_group_id = aws_security_group.sagemaker.id
   cidr_blocks       = ["${aws_subnet.sagemaker_private_without_egress.*.cidr_block[0]}"]
 
   type      = "egress"
