@@ -4,7 +4,7 @@ locals {
     module.phi_2_3b_deployment.endpoint_name,
     module.mistral_7b_deployment.endpoint_name,
     module.gemma_2_27b_deployment.endpoint_name,
-    module.llama_3_70b_deployment.endpoint_name,
+    #module.llama_3_70b_deployment.endpoint_name,
     #module.falcon_bf16_180b_deployment.endpoint_name,
   ]
 }
@@ -773,7 +773,7 @@ module "gemma_2_27b_deployment" {
 }
 
 
-
+/*
 ###############
 # Llama 3 70b
 ###############
@@ -971,7 +971,6 @@ module "llama_3_70b_deployment" {
 }
 
 
-/*
 ###############
 # Falcon bf16 180b
 ###############
