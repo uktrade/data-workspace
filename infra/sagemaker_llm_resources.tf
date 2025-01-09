@@ -85,7 +85,7 @@ module "gpt_neo_125m_deployment" {
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
-      threshold           = 0
+      threshold           = 1
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -276,7 +276,7 @@ module "phi_2_3b_deployment" {
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
-      threshold           = 0
+      threshold           = 1
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -467,7 +467,7 @@ module "mistral_7b_deployment" {
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
-      threshold           = 0
+      threshold           = 1
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -657,7 +657,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
-      threshold           = 0
+      threshold           = 1
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -855,7 +855,7 @@ module "llama_3_70b_deployment" {
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
-      threshold           = 0
+      threshold           = 1
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
@@ -1046,7 +1046,7 @@ module "falcon_bf16_180b_deployment" {
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
-      threshold           = 0
+      threshold           = 1
       evaluation_periods  = 3
       datapoints_to_alarm = 2
       period              = 60
