@@ -1,0 +1,21 @@
+[
+  {
+    "environment": [
+      {
+        "name": "DATABASE_URI",
+        "value": "${database_uri}"
+      },
+      {
+        "name": "AWS_DEFAULT_REGION",
+        "value": "eu-west-2"
+      }
+    ],
+    "essential": true,
+    "image": "${container_image}",
+    "networkMode": "awsvpc",
+    "memoryReservation": ${memory},
+    "cpu": ${cpu},
+    "mountPoints": [],
+    "name": "${container_name}"
+  }
+]

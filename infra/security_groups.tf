@@ -2537,3 +2537,33 @@ resource "aws_security_group_rule" "datasets_endpoint_ingress_arango_service" {
   to_port   = "443"
   protocol  = "tcp"
 }
+
+resource "aws_security_group" "matchbox_service" {
+  count       = length(var.matchbox_instances)
+  name        = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-service"
+  description = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-service"
+  vpc_id      = aws_vpc.matchbox.id
+
+  tags = {
+    Name = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-service"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "matchbox_db" {
+  count       = length(var.matchbox_instances)
+  name        = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-db"
+  description = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-db"
+  vpc_id      = aws_vpc.matchbox.id
+
+  tags = {
+    Name = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-db"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}

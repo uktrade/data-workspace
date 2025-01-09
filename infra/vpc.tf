@@ -832,3 +832,30 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ecr" {
     }
   }
 }
+
+resource "aws_vpc" "matchbox" {
+  cidr_block = var.vpc_matchbox_cidr
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "${var.prefix}-matchbox"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_subnet" "matchbox_private" {
+  count      = length(var.aws_availability_zones)
+  vpc_id     = aws_vpc.matchbox.id
+  cidr_block = cidrsubnet(aws_vpc.matchbox.cidr_block, var.vpc_matchbox_subnets_num_bits, count.index)
+
+  availability_zone = var.aws_availability_zones[count.index]
+
+  tags = {
+    Name = "${var.prefix}-private-matchbox-${var.aws_availability_zones_short[count.index]}"
+  }
+}
