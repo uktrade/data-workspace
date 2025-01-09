@@ -65,21 +65,6 @@ module "gpt_neo_125m_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "low-cpu-alarm-${module.gpt_neo_125m_deployment.endpoint_name}"
-      alarm_description   = "Scale in to zero when CPU < 5%"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanThreshold"
-      threshold           = 5 * 8 # TODO: Number of vCPUs
-      evaluation_periods  = 3
-      datapoints_to_alarm = 2
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_in_to_zero_policy_arn]
-      sns_topic_name      = "low-cpu-alert-${module.gpt_neo_125m_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "no-query-in-backlog-alarm-${module.gpt_neo_125m_deployment.endpoint_name}"
       alarm_description   = "Scale in to zero when no queries are in the backlog for > 3 minutes"
       metric_name         = "ApproximateBacklogSize"
@@ -95,21 +80,6 @@ module "gpt_neo_125m_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "high-cpu-alarm-${module.gpt_neo_125m_deployment.endpoint_name}"
-      alarm_description   = "Scale out when CPU is at 70% threshold"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 8 # TODO: Number of vCPUs
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-cpu-alert-${module.gpt_neo_125m_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "high-memory-alarm-${module.gpt_neo_125m_deployment.endpoint_name}"
       alarm_description   = "Scale up memory usage > 80%"
       metric_name         = "MemoryUtilization"
@@ -123,21 +93,6 @@ module "gpt_neo_125m_deployment" {
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_policy_arn]
       sns_topic_name      = "high-memory-alert-${module.gpt_neo_125m_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-    },
-    {
-      alarm_name          = "high-GPU-alarm-${module.gpt_neo_125m_deployment.endpoint_name}"
-      alarm_description   = "Scale up GPU usage > 70%"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 1 # TODO: Number of GPUs
-      evaluation_periods  = 2
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-gpu-alert-${module.gpt_neo_125m_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.gpt_neo_125m_deployment.endpoint_name}"
@@ -256,21 +211,6 @@ module "phi_2_3b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "low-cpu-alarm-${module.phi_2_3b_deployment.endpoint_name}"
-      alarm_description   = "Scale in to zero when CPU < 5%"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanThreshold"
-      threshold           = 5 * 4 # TODO: Number of vCPUs
-      evaluation_periods  = 3
-      datapoints_to_alarm = 2
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.phi_2_3b_deployment.scale_in_to_zero_policy_arn]
-      sns_topic_name      = "low-cpu-alert-${module.phi_2_3b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "no-query-in-backlog-alarm-${module.phi_2_3b_deployment.endpoint_name}"
       alarm_description   = "Scale in to zero when no queries are in the backlog for > 3 minutes"
       metric_name         = "ApproximateBacklogSize"
@@ -286,21 +226,6 @@ module "phi_2_3b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "high-cpu-alarm-${module.phi_2_3b_deployment.endpoint_name}"
-      alarm_description   = "Scale out when CPU is at 70% threshold"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 4 # TODO: Number of vCPUs
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-cpu-alert-${module.phi_2_3b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "high-memory-alarm-${module.phi_2_3b_deployment.endpoint_name}"
       alarm_description   = "Scale up memory usage > 80%"
       metric_name         = "MemoryUtilization"
@@ -314,21 +239,6 @@ module "phi_2_3b_deployment" {
       alarm_actions       = [module.phi_2_3b_deployment.scale_up_policy_arn]
       sns_topic_name      = "high-memory-alert-${module.phi_2_3b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-    },
-    {
-      alarm_name          = "high-GPU-alarm-${module.phi_2_3b_deployment.endpoint_name}"
-      alarm_description   = "Scale up GPU usage > 70%"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 1 # TODO: Number of GPUs
-      evaluation_periods  = 2
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-gpu-alert-${module.phi_2_3b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.phi_2_3b_deployment.endpoint_name}"
@@ -447,21 +357,6 @@ module "mistral_7b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "low-cpu-alarm-${module.mistral_7b_deployment.endpoint_name}"
-      alarm_description   = "Scale in to zero when CPU < 5%"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanThreshold"
-      threshold           = 5 * 48 # TODO: Number of vCPUs
-      evaluation_periods  = 3
-      datapoints_to_alarm = 2
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.mistral_7b_deployment.scale_in_to_zero_policy_arn]
-      sns_topic_name      = "low-cpu-alert-${module.mistral_7b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "no-query-in-backlog-alarm-${module.mistral_7b_deployment.endpoint_name}"
       alarm_description   = "Scale in to zero when no queries are in the backlog for > 3 minutes"
       metric_name         = "ApproximateBacklogSize"
@@ -477,21 +372,6 @@ module "mistral_7b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "high-cpu-alarm-${module.mistral_7b_deployment.endpoint_name}"
-      alarm_description   = "Scale out when CPU is at 70% threshold"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 48 # TODO: Number of vCPUs
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.mistral_7b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-cpu-alert-${module.mistral_7b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "high-memory-alarm-${module.mistral_7b_deployment.endpoint_name}"
       alarm_description   = "Scale up memory usage > 80%"
       metric_name         = "MemoryUtilization"
@@ -505,21 +385,6 @@ module "mistral_7b_deployment" {
       alarm_actions       = [module.mistral_7b_deployment.scale_up_policy_arn]
       sns_topic_name      = "high-memory-alert-${module.mistral_7b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-    },
-    {
-      alarm_name          = "high-GPU-alarm-${module.mistral_7b_deployment.endpoint_name}"
-      alarm_description   = "Scale up GPU usage > 70%"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 4 # TODO: Number of GPUs
-      evaluation_periods  = 2
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.mistral_7b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-gpu-alert-${module.mistral_7b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.mistral_7b_deployment.endpoint_name}"
@@ -637,21 +502,6 @@ module "gemma_2_27b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "low-cpu-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
-      alarm_description   = "Scale in to zero when CPU < 5%"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanThreshold"
-      threshold           = 5 * 192 # TODO: Number of vCPUs
-      evaluation_periods  = 3
-      datapoints_to_alarm = 2
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_in_to_zero_policy_arn]
-      sns_topic_name      = "low-cpu-alert-${module.gemma_2_27b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "no-query-in-backlog-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
       alarm_description   = "Scale in to zero when no queries are in the backlog for > 3 minutes"
       metric_name         = "ApproximateBacklogSize"
@@ -667,21 +517,6 @@ module "gemma_2_27b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "high-cpu-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
-      alarm_description   = "Scale out when CPU is at 70% threshold"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 192 # TODO: Number of vCPUs
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-cpu-alert-${module.gemma_2_27b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "high-memory-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
       alarm_description   = "Scale up memory usage > 80%"
       metric_name         = "MemoryUtilization"
@@ -695,21 +530,6 @@ module "gemma_2_27b_deployment" {
       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_policy_arn]
       sns_topic_name      = "high-memory-alert-${module.gemma_2_27b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-    },
-    {
-      alarm_name          = "high-GPU-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
-      alarm_description   = "Scale up GPU usage > 70%"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 8 # TODO: Number of GPUs
-      evaluation_periods  = 2
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-gpu-alert-${module.gemma_2_27b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
@@ -835,21 +655,6 @@ module "llama_3_70b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "low-cpu-alarm-${module.llama_3_70b_deployment.endpoint_name}"
-      alarm_description   = "Scale in to zero when CPU < 5%"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanThreshold"
-      threshold           = 5 * 96 # TODO: Number of vCPUs
-      evaluation_periods  = 3
-      datapoints_to_alarm = 2
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.llama_3_70b_deployment.scale_in_to_zero_policy_arn]
-      sns_topic_name      = "low-cpu-alert-${module.llama_3_70b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "no-query-in-backlog-alarm-${module.llama_3_70b_deployment.endpoint_name}"
       alarm_description   = "Scale in to zero when no queries are in the backlog for > 3 minutes"
       metric_name         = "ApproximateBacklogSize"
@@ -865,21 +670,6 @@ module "llama_3_70b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "high-cpu-alarm-${module.llama_3_70b_deployment.endpoint_name}"
-      alarm_description   = "Scale out when CPU is at 70% threshold"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 96 # TODO: Number of vCPUs
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.llama_3_70b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-cpu-alert-${module.llama_3_70b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "high-memory-alarm-${module.llama_3_70b_deployment.endpoint_name}"
       alarm_description   = "Scale up memory usage > 80%"
       metric_name         = "MemoryUtilization"
@@ -893,21 +683,6 @@ module "llama_3_70b_deployment" {
       alarm_actions       = [module.llama_3_70b_deployment.scale_up_policy_arn]
       sns_topic_name      = "high-memory-alert-${module.llama_3_70b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-    },
-    {
-      alarm_name          = "high-GPU-alarm-${module.llama_3_70b_deployment.endpoint_name}"
-      alarm_description   = "Scale up GPU usage > 70%"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 8 # TODO: Number of GPUs
-      evaluation_periods  = 2
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.llama_3_70b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-gpu-alert-${module.llama_3_70b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.llama_3_70b_deployment.endpoint_name}"
@@ -1027,21 +802,6 @@ module "falcon_bf16_180b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "low-cpu-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
-      alarm_description   = "Scale in to zero when CPU < 5%"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanThreshold"
-      threshold           = 5 * 192 # TODO: Number of vCPUs
-      evaluation_periods  = 3
-      datapoints_to_alarm = 2
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.falcon_bf16_180b_deployment.scale_in_to_zero_policy_arn]
-      sns_topic_name      = "low-cpu-alert-${module.falcon_bf16_180b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "no-query-in-backlog-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
       alarm_description   = "Scale in to zero when no queries are in the backlog for > 3 minutes"
       metric_name         = "ApproximateBacklogSize"
@@ -1057,21 +817,6 @@ module "falcon_bf16_180b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
     },
     {
-      alarm_name          = "high-cpu-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
-      alarm_description   = "Scale out when CPU is at 70% threshold"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 192 # TODO: Number of vCPUs
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.falcon_bf16_180b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-cpu-alert-${module.falcon_bf16_180b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-    },
-    {
       alarm_name          = "high-memory-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
       alarm_description   = "Scale up memory usage > 80%"
       metric_name         = "MemoryUtilization"
@@ -1085,21 +830,6 @@ module "falcon_bf16_180b_deployment" {
       alarm_actions       = [module.falcon_bf16_180b_deployment.scale_up_policy_arn]
       sns_topic_name      = "high-memory-alert-${module.falcon_bf16_180b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-    },
-    {
-      alarm_name          = "high-GPU-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
-      alarm_description   = "Scale up GPU usage > 70%"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 70 * 8 # TODO: Number of GPUs
-      evaluation_periods  = 2
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Average"
-      alarm_actions       = [module.falcon_bf16_180b_deployment.scale_up_policy_arn]
-      sns_topic_name      = "high-gpu-alert-${module.falcon_bf16_180b_deployment.endpoint_name}"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
     },
     {
       alarm_name          = "network-spike-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
