@@ -182,7 +182,7 @@ module "gpt_neo_125m_deployment" {
       slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
-      alarm_name          = "unathorized-operations-alarm-${module.gpt_neo_125m_deployment.endpoint_name}"
+      alarm_name          = "unauthorized-operations-alarm-${module.gpt_neo_125m_deployment.endpoint_name}"
       alarm_description   = "Triggers when unauthorized operations are detected in the CloudTrail Logs"
       metric_name         = "UnauthorizedOperationsCount"
       namespace           = "CloudTrailMetrics"
@@ -193,7 +193,7 @@ module "gpt_neo_125m_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
-      sns_topic_name      = "unauthorised-operations-${module.gpt_neo_125m_deployment.endpoint_name}"
+      sns_topic_name      = "unauthorized-operations-${module.gpt_neo_125m_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
@@ -369,11 +369,11 @@ module "phi_2_3b_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
-      sns_topic_name      = "High-error-rate-operations-alarm-${module.phi_2_3b_deployment.endpoint_name}"
+      sns_topic_name      = "high-error-rate-operations-alarm-${module.phi_2_3b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
-      alarm_name          = "unathorized-operations-alarm-${module.phi_2_3b_deployment.endpoint_name}"
+      alarm_name          = "unauthorized-operations-alarm-${module.phi_2_3b_deployment.endpoint_name}"
       alarm_description   = "Triggers when unauthorized operations are detected in the CloudTrail Logs"
       metric_name         = "UnauthorizedOperationsCount"
       namespace           = "CloudTrailMetrics"
@@ -384,7 +384,7 @@ module "phi_2_3b_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
-      sns_topic_name      = "unauthorised-operations-alarm-${module.phi_2_3b_deployment.endpoint_name}"
+      sns_topic_name      = "unauthorized-operations-alarm-${module.phi_2_3b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
@@ -560,11 +560,11 @@ module "mistral_7b_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
-      sns_topic_name      = "High-error-rate-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      sns_topic_name      = "high-error-rate-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
-      alarm_name          = "unathorized-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      alarm_name          = "unauthorized-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
       alarm_description   = "Triggers when unauthorized operations are detected in the CloudTrail Logs"
       metric_name         = "UnauthorizedOperationsCount"
       namespace           = "CloudTrailMetrics"
@@ -575,7 +575,7 @@ module "mistral_7b_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
-      sns_topic_name      = "unauthorised-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
+      sns_topic_name      = "unauthorized-operations-alarm-${module.mistral_7b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
@@ -750,11 +750,11 @@ module "gemma_2_27b_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
-      sns_topic_name      = "High-error-rate-operations-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
+      sns_topic_name      = "high-error-rate-operations-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
-      alarm_name          = "unathorized-operations-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
+      alarm_name          = "unauthorized-operations-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
       alarm_description   = "Triggers when unauthorized operations are detected in the CloudTrail Logs"
       metric_name         = "UnauthorizedOperationsCount"
       namespace           = "CloudTrailMetrics"
@@ -765,7 +765,7 @@ module "gemma_2_27b_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
-      sns_topic_name      = "unauthorised-operations-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
+      sns_topic_name      = "unauthorized-operations-alarm-${module.gemma_2_27b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
@@ -948,11 +948,11 @@ module "llama_3_70b_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
-      sns_topic_name      = "High-error-rate-operations-alarm-${module.llama_3_70b_deployment.endpoint_name}"
+      sns_topic_name      = "high-error-rate-operations-alarm-${module.llama_3_70b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
-      alarm_name          = "unathorized-operations-alarm-${module.llama_3_70b_deployment.endpoint_name}"
+      alarm_name          = "unauthorized-operations-alarm-${module.llama_3_70b_deployment.endpoint_name}"
       alarm_description   = "Triggers when unauthorized operations are detected in the CloudTrail Logs"
       metric_name         = "UnauthorizedOperationsCount"
       namespace           = "CloudTrailMetrics"
@@ -963,7 +963,7 @@ module "llama_3_70b_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
-      sns_topic_name      = "unauthorised-operations-alarm-${module.llama_3_70b_deployment.endpoint_name}"
+      sns_topic_name      = "unauthorized-operations-alarm-${module.llama_3_70b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
@@ -1139,11 +1139,11 @@ module "falcon_bf16_180b_deployment" {
       datapoints_to_alarm = 1
       period              = 300
       statistic           = "Sum"
-      sns_topic_name      = "High-error-rate-operations-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
+      sns_topic_name      = "high-error-rate-operations-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_resource_alerts
     },
     {
-      alarm_name          = "unathorized-operations-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
+      alarm_name          = "unauthorized-operations-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
       alarm_description   = "Triggers when unauthorized operations are detected in the CloudTrail Logs"
       metric_name         = "UnauthorizedOperationsCount"
       namespace           = "CloudTrailMetrics"
@@ -1154,7 +1154,7 @@ module "falcon_bf16_180b_deployment" {
       period              = 300
       statistic           = "Sum"
       alarm_actions       = [module.sns.unauthorised_access_sns_topic_arn]
-      sns_topic_name      = "unauthorised-operations-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
+      sns_topic_name      = "unauthorized-operations-alarm-${module.falcon_bf16_180b_deployment.endpoint_name}"
       slack_webhook_url   = var.slack_webhook_security_alerts
     }
   ]
