@@ -230,8 +230,7 @@ resource "aws_ecr_repository" "arango" {
 }
 
 resource "aws_ecr_repository" "matchbox" {
-  count = var.matchbox_on ? 1 : 0
-  name  = "${var.prefix}-matchbox"
+  name = "${var.prefix}-matchbox"
 }
 
 resource "aws_ecr_lifecycle_policy" "arango_expire_untagged_after_one_day" {
@@ -499,6 +498,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
       "${aws_ecr_repository.airflow.arn}",
       "${aws_ecr_repository.flower.arn}",
       "${aws_ecr_repository.mlflow.arn}",
+      "${aws_ecr_repository.matchbox.arn}",
     ]
   }
 

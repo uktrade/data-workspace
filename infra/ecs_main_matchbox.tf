@@ -1,7 +1,7 @@
 
 locals {
   matchbox_container_vars = [for i, v in var.matchbox_instances : {
-    container_image = "${aws_ecr_repository.matchbox[0].repository_url}:master"
+    container_image = "${aws_ecr_repository.matchbox.repository_url}:master"
     container_name  = "matchbox"
     cpu             = "${local.matchbox_container_cpu}"
     memory          = "${local.matchbox_container_memory}"
@@ -21,7 +21,7 @@ resource "aws_ecs_service" "matchbox" {
   health_check_grace_period_seconds = "10"
 
   network_configuration {
-    subnets         = ["${aws_subnet.matchbox_private.*.id[0]}"]
+    subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
     security_groups = ["${aws_security_group.matchbox_service[count.index].id}"]
   }
 }
@@ -91,7 +91,7 @@ data "aws_iam_policy_document" "matchbox_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.matchbox[0].arn}",
+      "${aws_ecr_repository.matchbox.arn}",
     ]
   }
 

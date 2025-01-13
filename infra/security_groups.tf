@@ -725,6 +725,19 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_healthcheck" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "ecr_api_ingress_https_from_matchbox" {
+  count       = var.matchbox_on ? 1 : 0
+  description = "ingress-https-from-matchbox-service"
+
+  security_group_id        = aws_security_group.ecr_api.id
+  source_security_group_id = aws_security_group.matchbox_service[count.index].id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "cloudwatch_ingress_https_from_all" {
   description = "ingress-https-from-everywhere"
 
@@ -2542,7 +2555,7 @@ resource "aws_security_group" "matchbox_service" {
   count       = length(var.matchbox_instances)
   name        = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-service"
   description = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-service"
-  vpc_id      = aws_vpc.matchbox.id
+  vpc_id      = aws_vpc.main.id
 
   tags = {
     Name = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-service"
@@ -2551,6 +2564,32 @@ resource "aws_security_group" "matchbox_service" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+resource "aws_security_group_rule" "matchbox_egress_https_all" {
+  count       = length(var.matchbox_instances)
+  description = "egress-https-to-all"
+
+  security_group_id = aws_security_group.matchbox_service[count.index].id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "matchbox_egress_https_to_ecr_api" {
+  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
+  description = "egress-https-from-matchbox"
+
+  security_group_id        = aws_security_group.matchbox_service[count.index].id
+  source_security_group_id = aws_security_group.ecr_api.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
 }
 
 resource "aws_security_group" "matchbox_db" {
