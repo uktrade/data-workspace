@@ -859,3 +859,80 @@ resource "aws_subnet" "matchbox_private" {
     Name = "${var.prefix}-private-matchbox-${var.aws_availability_zones_short[count.index]}"
   }
 }
+
+resource "aws_route_table" "matchbox" {
+  vpc_id = aws_vpc.matchbox.id
+  tags = {
+    Name = "${var.prefix}-matchbox"
+  }
+}
+
+resource "aws_route_table_association" "matchbox_private" {
+  count          = length(var.aws_availability_zones)
+  subnet_id      = aws_subnet.matchbox_private.*.id[count.index]
+  route_table_id = aws_route_table.matchbox.id
+}
+
+resource "aws_vpc_endpoint" "matchbox_ecr_api_endpoint" {
+  vpc_id             = aws_vpc.matchbox.id
+  service_name       = "com.amazonaws.eu-west-2.ecr.api"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.matchbox_private.*.id
+  security_group_ids = [aws_security_group.matchbox_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "matchbox-ecr-api-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_matchbox_endpoint_ecr.json
+}
+
+resource "aws_vpc_endpoint" "matchbox_ecr_dkr_endpoint" {
+  vpc_id             = aws_vpc.matchbox.id
+  service_name       = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.dkr"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.matchbox_private.*.id
+  security_group_ids = [aws_security_group.matchbox_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "matchbox-ecr-dkr-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.aws_matchbox_endpoint_ecr.json
+}
+
+data "aws_iam_policy_document" "aws_matchbox_endpoint_ecr" {
+
+  dynamic "statement" {
+    for_each = var.matchbox_on ? [0] : []
+    content {
+
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.matchbox_task_execution[0].arn}"]
+      }
+
+      actions = [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
+      ]
+
+      resources = [
+        "*",
+      ]
+    }
+  }
+}
+
+resource "aws_vpc_endpoint" "aws_matchbox_endpoint_s3" {
+  vpc_id            = aws_vpc.matchbox.id
+  service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.matchbox.id]
+
+  tags = {
+    Environment = var.prefix
+    Name        = "matchbox-s3-endpoint"
+  }
+}

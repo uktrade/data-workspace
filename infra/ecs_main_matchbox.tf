@@ -21,7 +21,7 @@ resource "aws_ecs_service" "matchbox" {
   health_check_grace_period_seconds = "10"
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+    subnets         = ["${aws_subnet.matchbox_private.*.id[0]}"]
     security_groups = ["${aws_security_group.matchbox_service[count.index].id}"]
   }
 }
