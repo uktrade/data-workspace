@@ -590,11 +590,23 @@ resource "aws_security_group_rule" "notebooks_egress_sagemaker_vpc" {
   description = "egress-sagemaker-vpc"
 
   security_group_id = aws_security_group.notebooks.id
-  cidr_blocks       = ["${aws_subnet.sagemaker_private_without_egress.*.cidr_block[0]}"]
+  cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "egress"
   from_port = "0"
   to_port   = "65535"
+  protocol  = "TCP"
+}
+
+resource "aws_security_group_rule" "notebooks_ingress_sagemaker_vpc" {
+  description = "egress-sagemaker-vpc"
+
+  security_group_id = aws_security_group.notebooks.id
+  cidr_blocks       = [aws_vpc.sagemaker.cidr_block]
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
   protocol  = "TCP"
 }
 
@@ -645,11 +657,23 @@ resource "aws_security_group_rule" "egress_sagemaker_vpc" {
   description = "egress-sagemaker-vpc"
 
   security_group_id = aws_security_group.sagemaker.id
-  cidr_blocks       = ["${aws_subnet.sagemaker_private_without_egress.*.cidr_block[0]}"]
+  cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "egress"
   from_port = "0"
   to_port   = "65535"
+  protocol  = "TCP"
+}
+
+resource "aws_security_group_rule" "ingress_notebooks_vpc" {
+  description = "egress-sagemaker-vpc"
+
+  security_group_id = aws_security_group.sagemaker.id
+  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
   protocol  = "TCP"
 }
 

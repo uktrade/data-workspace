@@ -19,9 +19,8 @@ resource "aws_vpc_peering_connection" "jupyterhub" {
 resource "aws_vpc" "notebooks" {
   cidr_block = var.vpc_notebooks_cidr
 
-  enable_dns_support   = true # CHANGE BACK
-  enable_dns_hostnames = true # CHANGE BACK
-
+  enable_dns_support   = false
+  enable_dns_hostnames = false
   tags = {
     Name = "${var.prefix}-notebooks"
   }
@@ -933,16 +932,16 @@ resource "aws_vpc_peering_connection" "datasets_to_sagemaker" {
 
 # To enable connection between tools in the notebooks VPC and Sagemaker
 resource "aws_vpc_peering_connection" "sagemaker_to_notebooks" {
-  peer_vpc_id = aws_vpc.sagemaker.id
-  vpc_id      = aws_vpc.notebooks.id
+  peer_vpc_id = aws_vpc.notebooks.id
+  vpc_id      = aws_vpc.sagemaker.id
   auto_accept = true
 
   accepter {
-    allow_remote_vpc_dns_resolution = true #CHECK THIS
+    allow_remote_vpc_dns_resolution = false
   }
 
   requester {
-    allow_remote_vpc_dns_resolution = true #CHECK THIS
+    allow_remote_vpc_dns_resolution = false
   }
 
   tags = {
@@ -993,7 +992,7 @@ resource "aws_route" "pcx_datasets_to_sagemaker" {
 # Cloudwatch logging for SageMaker VPC
 resource "aws_flow_log" "sagemaker" {
   log_destination = aws_cloudwatch_log_group.vpc_sagemaker_flow_log.arn
-  iam_role_arn    = aws_iam_role.vpc_sagemaker_flow_log.arn 
+  iam_role_arn    = aws_iam_role.vpc_sagemaker_flow_log.arn
   vpc_id          = aws_vpc.sagemaker.id
   traffic_type    = "ALL"
 }
@@ -1086,12 +1085,13 @@ resource "aws_vpc_endpoint" "sagemaker_s3" {
   vpc_id            = aws_vpc.sagemaker.id
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.s3"
   vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.sagemaker.id]
 }
 
-resource "aws_vpc_endpoint_route_table_association" "sagemaker_s3" {
-  vpc_endpoint_id = aws_vpc_endpoint.sagemaker_s3.id
-  route_table_id  = aws_route_table.sagemaker.id
-}
+# resource "aws_vpc_endpoint_route_table_association" "sagemaker_s3" {
+#   vpc_endpoint_id = aws_vpc_endpoint.sagemaker_s3.id
+#   route_table_id  = aws_route_table.sagemaker.id
+# }
 
 #######################
 
