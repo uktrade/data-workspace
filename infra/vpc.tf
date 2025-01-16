@@ -286,6 +286,14 @@ resource "aws_route" "private_without_egress_to_jupyterhub" {
   vpc_peering_connection_id = aws_vpc_peering_connection.jupyterhub.id
 }
 
+resource "aws_route" "private_without_egress_to_matchbox" {
+  count = length(var.aws_availability_zones)
+
+  route_table_id            = aws_route_table.private_without_egress.id
+  destination_cidr_block    = aws_subnet.matchbox_private.*.cidr_block[count.index]
+  vpc_peering_connection_id = aws_vpc_peering_connection.matchbox_to_notebooks.id
+}
+
 resource "aws_route_table_association" "jupyterhub_private_without_egress" {
   count          = length(var.aws_availability_zones)
   subnet_id      = aws_subnet.private_without_egress.*.id[count.index]
@@ -925,7 +933,7 @@ data "aws_iam_policy_document" "aws_matchbox_endpoint_ecr" {
   }
 }
 
-resource "aws_vpc_endpoint" "aws_matchbox_endpoint_s3" {
+resource "aws_vpc_endpoint" "matchbox_endpoint_s3" {
   vpc_id            = aws_vpc.matchbox.id
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.s3"
   vpc_endpoint_type = "Gateway"
@@ -934,5 +942,63 @@ resource "aws_vpc_endpoint" "aws_matchbox_endpoint_s3" {
   tags = {
     Environment = var.prefix
     Name        = "matchbox-s3-endpoint"
+  }
+}
+
+resource "aws_vpc_peering_connection" "matchbox_to_notebooks" {
+  peer_vpc_id = aws_vpc.notebooks.id
+  vpc_id      = aws_vpc.matchbox.id
+  auto_accept = true
+
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+}
+
+resource "aws_route" "pcx_matchbox_to_notebooks" {
+  route_table_id            = aws_route_table.matchbox.id
+  destination_cidr_block    = aws_vpc.notebooks.cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.matchbox_to_notebooks.id
+}
+
+resource "aws_vpc_endpoint" "matchbox_cloudwatch_logs" {
+  vpc_id            = aws_vpc.matchbox.id
+  service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.logs"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids = ["${aws_security_group.matchbox_endpoints.id}"]
+  subnet_ids         = ["${aws_subnet.matchbox_private.*.id[0]}"]
+
+  policy = data.aws_iam_policy_document.matchbox_cloudwatch_endpoint.json
+
+  private_dns_enabled = true
+}
+
+data "aws_iam_policy_document" "matchbox_cloudwatch_endpoint" {
+
+  dynamic "statement" {
+    for_each = var.matchbox_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.matchbox_task_execution[0].arn}"]
+      }
+
+      actions = [
+        "*",
+      ]
+
+      resources = [
+        "*"
+      ]
+    }
   }
 }

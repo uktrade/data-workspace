@@ -6,6 +6,8 @@ locals {
     cpu             = "${local.matchbox_container_cpu}"
     memory          = "${local.matchbox_container_memory}"
     database_uri    = "postgresql://${aws_rds_cluster.matchbox[i].master_username}:${random_string.aws_db_instance_matchbox_password[i].result}@${aws_rds_cluster.matchbox[i].endpoint}:5432/${aws_rds_cluster.matchbox[i].database_name}"
+    log_group       = "${aws_cloudwatch_log_group.matchbox[0].name}"
+    log_region      = "${data.aws_region.aws_region.name}"
   }]
 }
 
@@ -83,6 +85,17 @@ resource "aws_iam_policy" "matchbox_task_execution" {
 
 data "aws_iam_policy_document" "matchbox_task_execution" {
   count = var.matchbox_on ? length(var.matchbox_instances) : 0
+
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = [
+      "${aws_cloudwatch_log_group.matchbox[0].arn}:*",
+    ]
+  }
 
   statement {
     actions = [
@@ -216,4 +229,10 @@ data "aws_iam_policy_document" "matchbox" {
       ]
     }
   }
+}
+
+resource "aws_cloudwatch_log_group" "matchbox" {
+  count             = var.matchbox_on ? 1 : 0
+  name              = "${var.prefix}-matchbox"
+  retention_in_days = "3653"
 }
