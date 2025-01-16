@@ -289,3 +289,33 @@ resource "aws_acm_certificate_validation" "airflow_webserver" {
 # resource "aws_acm_certificate_validation" "jupyterhub" {
 #   certificate_arn = "${aws_acm_certificate.jupyterhub.arn}"
 # }
+
+# hosted zone to create a private DNS record for the Sagemaker endpoints
+# avoids turning on dns support in notebooks VPC 
+
+resource "aws_route53_zone" "sagemaker_hosted_zone" {
+  name = "${var.prefix}-sagemaker-hosted-zone"
+
+  vpc {
+    vpc_id = aws_vpc.sagemaker.id
+  }
+}
+
+data "aws_vpc_endpoint" "sagemaker_runtime" {
+  vpc_id       = aws_vpc.sagemaker.id
+  service_name = "com.amazonaws.eu-west-2.sagemaker.runtime"
+}
+
+data "aws_network_interface" "sagemaker_runtime_network_interface" {
+  for_each = data.aws_vpc_endpoint.sagemaker_runtime.network_interface_ids
+  id       = each.value
+}
+
+resource "aws_route53_record" "sagemaker_runtime_DNS_record" {
+  for_each = data.aws_network_interface.sagemaker_runtime_network_interface
+  zone_id  = aws_route53_zone.sagemaker_hosted_zone.zone_id
+  name     = "runtime.sagemaker.${data.aws_region.aws_region.name}.amazonaws.com"
+  type     = "A"
+  ttl      = 60
+  records  = [each.value.private_ip]
+}
