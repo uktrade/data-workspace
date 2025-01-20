@@ -113,10 +113,10 @@ module "cost_monitoring_dashboard" {
 }
 
 module "sns" {
-  source             = "./modules/sns"
-  prefix             = "data-workspace-sagemaker"
-  account_id         = data.aws_caller_identity.aws_caller_identity.account_id
-  notification_email = var.sagemaker_budget_emails
+  source     = "./modules/sns"
+  prefix     = "data-workspace-sagemaker"
+  account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  #notification_email = var.sagemaker_budget_emails
 }
 
 module "sagemaker_output_mover" {
@@ -129,7 +129,7 @@ module "sagemaker_output_mover" {
 module "log_group" {
   source              = "./modules/logs"
   prefix              = "data-workspace-sagemaker"
-  endpoint_names      = local.all_endpoint_names
+  endpoint_names      = [for model_name in local.all_llm_names : "${model_name}-endpoint"]
   lambda_function_arn = module.lambda_logs.lambda_function_arn
 }
 
@@ -143,14 +143,11 @@ output "all_log_group_arns" {
 
 
 module "lambda_logs" {
-  source                = "./modules/lambda/cloudwatch"
-  s3_bucket_name        = "sagemaker-logs-centralized"
-  log_delivery_role_arn = module.iam.lambda_execution_role_arn
-  sagemaker_log_group_arns = [
-    for endpoint_name in local.all_endpoint_names :
-    "arn:aws:logs:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:/aws/sagemaker/Endpoints/${endpoint_name}:*"
-  ]
-  account_id = data.aws_caller_identity.aws_caller_identity.account_id
+  source                   = "./modules/lambda/cloudwatch"
+  s3_bucket_name           = "sagemaker-logs-centralized"
+  log_delivery_role_arn    = module.iam.lambda_execution_role_arn
+  sagemaker_log_group_arns = [for model_name in local.all_llm_names : "arn:aws:logs:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:/aws/sagemaker/Endpoints/${model_name}-endpoint:*"]
+  account_id               = data.aws_caller_identity.aws_caller_identity.account_id
 }
 
 module "budgets" {
