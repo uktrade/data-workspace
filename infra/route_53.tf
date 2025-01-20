@@ -293,29 +293,57 @@ resource "aws_acm_certificate_validation" "airflow_webserver" {
 # hosted zone to create a private DNS record for the Sagemaker endpoints
 # avoids turning on dns support in notebooks VPC 
 
-resource "aws_route53_zone" "sagemaker_hosted_zone" {
-  name = "${var.prefix}-sagemaker-hosted-zone"
+resource "aws_route53_zone" "sagemaker_runtime_hosted_zone" {
+  name = "runtime.sagemaker.eu-west-2.amazonaws.com"
+  # name = "${var.prefix}-sagemaker-runtime-hosted-zone"
 
   vpc {
-    vpc_id = aws_vpc.sagemaker.id
+    vpc_id = aws_vpc.notebooks.id
   }
 }
 
+# Sagemaker Runtime DNS records
 data "aws_vpc_endpoint" "sagemaker_runtime" {
   vpc_id       = aws_vpc.sagemaker.id
   service_name = "com.amazonaws.eu-west-2.sagemaker.runtime"
 }
 
 data "aws_network_interface" "sagemaker_runtime_network_interface" {
-  for_each = data.aws_vpc_endpoint.sagemaker_runtime.network_interface_ids
-  id       = each.value
+  id       = tolist(data.aws_vpc_endpoint.sagemaker_runtime.network_interface_ids)[0]
 }
 
 resource "aws_route53_record" "sagemaker_runtime_DNS_record" {
-  for_each = data.aws_network_interface.sagemaker_runtime_network_interface
-  zone_id  = aws_route53_zone.sagemaker_hosted_zone.zone_id
+  # for_each = {for idx, val in tolist(data.aws_vpc_endpoint.sagemaker_runtime.network_interface_ids) : idx => val if idx == 0}
+  zone_id  = aws_route53_zone.sagemaker_runtime_hosted_zone.zone_id
   name     = "runtime.sagemaker.${data.aws_region.aws_region.name}.amazonaws.com"
   type     = "A"
+  ttl      = 300
+  records  = [data.aws_network_interface.sagemaker_runtime_network_interface.private_ip]
+}
+
+resource "aws_route53_zone" "sagemaker_api_hosted_zone" {
+  name = "${var.prefix}-sagemaker-api-hosted-zone"
+
+  vpc {
+    vpc_id = aws_vpc.notebooks.id
+  }
+}
+
+# SageMaker API DNS records
+data "aws_vpc_endpoint" "sagemaker_api" {
+  vpc_id       = aws_vpc.sagemaker.id
+  service_name = "com.amazonaws.eu-west-2.sagemaker.api"
+}
+
+data "aws_network_interface" "sagemaker_api_network_interface" {
+  id = tolist(data.aws_vpc_endpoint.sagemaker_api.network_interface_ids)[0]
+}
+
+resource "aws_route53_record" "sagemaker_api_DNS_record" {
+  # for_each = {for idx, val in tolist(data.aws_vpc_endpoint.sagemaker_api.network_interface_ids) : idx => val if idx == 0}
+  zone_id  = aws_route53_zone.sagemaker_api_hosted_zone.zone_id
+  name     = "api.sagemaker.${data.aws_region.aws_region.name}.amazonaws.com"
+  type     = "A"
   ttl      = 60
-  records  = [each.value.private_ip]
+  records  = [data.aws_network_interface.sagemaker_api_network_interface.private_ip]
 }
