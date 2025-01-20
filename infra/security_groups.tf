@@ -2321,8 +2321,8 @@ resource "aws_security_group_rule" "notebooks_egress_http_to_matchbox_service" {
   source_security_group_id = aws_security_group.matchbox_service[count.index].id
 
   type      = "egress"
-  from_port = "8000"
-  to_port   = "8000"
+  from_port = local.matchbox_port
+  to_port   = local.matchbox_port
   protocol  = "tcp"
 }
 
@@ -2579,7 +2579,7 @@ resource "aws_security_group_rule" "matchbox_egress_https_to_matchbox_endpoints"
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "matchbox_api_ingress_https_from_notebooks" {
+resource "aws_security_group_rule" "matchbox_api_ingress_https_from_notebooks_80" {
   count       = var.matchbox_on ? length(var.matchbox_instances) : 0
   description = "matchbox-api-ingress-https-from-notebooks"
 
@@ -2587,8 +2587,21 @@ resource "aws_security_group_rule" "matchbox_api_ingress_https_from_notebooks" {
   source_security_group_id = aws_security_group.notebooks.id
 
   type      = "ingress"
-  from_port = "8000"
-  to_port   = "8000"
+  from_port = "80"
+  to_port   = "80"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "matchbox_api_ingress_https_from_notebooks_matchbox_port" {
+  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
+  description = "matchbox-api-ingress-https-from-notebooks"
+
+  security_group_id        = aws_security_group.matchbox_service[count.index].id
+  source_security_group_id = aws_security_group.notebooks.id
+
+  type      = "ingress"
+  from_port = local.matchbox_port
+  to_port   = local.matchbox_port
   protocol  = "tcp"
 }
 
@@ -2645,4 +2658,17 @@ resource "aws_security_group_rule" "matchbox_endpoints_https_ingress_https_from_
   from_port = "443"
   to_port   = "443"
   protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "matchbox_service_egress_dns_udp_to_dns_rewrite_proxy" {
+  count       = length(var.matchbox_instances)
+  description = "egress-dns-to-dns-rewrite-proxy"
+
+  security_group_id = aws_security_group.matchbox_service[count.index].id
+  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+
+  type      = "egress"
+  from_port = "53"
+  to_port   = "53"
+  protocol  = "udp"
 }

@@ -22,9 +22,33 @@ resource "aws_ecs_service" "matchbox" {
   platform_version                  = "1.4.0"
   health_check_grace_period_seconds = "10"
 
+  service_registries {
+    registry_arn = aws_service_discovery_service.matchbox[0].arn
+  }
+
   network_configuration {
     subnets         = ["${aws_subnet.matchbox_private.*.id[0]}"]
     security_groups = ["${aws_security_group.matchbox_service[count.index].id}"]
+  }
+}
+
+resource "aws_service_discovery_service" "matchbox" {
+  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+  name  = "matchbox"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.jupyterhub.id
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+  }
+
+  # Needed for a service to be able to register instances with a target group,
+  # but only if it has a service_registries, which we do
+  # https://forums.aws.amazon.com/thread.jspa?messageID=852407&tstart=0
+  health_check_custom_config {
+    failure_threshold = 1
   }
 }
 
@@ -32,7 +56,7 @@ resource "aws_ecs_task_definition" "matchbox_service" {
   count  = var.matchbox_on ? length(var.matchbox_instances) : 0
   family = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
   container_definitions = templatefile(
-    "${path.module}/ecs_main_matchbox_container_definitions.json",
+    "${path.module}/ecs_matchbox_matchbox_container_definitions.json",
     local.matchbox_container_vars[count.index]
   )
   execution_role_arn = aws_iam_role.matchbox_task_execution[count.index].arn
