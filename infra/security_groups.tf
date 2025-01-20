@@ -2579,7 +2579,7 @@ resource "aws_security_group_rule" "matchbox_egress_https_to_matchbox_endpoints"
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "matchbox_api_ingress_https_from_notebooks_80" {
+resource "aws_security_group_rule" "matchbox_api_ingress_http_from_notebooks" {
   count       = var.matchbox_on ? length(var.matchbox_instances) : 0
   description = "matchbox-api-ingress-https-from-notebooks"
 
@@ -2592,7 +2592,7 @@ resource "aws_security_group_rule" "matchbox_api_ingress_https_from_notebooks_80
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "matchbox_api_ingress_https_from_notebooks_matchbox_port" {
+resource "aws_security_group_rule" "matchbox_api_ingress_http_from_notebooks_matchbox_port" {
   count       = var.matchbox_on ? length(var.matchbox_instances) : 0
   description = "matchbox-api-ingress-https-from-notebooks"
 
@@ -2647,7 +2647,7 @@ resource "aws_security_group" "matchbox_endpoints" {
   }
 }
 
-resource "aws_security_group_rule" "matchbox_endpoints_https_ingress_https_from_matchbox_service" {
+resource "aws_security_group_rule" "matchbox_endpoints_https_ingress_from_matchbox_service" {
   count       = var.matchbox_on ? 1 : 0
   description = "ingress-matchbox-endpoints"
 
@@ -2660,7 +2660,7 @@ resource "aws_security_group_rule" "matchbox_endpoints_https_ingress_https_from_
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "matchbox_service_egress_dns_udp_to_dns_rewrite_proxy" {
+resource "aws_security_group_rule" "matchbox_service_egress_udp_to_dns_rewrite_proxy" {
   count       = length(var.matchbox_instances)
   description = "egress-dns-to-dns-rewrite-proxy"
 

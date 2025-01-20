@@ -868,6 +868,24 @@ resource "aws_subnet" "matchbox_private" {
   }
 }
 
+resource "aws_vpc_peering_connection" "matchbox_to_notebooks" {
+  peer_vpc_id = aws_vpc.notebooks.id
+  vpc_id      = aws_vpc.matchbox.id
+  auto_accept = true
+
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+}
+
 resource "aws_route_table" "matchbox" {
   vpc_id = aws_vpc.matchbox.id
   tags = {
@@ -879,6 +897,12 @@ resource "aws_route_table_association" "matchbox_private" {
   count          = length(var.aws_availability_zones)
   subnet_id      = aws_subnet.matchbox_private.*.id[count.index]
   route_table_id = aws_route_table.matchbox.id
+}
+
+resource "aws_route" "pcx_matchbox_to_notebooks" {
+  route_table_id            = aws_route_table.matchbox.id
+  destination_cidr_block    = aws_vpc.notebooks.cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.matchbox_to_notebooks.id
 }
 
 resource "aws_vpc_endpoint" "matchbox_ecr_api_endpoint" {
@@ -943,30 +967,6 @@ resource "aws_vpc_endpoint" "matchbox_endpoint_s3" {
     Environment = var.prefix
     Name        = "matchbox-s3-endpoint"
   }
-}
-
-resource "aws_vpc_peering_connection" "matchbox_to_notebooks" {
-  peer_vpc_id = aws_vpc.notebooks.id
-  vpc_id      = aws_vpc.matchbox.id
-  auto_accept = true
-
-  accepter {
-    allow_remote_vpc_dns_resolution = false
-  }
-
-  requester {
-    allow_remote_vpc_dns_resolution = false
-  }
-
-  tags = {
-    Name = "${var.prefix}"
-  }
-}
-
-resource "aws_route" "pcx_matchbox_to_notebooks" {
-  route_table_id            = aws_route_table.matchbox.id
-  destination_cidr_block    = aws_vpc.notebooks.cidr_block
-  vpc_peering_connection_id = aws_vpc_peering_connection.matchbox_to_notebooks.id
 }
 
 resource "aws_vpc_endpoint" "matchbox_cloudwatch_logs" {
