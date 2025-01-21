@@ -1,19 +1,19 @@
 # TODO: better if this is not required to be stated explicitly as it is brittle
 locals {
   all_llm_names = [
-    module.gpt-neo-125m-deployment.model_name,
-    module.phi-2-3b-deployment.model_name,
-    module.mistral-7b-deployment.model_name,
-    module.gemma-2-27b-deployment.model_name,
-    module.llama-3-70b-deployment.model_name,
-    #module.falcon-bf16-180b-deployment.model_name,
+    module.gpt_neo_125m_deployment.model_name,
+    module.phi_2_3b_deployment.model_name,
+    module.mistral_7b_deployment.model_name,
+    module.gemma_2_27b_deployment.model_name,
+    module.llama_3_70b_deployment.model_name,
+    #module.falcon_bf16_180b_deployment.model_name,
   ]
 }
 
 ################
 # GPT Neo 125m
 ###############
-module "gpt-neo-125m-deployment" {
+module "gpt_neo_125m_deployment" {
   model_name            = "gpt-neo-125m"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-textgeneration1/huggingface-textgeneration1-gpt-neo-125m/artifacts/inference-prepack/v2.0.0/"
@@ -48,8 +48,8 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.gpt-neo-125m-deployment.scale_down_to_zero_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_one_policy_arn]
+      ok_actions          = [module.gpt_neo_125m_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
@@ -63,7 +63,7 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -78,7 +78,7 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -93,7 +93,7 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -108,7 +108,7 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -123,7 +123,7 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -138,7 +138,7 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -153,7 +153,7 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -168,7 +168,7 @@ module "gpt-neo-125m-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt-neo-125m-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -216,7 +216,7 @@ module "gpt-neo-125m-deployment" {
 ###############
 # Phi 2 3b
 ###############
-module "phi-2-3b-deployment" {
+module "phi_2_3b_deployment" {
   model_name            = "phi-2-3b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.2-gpu-py310-cu121-ubuntu22.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-phi-2/artifacts/inference-prepack/v1.0.0/"
@@ -250,8 +250,8 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.phi-2-3b-deployment.scale_down_to_zero_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_one_policy_arn]
+      ok_actions          = [module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
@@ -265,7 +265,7 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -280,7 +280,7 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -295,7 +295,7 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -310,7 +310,7 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -325,7 +325,7 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -340,7 +340,7 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -355,7 +355,7 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -370,7 +370,7 @@ module "phi-2-3b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi-2-3b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -419,7 +419,7 @@ module "phi-2-3b-deployment" {
 ###############
 # Mistral 7b
 ###############
-module "mistral-7b-deployment" {
+module "mistral_7b_deployment" {
   model_name            = "mistral-7b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-v3/artifacts/inference-prepack/v1.0.0/"
@@ -454,8 +454,8 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.mistral-7b-deployment.scale_down_to_zero_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_one_policy_arn]
+      ok_actions          = [module.mistral_7b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
@@ -469,7 +469,7 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -484,7 +484,7 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -499,7 +499,7 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -514,7 +514,7 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -529,7 +529,7 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -544,7 +544,7 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -559,7 +559,7 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -574,7 +574,7 @@ module "mistral-7b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral-7b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -623,7 +623,7 @@ module "mistral-7b-deployment" {
 ###############
 # Gemma 2 27b
 ###############
-module "gemma-2-27b-deployment" {
+module "gemma_2_27b_deployment" {
   model_name            = "gemma-2-27b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.4.0-tgi2.3.1-gpu-py311-cu124-ubuntu22.04"
   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-gemma-2-27b/artifacts/inference-prepack/v1.0.0/"
@@ -657,8 +657,8 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.gemma-2-27b-deployment.scale_down_to_zero_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_one_policy_arn]
+      ok_actions          = [module.gemma_2_27b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
@@ -672,7 +672,7 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -687,7 +687,7 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -702,7 +702,7 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -717,7 +717,7 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -732,7 +732,7 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -747,7 +747,7 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -762,7 +762,7 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -777,7 +777,7 @@ module "gemma-2-27b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma-2-27b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -827,7 +827,7 @@ module "gemma-2-27b-deployment" {
 ###############
 # Llama 3 70b
 ###############
-module "llama-3-70b-deployment" {
+module "llama_3_70b_deployment" {
   model_name            = "llama-3-70b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-3-70b-instruct/artifacts/inference-prepack/v2.0.0/"
@@ -867,8 +867,8 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.llama-3-70b-deployment.scale_down_to_zero_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_one_policy_arn]
+      ok_actions          = [module.llama_3_70b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
@@ -882,7 +882,7 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -897,7 +897,7 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -912,7 +912,7 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -927,7 +927,7 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -942,7 +942,7 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -957,7 +957,7 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -972,7 +972,7 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -987,7 +987,7 @@ module "llama-3-70b-deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama-3-70b-deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -1036,7 +1036,7 @@ module "llama-3-70b-deployment" {
 ###############
 # Falcon bf16 180b
 ###############
-module "falcon-bf16-180b-deployment" {
+module "falcon_bf16_180b_deployment" {
   model_name                = "falcon-bf16-180b"
   container_image           = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
   model_uri                 = "s3://jumpstart-cache-prod-eu-west-2/huggingface-infer/prepack/v1.2.0/infer-prepack-huggingface-llm-falcon-180b-bf16.tar.gz"
@@ -1071,8 +1071,8 @@ module "falcon-bf16-180b-deployment" {
       period                  = 60
       statistic               = "Maximum"
       slack_webhook_url       = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.falcon-bf16-180b-deployment.scale_up_from_zero_policy_arn]
-      ok_actions          = [module.falcon-bf16-180b-deployment.scale_down_to_zero_policy_arn]
+      alarm_actions       = [module.falcon_bf16_180b_deployment.scale_up_from_zero_policy_arn]
+      ok_actions          = [module.falcon_bf16_180b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefi    = "unauthorized-operations"
