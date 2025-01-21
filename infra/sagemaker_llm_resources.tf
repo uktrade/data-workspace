@@ -7,19 +7,12 @@ locals {
     module.gemma_2_27b_deployment.model_name,
     module.llama_3_70b_deployment.model_name,
     #module.falcon_bf16_180b_deployment.model_name,
-    module.gpt_neo_125m_deployment.model_name,
-    module.phi_2_3b_deployment.model_name,
-    module.mistral_7b_deployment.model_name,
-    module.gemma_2_27b_deployment.model_name,
-    module.llama_3_70b_deployment.model_name,
-    #module.falcon_bf16_180b_deployment.model_name,
   ]
 }
 
 ################
 # GPT Neo 125m
 ###############
-module "gpt_neo_125m_deployment" {
 module "gpt_neo_125m_deployment" {
   model_name            = "gpt-neo-125m"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
@@ -57,14 +50,10 @@ module "gpt_neo_125m_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_one_policy_arn]
       ok_actions          = [module.gpt_neo_125m_deployment.scale_down_to_zero_policy_arn]
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.gpt_neo_125m_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -75,14 +64,11 @@ module "gpt_neo_125m_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -93,14 +79,11 @@ module "gpt_neo_125m_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -111,14 +94,11 @@ module "gpt_neo_125m_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -129,14 +109,11 @@ module "gpt_neo_125m_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -146,7 +123,6 @@ module "gpt_neo_125m_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
@@ -155,8 +131,6 @@ module "gpt_neo_125m_deployment" {
       alarm_description   = "Scale down when RAM usage is light"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 1
@@ -165,14 +139,12 @@ module "gpt_neo_125m_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
@@ -182,14 +154,12 @@ module "gpt_neo_125m_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
@@ -198,7 +168,6 @@ module "gpt_neo_125m_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
@@ -248,7 +217,6 @@ module "gpt_neo_125m_deployment" {
 # Phi 2 3b
 ###############
 module "phi_2_3b_deployment" {
-module "phi_2_3b_deployment" {
   model_name            = "phi-2-3b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.2-gpu-py310-cu121-ubuntu22.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-phi-2/artifacts/inference-prepack/v1.0.0/"
@@ -284,14 +252,10 @@ module "phi_2_3b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_one_policy_arn]
       ok_actions          = [module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -302,14 +266,11 @@ module "phi_2_3b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -320,14 +281,11 @@ module "phi_2_3b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -338,14 +296,11 @@ module "phi_2_3b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -356,14 +311,11 @@ module "phi_2_3b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -373,7 +325,6 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
@@ -382,8 +333,6 @@ module "phi_2_3b_deployment" {
       alarm_description   = "Scale down when RAM usage is light"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 1
@@ -392,14 +341,12 @@ module "phi_2_3b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
@@ -409,14 +356,12 @@ module "phi_2_3b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
@@ -425,7 +370,6 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
@@ -476,7 +420,6 @@ module "phi_2_3b_deployment" {
 # Mistral 7b
 ###############
 module "mistral_7b_deployment" {
-module "mistral_7b_deployment" {
   model_name            = "mistral-7b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-v3/artifacts/inference-prepack/v1.0.0/"
@@ -513,14 +456,10 @@ module "mistral_7b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.mistral_7b_deployment.scale_up_to_one_policy_arn]
       ok_actions          = [module.mistral_7b_deployment.scale_down_to_zero_policy_arn]
-      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.mistral_7b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -531,14 +470,11 @@ module "mistral_7b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -549,14 +485,11 @@ module "mistral_7b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -567,14 +500,11 @@ module "mistral_7b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -585,14 +515,11 @@ module "mistral_7b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -602,7 +529,6 @@ module "mistral_7b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
@@ -611,8 +537,6 @@ module "mistral_7b_deployment" {
       alarm_description   = "Scale down when RAM usage is light"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 1
@@ -621,14 +545,12 @@ module "mistral_7b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
@@ -638,14 +560,12 @@ module "mistral_7b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
@@ -654,7 +574,6 @@ module "mistral_7b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       alarm_actions       = [module.mistral_7b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
@@ -705,7 +624,6 @@ module "mistral_7b_deployment" {
 # Gemma 2 27b
 ###############
 module "gemma_2_27b_deployment" {
-module "gemma_2_27b_deployment" {
   model_name            = "gemma-2-27b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.4.0-tgi2.3.1-gpu-py311-cu124-ubuntu22.04"
   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-gemma-2-27b/artifacts/inference-prepack/v1.0.0/"
@@ -741,14 +659,10 @@ module "gemma_2_27b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_one_policy_arn]
       ok_actions          = [module.gemma_2_27b_deployment.scale_down_to_zero_policy_arn]
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.gemma_2_27b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -759,14 +673,11 @@ module "gemma_2_27b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -777,14 +688,11 @@ module "gemma_2_27b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -795,14 +703,11 @@ module "gemma_2_27b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -813,14 +718,11 @@ module "gemma_2_27b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -830,7 +732,6 @@ module "gemma_2_27b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
@@ -839,8 +740,6 @@ module "gemma_2_27b_deployment" {
       alarm_description   = "Scale down when RAM usage is light"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 1
@@ -849,14 +748,12 @@ module "gemma_2_27b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
@@ -866,14 +763,12 @@ module "gemma_2_27b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
@@ -882,7 +777,6 @@ module "gemma_2_27b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
@@ -934,7 +828,6 @@ module "gemma_2_27b_deployment" {
 # Llama 3 70b
 ###############
 module "llama_3_70b_deployment" {
-module "llama_3_70b_deployment" {
   model_name            = "llama-3-70b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-3-70b-instruct/artifacts/inference-prepack/v2.0.0/"
@@ -976,14 +869,10 @@ module "llama_3_70b_deployment" {
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_one_policy_arn]
       ok_actions          = [module.llama_3_70b_deployment.scale_down_to_zero_policy_arn]
-      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.llama_3_70b_deployment.scale_down_to_zero_policy_arn]
     },
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -994,14 +883,11 @@ module "llama_3_70b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -1012,14 +898,11 @@ module "llama_3_70b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -1030,14 +913,11 @@ module "llama_3_70b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
@@ -1048,14 +928,11 @@ module "llama_3_70b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -1065,7 +942,6 @@ module "llama_3_70b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
@@ -1074,8 +950,6 @@ module "llama_3_70b_deployment" {
       alarm_description   = "Scale down when RAM usage is light"
       metric_name         = "MemoryUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 1
@@ -1084,14 +958,12 @@ module "llama_3_70b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
-      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
@@ -1101,14 +973,12 @@ module "llama_3_70b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
-      alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
@@ -1117,7 +987,6 @@ module "llama_3_70b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
@@ -1167,7 +1036,6 @@ module "llama_3_70b_deployment" {
 ###############
 # Falcon bf16 180b
 ###############
-module "falcon_bf16_180b_deployment" {
 module "falcon_bf16_180b_deployment" {
   model_name                = "falcon-bf16-180b"
   container_image           = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
