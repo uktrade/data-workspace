@@ -124,13 +124,11 @@ data "aws_iam_policy_document" "notebook_task_execution" {
 
   statement {
     actions = [
-      "sagemaker:DescribeEndpoint",
-      "sagemaker:DescribeEndpointConfig",
-      "sagemaker:DescribeModel",
+      "sagemaker:InvokeEndpoint",
       "sagemaker:InvokeEndpointAsync",
       "sagemaker:ListEndpoints",
-      "sagemaker:ListEndpointConfigs",
-      "sagemaker:ListModels",
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescibeTransformJob"
     ]
 
     resources = [
@@ -276,13 +274,11 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
   # Temporary: Allow SageMaker access for all DW tools users
   statement {
     actions = [
-      "sagemaker:DescribeEndpoint",
-      "sagemaker:DescribeEndpointConfig",
-      "sagemaker:DescribeModel",
+      "sagemaker:InvokeEndpoint",
       "sagemaker:InvokeEndpointAsync",
       "sagemaker:ListEndpoints",
-      "sagemaker:ListEndpointConfigs",
-      "sagemaker:ListModels",
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescibeTransformJob"
     ]
 
     resources = [
@@ -482,14 +478,13 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
   # Temporary: Allow all tools users to access SageMaker endpoints
   statement {
     actions = [
-      "sagemaker:DescribeEndpoint",
-      "sagemaker:DescribeEndpointConfig",
-      "sagemaker:DescribeModel",
+      "sagemaker:InvokeEndpoint",
       "sagemaker:InvokeEndpointAsync",
       "sagemaker:ListEndpoints",
-      "sagemaker:ListEndpointConfigs",
-      "sagemaker:ListModels",
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescibeTransformJob"
     ]
+
     resources = [
       "*",
     ]
