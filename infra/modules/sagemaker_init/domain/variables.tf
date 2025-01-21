@@ -3,7 +3,6 @@ variable "domain_name" {
   description = "The Domain name of the service, i.e. SageMaker"
 }
 
-
 variable "vpc_id" {
   type        = string
   description = "VPC ID"

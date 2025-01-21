@@ -8,6 +8,11 @@ variable "model_name" {
   description = "Name of the SageMaker model"
 }
 
+variable "s3_output_path" {
+  type        = string
+  description = "Where the async output of the model is sent"
+}
+
 variable "execution_role_arn" {
   type        = string
   description = "Execution role ARN for SageMaker"
@@ -43,35 +48,9 @@ variable "subnets" {
   description = "List of subnets for the SageMaker model"
 }
 
-variable "endpoint_config_name" {
-  type        = string
-  description = "Name of the endpoint configuration"
-}
-
-variable "endpoint_name" {
-  type        = string
-  description = "Name of the SageMaker endpoint"
-}
-
-variable "variant_name" {
-  type        = string
-  description = "Name of the production variant"
-  default     = null
-}
-
 variable "instance_type" {
   type        = string
   description = "Instance type for the endpoint"
-}
-
-variable "initial_instance_count" {
-  type        = number
-  description = "Initial instance count for the endpoint"
-}
-
-variable "s3_output_path" {
-  type        = string
-  description = "S3 output path for async inference"
 }
 
 variable "max_capacity" {
@@ -84,17 +63,12 @@ variable "min_capacity" {
   description = "Minimum capacity for autoscaling"
 }
 
-variable "scale_up_adjustment" {
-  type        = number
-  description = "Number of instances to scale up by"
-}
-
 variable "scale_up_cooldown" {
   type        = number
   description = "Cooldown period for scale up"
 }
 
-variable "scale_in_to_zero_cooldown" {
+variable "scale_down_cooldown" {
   type        = number
   description = "Cooldown period for scale down"
 }
@@ -102,7 +76,7 @@ variable "scale_in_to_zero_cooldown" {
 
 variable "alarms" {
   type = list(object({
-    alarm_name          = string
+    alarm_name_prefix   = string
     alarm_description   = string
     metric_name         = string
     namespace           = string
@@ -112,23 +86,13 @@ variable "alarms" {
     datapoints_to_alarm = number
     period              = number
     statistic           = string
-    sns_topic_name      = optional(string, null)
-    slack_webhook_url   = optional(string, null)
-    alarm_actions       = optional(list(string), null)
+    slack_webhook_url   = string
+    alarm_actions       = list(string)
+    ok_actions          = list(string)
   }))
   description = "List of CloudWatch alarms to be created"
 }
 
-variable "log_group_name" {
-  type        = string
-  description = "log group name, i.e. gpt-neo-125m..."
-  default     = ""
-}
-
 variable "aws_account_id" {
-  type = string
-}
-
-variable "slack_lambda_name" {
   type = string
 }
