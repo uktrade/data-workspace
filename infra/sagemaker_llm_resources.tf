@@ -54,10 +54,10 @@ module "gpt_neo_125m_deployment" {
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 8
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -69,10 +69,10 @@ module "gpt_neo_125m_deployment" {
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 8
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -84,10 +84,10 @@ module "gpt_neo_125m_deployment" {
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 1
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -99,10 +99,10 @@ module "gpt_neo_125m_deployment" {
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 1
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -114,8 +114,8 @@ module "gpt_neo_125m_deployment" {
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -129,8 +129,8 @@ module "gpt_neo_125m_deployment" {
     {
       alarm_name_prefix   = "low-ram"
       alarm_description   = "Scale down when RAM usage is light"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -145,7 +145,7 @@ module "gpt_neo_125m_deployment" {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -160,7 +160,7 @@ module "gpt_neo_125m_deployment" {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -256,10 +256,10 @@ module "phi_2_3b_deployment" {
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 4
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -271,10 +271,10 @@ module "phi_2_3b_deployment" {
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 4
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -286,10 +286,10 @@ module "phi_2_3b_deployment" {
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 1
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -301,10 +301,10 @@ module "phi_2_3b_deployment" {
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 1
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -316,8 +316,8 @@ module "phi_2_3b_deployment" {
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -331,8 +331,8 @@ module "phi_2_3b_deployment" {
     {
       alarm_name_prefix   = "low-ram"
       alarm_description   = "Scale down when RAM usage is light"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -347,7 +347,7 @@ module "phi_2_3b_deployment" {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -362,7 +362,7 @@ module "phi_2_3b_deployment" {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -460,10 +460,10 @@ module "mistral_7b_deployment" {
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 48
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -475,10 +475,10 @@ module "mistral_7b_deployment" {
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 48
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -490,10 +490,10 @@ module "mistral_7b_deployment" {
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 4
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -505,10 +505,10 @@ module "mistral_7b_deployment" {
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 4
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -520,8 +520,8 @@ module "mistral_7b_deployment" {
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -535,8 +535,8 @@ module "mistral_7b_deployment" {
     {
       alarm_name_prefix   = "low-ram"
       alarm_description   = "Scale down when RAM usage is light"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -551,7 +551,7 @@ module "mistral_7b_deployment" {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -566,7 +566,7 @@ module "mistral_7b_deployment" {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -663,10 +663,10 @@ module "gemma_2_27b_deployment" {
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 192
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -678,10 +678,10 @@ module "gemma_2_27b_deployment" {
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 192
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -693,10 +693,10 @@ module "gemma_2_27b_deployment" {
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 8
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -708,10 +708,10 @@ module "gemma_2_27b_deployment" {
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 8
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -723,8 +723,8 @@ module "gemma_2_27b_deployment" {
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -738,8 +738,8 @@ module "gemma_2_27b_deployment" {
     {
       alarm_name_prefix   = "low-ram"
       alarm_description   = "Scale down when RAM usage is light"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -754,7 +754,7 @@ module "gemma_2_27b_deployment" {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -769,7 +769,7 @@ module "gemma_2_27b_deployment" {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -873,10 +873,10 @@ module "llama_3_70b_deployment" {
     {
       alarm_name_prefix   = "high-cpu"
       alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 96
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -888,10 +888,10 @@ module "llama_3_70b_deployment" {
     {
       alarm_name_prefix   = "low-cpu"
       alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 96
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -903,10 +903,10 @@ module "llama_3_70b_deployment" {
     {
       alarm_name_prefix   = "high-gpu"
       alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
+      threshold           = 80 * 8
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -918,10 +918,10 @@ module "llama_3_70b_deployment" {
     {
       alarm_name_prefix   = "low-gpu"
       alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
+      threshold           = 20 * 8
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 60
@@ -933,8 +933,8 @@ module "llama_3_70b_deployment" {
     {
       alarm_name_prefix   = "high-ram"
       alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -948,8 +948,8 @@ module "llama_3_70b_deployment" {
     {
       alarm_name_prefix   = "low-ram"
       alarm_description   = "Scale down when RAM usage is light"
-      metric_name         = "MemoryUtilizationNormalized"
-      namespace           = "AWS/SageMaker"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
@@ -964,7 +964,7 @@ module "llama_3_70b_deployment" {
       alarm_name_prefix   = "high-hard-disk"
       alarm_description   = "Scale up when Hard Disk usage is heavy"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 80
       evaluation_periods  = 3
@@ -979,7 +979,7 @@ module "llama_3_70b_deployment" {
       alarm_name_prefix   = "low-hard-disk"
       alarm_description   = "Scale down when Hard Disk usage is light"
       metric_name         = "DiskUtilization"
-      namespace           = "AWS/SageMaker"
+      namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
       threshold           = 20
       evaluation_periods  = 3
