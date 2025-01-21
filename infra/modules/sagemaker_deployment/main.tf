@@ -160,8 +160,8 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   datapoints_to_alarm = var.alarms[count.index].datapoints_to_alarm
   period              = var.alarms[count.index].period
   statistic           = var.alarms[count.index].statistic
-  alarm_actions       = var.alarms[count.index].alarm_actions
-  ok_actions          = var.alarms[count.index].ok_actions
+  alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.sns_topic_alarmstate])
+  ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.sns_topic_okstate])
   dimensions          = { EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name }
 
   depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint]
