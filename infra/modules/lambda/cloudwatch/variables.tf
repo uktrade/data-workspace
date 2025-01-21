@@ -12,6 +12,3 @@ variable "sagemaker_log_group_arns" {
   type = list(string)
 }
 
-variable "account_id" {
-  type = string
-}

@@ -154,7 +154,7 @@ resource "aws_route53_record" "mlflow_internal" {
   name    = "mlflow--${var.mlflow_instances_long[count.index]}--internal.${var.admin_domain}"
   type    = "A"
   ttl     = "60"
-  records = [aws_lb.mlflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]]
+  records = [aws_lb.mlflow[*].subnet_mapping[count.index][*].private_ipv4_address[0]]
 
   lifecycle {
     create_before_destroy = true
@@ -168,7 +168,7 @@ resource "aws_route53_record" "mlflow_data_flow" {
   name    = "mlflow--${var.mlflow_instances_long[count.index]}--data-flow.${var.admin_domain}"
   type    = "A"
   ttl     = "60"
-  records = [aws_lb.mlflow_dataflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]]
+  records = [aws_lb.mlflow_dataflow[*].subnet_mapping[count.index][*].private_ipv4_address[0]]
 
   lifecycle {
     create_before_destroy = true

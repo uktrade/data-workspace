@@ -93,6 +93,3 @@ variable "alarms" {
   description = "List of CloudWatch alarms to be created"
 }
 
-variable "aws_account_id" {
-  type = string
-}

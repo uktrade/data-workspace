@@ -9,18 +9,6 @@ variable "budget_limit" {
   description = "Optional monthly budget limit for AWS for the budget"
 }
 
-variable "time_unit" {
-  description = "Budget time unit, i.e. Monthly, etc"
-  type        = string
-  default     = "MONTHLY"
-}
-
-variable "notification_thresholds" {
-  type        = list(number)
-  default     = [80, 100]
-  description = "list of notification thresholds in %"
-}
-
 variable "notification_email" {
   type        = list(string)
   description = "email for who recieves budget alerts"

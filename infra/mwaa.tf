@@ -256,8 +256,8 @@ resource "aws_mwaa_environment" "mwaa" {
   }
 
   network_configuration {
-    security_group_ids = ["${aws_security_group.mwaa[0].id}"]
-    subnet_ids         = slice(aws_subnet.private_with_egress.*.id, 0, 2)
+    security_group_ids = [aws_security_group.mwaa[0].id]
+    subnet_ids         = slice(aws_subnet.private_with_egress[*].id, 0, 2)
   }
 }
 

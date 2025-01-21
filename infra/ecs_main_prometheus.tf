@@ -7,8 +7,8 @@ resource "aws_ecs_service" "prometheus" {
   platform_version = "1.4.0"
 
   network_configuration {
-    subnets         = aws_subnet.private_with_egress.*.id
-    security_groups = ["${aws_security_group.prometheus_service.id}"]
+    subnets         = aws_subnet.private_with_egress[*].id
+    security_groups = [aws_security_group.prometheus_service.id]
   }
 
   load_balancer {
@@ -31,9 +31,9 @@ data "external" "prometheus_current_tag" {
   program = ["${path.module}/container-tag.sh"]
 
   query = {
-    cluster_name   = "${aws_ecs_cluster.main_cluster.name}"
+    cluster_name   = aws_ecs_cluster.main_cluster.name
     service_name   = "${var.prefix}-prometheus" # Manually specified to avoid a cycle
-    container_name = "${local.prometheus_container_name}"
+    container_name = local.prometheus_container_name
   }
 }
 
@@ -60,18 +60,18 @@ resource "aws_ecs_task_definition" "prometheus" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_prometheus_container_definitions.json", {
       container_image  = "${aws_ecr_repository.prometheus.repository_url}:${data.external.prometheus_current_tag.result.tag}"
-      container_name   = "${local.prometheus_container_name}"
-      container_port   = "${local.prometheus_container_port}"
-      container_cpu    = "${local.prometheus_container_cpu}"
-      container_memory = "${local.prometheus_container_memory}"
+      container_name   = local.prometheus_container_name
+      container_port   = local.prometheus_container_port
+      container_cpu    = local.prometheus_container_cpu
+      container_memory = local.prometheus_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.prometheus.name}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.prometheus.name
+      log_region = data.aws_region.aws_region.name
 
-      port                                          = "${local.prometheus_container_port}"
+      port                                          = local.prometheus_container_port
       url                                           = "https://${var.admin_domain}/api/v1/application"
-      metrics_service_discovery_basic_auth_user     = "${var.metrics_service_discovery_basic_auth_user}"
-      metrics_service_discovery_basic_auth_password = "${var.metrics_service_discovery_basic_auth_password}"
+      metrics_service_discovery_basic_auth_user     = var.metrics_service_discovery_basic_auth_user
+      metrics_service_discovery_basic_auth_password = var.metrics_service_discovery_basic_auth_password
     }
   )
   execution_role_arn       = aws_iam_role.prometheus_task_execution.arn
@@ -148,7 +148,7 @@ data "aws_iam_policy_document" "prometheus_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.prometheus.arn}",
+      aws_ecr_repository.prometheus.arn,
     ]
   }
 
@@ -182,8 +182,8 @@ data "aws_iam_policy_document" "prometheus_task_ecs_tasks_assume_role" {
 
 resource "aws_alb" "prometheus" {
   name                       = "${var.prefix}-pm"
-  subnets                    = aws_subnet.public.*.id
-  security_groups            = ["${aws_security_group.prometheus_alb.id}"]
+  subnets                    = aws_subnet.public[*].id
+  security_groups            = [aws_security_group.prometheus_alb.id]
   enable_deletion_protection = true
   timeouts {}
 

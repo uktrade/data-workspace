@@ -9,8 +9,8 @@ resource "aws_ecs_service" "gitlab" {
   timeouts {}
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.gitlab_service[count.index].id}"]
+    subnets         = [aws_subnet.private_with_egress[*].id[0]]
+    security_groups = [aws_security_group.gitlab_service[count.index].id]
   }
 
   load_balancer {
@@ -62,36 +62,36 @@ resource "aws_ecs_task_definition" "gitlab" {
     "${path.module}/ecs_main_gitlab_container_definitions.json", {
       container_image = "${aws_ecr_repository.gitlab.repository_url}:master"
       container_name  = "gitlab"
-      log_group       = "${aws_cloudwatch_log_group.gitlab[count.index].name}"
-      log_region      = "${data.aws_region.aws_region.name}"
+      log_group       = aws_cloudwatch_log_group.gitlab[count.index].name
+      log_region      = data.aws_region.aws_region.name
 
-      memory = "${var.gitlab_memory}"
-      cpu    = "${var.gitlab_cpu}"
+      memory = var.gitlab_memory
+      cpu    = var.gitlab_cpu
 
-      gitlab_omnibus_config = "${jsonencode(
+      gitlab_omnibus_config = jsonencode(
         templatefile(
           "${path.module}/ecs_main_gitlab_container_definitions_GITLAB_OMNIBUS_CONFIG.rb", {
-            external_domain = "${var.gitlab_domain}"
-            db__host        = "${aws_rds_cluster.gitlab[count.index].endpoint}"
-            db__name        = "${aws_rds_cluster.gitlab[count.index].database_name}"
-            db__password    = "${random_string.aws_db_instance_gitlab_password.result}"
-            db__port        = "${aws_rds_cluster.gitlab[count.index].port}"
-            db__user        = "${aws_rds_cluster.gitlab[count.index].master_username}"
+            external_domain = var.gitlab_domain
+            db__host        = aws_rds_cluster.gitlab[count.index].endpoint
+            db__name        = aws_rds_cluster.gitlab[count.index].database_name
+            db__password    = random_string.aws_db_instance_gitlab_password.result
+            db__port        = aws_rds_cluster.gitlab[count.index].port
+            db__user        = aws_rds_cluster.gitlab[count.index].master_username
 
-            redis__host = "${aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes.0.address}"
-            redis__port = "${aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes.0.port}"
+            redis__host = aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes[0].address
+            redis__port = aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes[0].port
 
-            bucket__region = "${aws_s3_bucket.gitlab[count.index].region}"
-            bucket__domain = "${aws_s3_bucket.gitlab[count.index].bucket_regional_domain_name}"
+            bucket__region = aws_s3_bucket.gitlab[count.index].region
+            bucket__domain = aws_s3_bucket.gitlab[count.index].bucket_regional_domain_name
 
-            sso__id     = "${var.gitlab_sso_id}"
-            sso__secret = "${var.gitlab_sso_secret}"
-            sso__domain = "${var.gitlab_sso_domain}"
+            sso__id     = var.gitlab_sso_id
+            sso__secret = var.gitlab_sso_secret
+            sso__domain = var.gitlab_sso_domain
           }
         )
-      )}"
-      bucket        = "${aws_s3_bucket.gitlab[count.index].id}"
-      bucket_region = "${aws_s3_bucket.gitlab[count.index].region}"
+      )
+      bucket        = aws_s3_bucket.gitlab[count.index].id
+      bucket_region = aws_s3_bucket.gitlab[count.index].region
     }
   )
   execution_role_arn       = aws_iam_role.gitlab_task_execution[count.index].arn
@@ -180,7 +180,7 @@ data "aws_iam_policy_document" "gitlab_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.gitlab.arn}",
+      aws_ecr_repository.gitlab.arn,
     ]
   }
 
@@ -236,7 +236,7 @@ data "aws_iam_policy_document" "gitlab_access_gitlab_bucket" {
     ]
 
     resources = [
-      "${aws_s3_bucket.gitlab[count.index].arn}",
+      aws_s3_bucket.gitlab[count.index].arn,
     ]
   }
 }
@@ -261,7 +261,7 @@ resource "aws_lb" "gitlab" {
   enable_deletion_protection = true
 
   subnet_mapping {
-    subnet_id     = aws_subnet.public.*.id[0]
+    subnet_id     = aws_subnet.public[*].id[0]
     allocation_id = aws_eip.gitlab[count.index].id
   }
 }
@@ -344,13 +344,13 @@ resource "aws_elasticache_cluster" "gitlab_redis" {
   engine_version       = "5.0.6"
   port                 = 6379
   subnet_group_name    = aws_elasticache_subnet_group.gitlab[count.index].name
-  security_group_ids   = ["${aws_security_group.gitlab_redis[count.index].id}"]
+  security_group_ids   = [aws_security_group.gitlab_redis[count.index].id]
 }
 
 resource "aws_elasticache_subnet_group" "gitlab" {
   count      = var.gitlab_on ? 1 : 0
   name       = "${var.prefix_short}-gitlab"
-  subnet_ids = aws_subnet.private_with_egress.*.id
+  subnet_ids = aws_subnet.private_with_egress[*].id
 }
 
 resource "aws_rds_cluster" "gitlab" {
@@ -365,7 +365,7 @@ resource "aws_rds_cluster" "gitlab" {
   preferred_backup_window = "03:29-03:59"
   apply_immediately       = true
 
-  vpc_security_group_ids = ["${aws_security_group.gitlab_db[count.index].id}"]
+  vpc_security_group_ids = [aws_security_group.gitlab_db[count.index].id]
   db_subnet_group_name   = aws_db_subnet_group.gitlab[count.index].name
   #ca_cert_identifier     = "rds-ca-2019"
 
@@ -394,7 +394,7 @@ resource "aws_rds_cluster_instance" "gitlab" {
 resource "aws_db_subnet_group" "gitlab" {
   count      = var.gitlab_on ? 1 : 0
   name       = "${var.prefix}-gitlab"
-  subnet_ids = aws_subnet.private_with_egress.*.id
+  subnet_ids = aws_subnet.private_with_egress[*].id
 
   tags = {
     Name = "${var.prefix}-gitlab"
@@ -488,11 +488,11 @@ resource "aws_instance" "gitlab" {
   iam_instance_profile = aws_iam_instance_profile.gitlab_ec2[count.index].id
   availability_zone    = var.aws_availability_zones[0]
 
-  vpc_security_group_ids      = ["${aws_security_group.gitlab-ec2[count.index].id}"]
+  vpc_security_group_ids      = [aws_security_group.gitlab-ec2[count.index].id]
   associate_public_ip_address = "false"
   key_name                    = aws_key_pair.shared.key_name
 
-  subnet_id = aws_subnet.private_with_egress.*.id[0]
+  subnet_id = aws_subnet.private_with_egress[*].id[0]
   user_data = <<EOF
   #!/bin/bash
   echo ECS_CLUSTER=${aws_ecs_cluster.main_cluster.id} >> /etc/ecs/ecs.config
@@ -621,7 +621,7 @@ resource "aws_autoscaling_group" "gitlab_runner" {
   health_check_grace_period = 120
   health_check_type         = "EC2"
   launch_configuration      = aws_launch_configuration.gitlab_runner[count.index].name
-  vpc_zone_identifier       = aws_subnet.private_without_egress.*.id
+  vpc_zone_identifier       = aws_subnet.private_without_egress[*].id
   force_delete_warm_pool    = false
   timeouts {}
 
@@ -645,7 +645,7 @@ resource "aws_launch_configuration" "gitlab_runner" {
   image_id             = "ami-0749bd3fac17dc2cc"
   instance_type        = var.gitlab_runner_instance_type
   iam_instance_profile = aws_iam_instance_profile.gitlab_runner[count.index].name
-  security_groups      = ["${aws_security_group.gitlab_runner[count.index].id}"]
+  security_groups      = [aws_security_group.gitlab_runner[count.index].id]
   key_name             = aws_key_pair.shared.key_name
 
   associate_public_ip_address = false
@@ -706,7 +706,7 @@ resource "aws_autoscaling_group" "gitlab_runner_tap" {
   health_check_grace_period = 120
   health_check_type         = "EC2"
   launch_configuration      = aws_launch_configuration.gitlab_runner_tap[count.index].name
-  vpc_zone_identifier       = aws_subnet.private_without_egress.*.id
+  vpc_zone_identifier       = aws_subnet.private_without_egress[*].id
 
   tag {
     key                 = "Name"
@@ -728,7 +728,7 @@ resource "aws_launch_configuration" "gitlab_runner_tap" {
   image_id             = "ami-0749bd3fac17dc2cc"
   instance_type        = var.gitlab_runner_tap_instance_type
   iam_instance_profile = aws_iam_instance_profile.gitlab_runner[count.index].name
-  security_groups      = ["${aws_security_group.gitlab_runner[count.index].id}"]
+  security_groups      = [aws_security_group.gitlab_runner[count.index].id]
   key_name             = aws_key_pair.shared.key_name
 
   associate_public_ip_address = false
@@ -790,7 +790,7 @@ resource "aws_autoscaling_group" "gitlab_runner_data_science" {
   health_check_grace_period = 120
   health_check_type         = "EC2"
   launch_configuration      = aws_launch_configuration.gitlab_runner_data_science[0].name
-  vpc_zone_identifier       = aws_subnet.private_without_egress.*.id
+  vpc_zone_identifier       = aws_subnet.private_without_egress[*].id
 
   tag {
     key                 = "Name"
@@ -812,7 +812,7 @@ resource "aws_launch_configuration" "gitlab_runner_data_science" {
   image_id             = "ami-0749bd3fac17dc2cc"
   instance_type        = var.gitlab_runner_data_science_instance_type
   iam_instance_profile = aws_iam_instance_profile.gitlab_runner_data_science[count.index].name
-  security_groups      = ["${aws_security_group.gitlab_runner[count.index].id}"]
+  security_groups      = [aws_security_group.gitlab_runner[count.index].id]
   key_name             = aws_key_pair.shared.key_name
 
   associate_public_ip_address = false
@@ -928,9 +928,9 @@ data "aws_iam_policy_document" "gitlab_runner" {
     ]
 
     resources = [
-      "${aws_ecr_repository.visualisation_base.arn}",
-      "${aws_ecr_repository.vscode.arn}",
-      "${aws_ecr_repository.theia.arn}",
+      aws_ecr_repository.visualisation_base.arn,
+      aws_ecr_repository.vscode.arn,
+      aws_ecr_repository.theia.arn,
     ]
   }
 
@@ -950,7 +950,7 @@ data "aws_iam_policy_document" "gitlab_runner" {
       "ecr:PutImage",
     ]
     resources = [
-      "${aws_ecr_repository.user_provided.arn}",
+      aws_ecr_repository.user_provided.arn,
     ]
   }
 }
@@ -958,7 +958,7 @@ data "aws_iam_policy_document" "gitlab_runner" {
 resource "aws_iam_policy_attachment" "gitlab_runner" {
   count      = var.gitlab_on ? 1 : 0
   name       = "${var.prefix}-gitlab-runner"
-  roles      = ["${aws_iam_role.gitlab_runner[count.index].name}"]
+  roles      = [aws_iam_role.gitlab_runner[count.index].name]
   policy_arn = aws_iam_policy.gitlab_runner[count.index].arn
 }
 
@@ -1014,7 +1014,7 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
     ]
 
     resources = [
-      "${aws_ecr_repository.theia.arn}",
+      aws_ecr_repository.theia.arn,
     ]
   }
 
@@ -1041,6 +1041,6 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
 resource "aws_iam_policy_attachment" "gitlab_runner_data_science" {
   count      = var.gitlab_on ? 1 : 0
   name       = "${var.prefix}-gitlab-runner-data-science"
-  roles      = ["${aws_iam_role.gitlab_runner_data_science[count.index].name}"]
+  roles      = [aws_iam_role.gitlab_runner_data_science[count.index].name]
   policy_arn = aws_iam_policy.gitlab_runner_data_science[count.index].arn
 }

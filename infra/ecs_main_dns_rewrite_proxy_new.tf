@@ -8,8 +8,8 @@ resource "aws_lb" "dns_rewrite_proxy_new" {
   internal                         = true
 
   subnet_mapping {
-    subnet_id            = aws_subnet.private_with_egress.*.id[0]
-    private_ipv4_address = cidrhost("${aws_subnet.private_with_egress.*.cidr_block[0]}", 7)
+    subnet_id            = aws_subnet.private_with_egress[*].id[0]
+    private_ipv4_address = cidrhost(aws_subnet.private_with_egress[*].cidr_block[0], 7)
   }
 }
 
@@ -51,8 +51,8 @@ resource "aws_ecs_service" "dns_rewrite_proxy_new" {
   platform_version = "1.4.0"
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.dns_rewrite_proxy.id}"]
+    subnets         = [aws_subnet.private_with_egress[*].id[0]]
+    security_groups = [aws_security_group.dns_rewrite_proxy.id]
   }
 
   load_balancer {
@@ -67,19 +67,19 @@ resource "aws_ecs_task_definition" "dns_rewrite_proxy_new" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_dns_rewrite_proxy_container_definitions.json", {
       container_image  = "${aws_ecr_repository.dns_rewrite_proxy.repository_url}:${data.external.dns_rewrite_proxy_current_tag.result.tag}"
-      container_name   = "${local.dns_rewrite_proxy_container_name}"
-      container_cpu    = "${local.dns_rewrite_proxy_container_cpu}"
-      container_memory = "${local.dns_rewrite_proxy_container_memory}"
+      container_name   = local.dns_rewrite_proxy_container_name
+      container_cpu    = local.dns_rewrite_proxy_container_cpu
+      container_memory = local.dns_rewrite_proxy_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.dns_rewrite_proxy.name}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.dns_rewrite_proxy.name
+      log_region = data.aws_region.aws_region.name
 
-      dns_server       = "${cidrhost(aws_vpc.main.cidr_block, 2)}"
-      aws_region       = "${data.aws_region.aws_region.name}"
+      dns_server       = cidrhost(aws_vpc.main.cidr_block, 2)
+      aws_region       = data.aws_region.aws_region.name
       aws_ec2_host     = "ec2.${data.aws_region.aws_region.name}.amazonaws.com"
-      vpc_id           = "${aws_vpc.notebooks.id}"
-      aws_route53_zone = "${var.aws_route53_zone}"
-      ip_address       = "${aws_lb.dns_rewrite_proxy_new.subnet_mapping.*.private_ipv4_address[0]}"
+      vpc_id           = aws_vpc.notebooks.id
+      aws_route53_zone = var.aws_route53_zone
+      ip_address       = aws_lb.dns_rewrite_proxy_new.subnet_mapping[*].private_ipv4_address[0]
     }
   )
   execution_role_arn       = aws_iam_role.dns_rewrite_proxy_task_execution.arn

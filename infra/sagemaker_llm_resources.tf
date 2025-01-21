@@ -37,7 +37,7 @@ module "gpt_neo_125m_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog"  # TODO: backlog is currently required to have index 0, which is brittle
+      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Scale based on existence of backlog or not"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
@@ -57,7 +57,7 @@ module "gpt_neo_125m_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 8  # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      threshold           = 80 * 8 # TODO: we must manually multiply by vCPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -72,7 +72,7 @@ module "gpt_neo_125m_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 8  # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      threshold           = 20 * 8 # TODO: we must manually multiply by vCPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -87,7 +87,7 @@ module "gpt_neo_125m_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 1  # TODO: we must manually multiply by GPU count as Normalized metric not available
+      threshold           = 80 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -102,7 +102,7 @@ module "gpt_neo_125m_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 1  # TODO: we must manually multiply by GPU count as Normalized metric not available
+      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -206,7 +206,7 @@ module "gpt_neo_125m_deployment" {
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.notebooks.id]
-  subnets               = aws_subnet.private_without_egress.*.id
+  subnets               = aws_subnet.private_without_egress[*].id
   s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
@@ -239,7 +239,7 @@ module "phi_2_3b_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog"  # TODO: backlog is currently required to have index 0, which is brittle
+      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Scale based on existence of backlog or not"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
@@ -259,7 +259,7 @@ module "phi_2_3b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 4  # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      threshold           = 80 * 4 # TODO: we must manually multiply by vCPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -274,7 +274,7 @@ module "phi_2_3b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 4  # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      threshold           = 20 * 4 # TODO: we must manually multiply by vCPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -289,7 +289,7 @@ module "phi_2_3b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 1  # TODO: we must manually multiply by GPU count as Normalized metric not available
+      threshold           = 80 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -304,7 +304,7 @@ module "phi_2_3b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 1  # TODO: we must manually multiply by GPU count as Normalized metric not available
+      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -408,7 +408,7 @@ module "phi_2_3b_deployment" {
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.notebooks.id]
-  subnets               = aws_subnet.private_without_egress.*.id
+  subnets               = aws_subnet.private_without_egress[*].id
   s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
@@ -443,7 +443,7 @@ module "mistral_7b_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog"  # TODO: backlog is currently required to have index 0, which is brittle
+      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Scale based on existence of backlog or not"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
@@ -463,7 +463,7 @@ module "mistral_7b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 48  # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      threshold           = 80 * 48 # TODO: we must manually multiply by vCPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -478,7 +478,7 @@ module "mistral_7b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 48  # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      threshold           = 20 * 48 # TODO: we must manually multiply by vCPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -493,7 +493,7 @@ module "mistral_7b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 4  # TODO: we must manually multiply by GPU count as Normalized metric not available
+      threshold           = 80 * 4 # TODO: we must manually multiply by GPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -508,7 +508,7 @@ module "mistral_7b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 4  # TODO: we must manually multiply by GPU count as Normalized metric not available
+      threshold           = 20 * 4 # TODO: we must manually multiply by GPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -612,7 +612,7 @@ module "mistral_7b_deployment" {
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.notebooks.id]
-  subnets               = aws_subnet.private_without_egress.*.id
+  subnets               = aws_subnet.private_without_egress[*].id
   s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
@@ -646,7 +646,7 @@ module "gemma_2_27b_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog"  # TODO: backlog is currently required to have index 0, which is brittle
+      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Scale based on existence of backlog or not"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
@@ -666,7 +666,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 192  # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      threshold           = 80 * 192 # TODO: we must manually multiply by vCPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -681,7 +681,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 192  # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      threshold           = 20 * 192 # TODO: we must manually multiply by vCPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -696,7 +696,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 8  # TODO: we must manually multiply by GPU count as Normalized metric not available
+      threshold           = 80 * 8 # TODO: we must manually multiply by GPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -711,7 +711,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 8  # TODO: we must manually multiply by GPU count as Normalized metric not available
+      threshold           = 20 * 8 # TODO: we must manually multiply by GPU count as Normalized metric not available
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
@@ -815,7 +815,7 @@ module "gemma_2_27b_deployment" {
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.notebooks.id]
-  subnets               = aws_subnet.private_without_egress.*.id
+  subnets               = aws_subnet.private_without_egress[*].id
   s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
@@ -856,7 +856,7 @@ module "llama_3_70b_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog"  # TODO: backlog is currently required to have index 0, which is brittle
+      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Scale based on existence of backlog or not"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
@@ -1025,7 +1025,7 @@ module "llama_3_70b_deployment" {
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.notebooks.id]
-  subnets               = aws_subnet.private_without_egress.*.id
+  subnets               = aws_subnet.private_without_egress[*].id
   s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn

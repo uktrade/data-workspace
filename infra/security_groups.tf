@@ -20,7 +20,7 @@ resource "aws_security_group_rule" "dns_rewrite_proxy_ingress_healthcheck" {
   from_port         = "8888"
   to_port           = "8888"
   protocol          = "tcp"
-  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+  cidr_blocks       = [aws_subnet.private_with_egress[*].cidr_block[0]]
   security_group_id = aws_security_group.dns_rewrite_proxy.id
 }
 
@@ -32,7 +32,7 @@ resource "aws_security_group_rule" "dns_rewrite_proxy_ingress_udp" {
   from_port         = "53"
   to_port           = "53"
   protocol          = "udp"
-  cidr_blocks       = ["${aws_subnet.private_without_egress[count.index].cidr_block}"]
+  cidr_blocks       = [aws_subnet.private_without_egress[count.index].cidr_block]
   security_group_id = aws_security_group.dns_rewrite_proxy.id
 }
 
@@ -118,7 +118,7 @@ resource "aws_security_group_rule" "admin_alb_ingress_https_from_whitelist" {
   description = "ingress-https-from-whitelist"
 
   security_group_id = aws_security_group.admin_alb.id
-  cidr_blocks       = concat("${var.ip_whitelist}", ["${aws_eip.nat_gateway.public_ip}/32"])
+  cidr_blocks       = concat(var.ip_whitelist, ["${aws_eip.nat_gateway.public_ip}/32"])
 
   type      = "ingress"
   from_port = "443"
@@ -244,7 +244,7 @@ resource "aws_security_group_rule" "admin_service_egress_http_to_mlflow" {
   description = "egress-http-to-mlflow-lb"
 
   security_group_id = aws_security_group.admin_service.id
-  cidr_blocks       = ["${aws_lb.mlflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]}/32"]
+  cidr_blocks       = ["${aws_lb.mlflow[*].subnet_mapping[count.index][*].private_ipv4_address[0]}/32"]
 
   type      = "egress"
   from_port = local.mlflow_port
@@ -529,7 +529,7 @@ resource "aws_security_group_rule" "notebooks_egress_dns_udp" {
   description = "egress-dns-udp"
 
   security_group_id = aws_security_group.notebooks.id
-  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+  cidr_blocks       = [aws_subnet.private_with_egress[*].cidr_block[0]]
 
   type      = "egress"
   from_port = "53"
@@ -909,7 +909,7 @@ resource "aws_security_group_rule" "prometheus_alb_ingress_https_from_whitelist"
   description = "ingress-https-from-all"
 
   security_group_id = aws_security_group.prometheus_alb.id
-  cidr_blocks       = concat("${var.prometheus_whitelist}", ["${aws_eip.nat_gateway.public_ip}/32"])
+  cidr_blocks       = concat(var.prometheus_whitelist, ["${aws_eip.nat_gateway.public_ip}/32"])
 
   type      = "ingress"
   from_port = "443"
@@ -1241,7 +1241,7 @@ resource "aws_security_group_rule" "gitlab_runner_egress_dns_udp_dns_rewrite_pro
   description = "egress-dns-udp-dns-rewrite-proxy"
 
   security_group_id = aws_security_group.gitlab_runner[count.index].id
-  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+  cidr_blocks       = [aws_subnet.private_with_egress[*].cidr_block[0]]
 
   type      = "egress"
   from_port = "53"
@@ -1419,7 +1419,7 @@ resource "aws_security_group_rule" "superset_service_egress_dns_udp_to_dns_rewri
   description = "egress-dns-to-dns-rewrite-proxy"
 
   security_group_id = aws_security_group.superset_service.id
-  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+  cidr_blocks       = [aws_subnet.private_with_egress[*].cidr_block[0]]
 
   type      = "egress"
   from_port = "53"
@@ -1952,7 +1952,7 @@ resource "aws_security_group" "quicksight" {
   vpc_id      = aws_vpc.datasets.id
 
   tags = {
-    Name = "${var.quicksight_security_group_name}"
+    Name = var.quicksight_security_group_name
   }
 
   lifecycle {
@@ -2027,7 +2027,7 @@ resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_paas" {
   description = "ingress-postgres-from-paas"
 
   security_group_id = aws_security_group.datasets.id
-  cidr_blocks       = ["${var.paas_cidr_block}"]
+  cidr_blocks       = [var.paas_cidr_block]
 
   type      = "ingress"
   from_port = aws_rds_cluster_instance.datasets.port
@@ -2149,7 +2149,7 @@ resource "aws_security_group_rule" "flower_service_egress_dns_udp_to_dns_rewrite
   description = "egress-dns-to-dns-rewrite-proxy"
 
   security_group_id = aws_security_group.flower_service.id
-  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+  cidr_blocks       = [aws_subnet.private_with_egress[*].cidr_block[0]]
 
   type      = "egress"
   from_port = "53"
@@ -2177,7 +2177,7 @@ resource "aws_security_group_rule" "mlflow_service_ingress_http_mlflow_lb" {
   description = "ingress-mlflow-lb"
 
   security_group_id = aws_security_group.mlflow_service[count.index].id
-  cidr_blocks       = ["${aws_lb.mlflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]}/32"]
+  cidr_blocks       = ["${aws_lb.mlflow[*].subnet_mapping[count.index][*].private_ipv4_address[0]}/32"]
 
   type      = "ingress"
   from_port = local.mlflow_port
@@ -2190,7 +2190,7 @@ resource "aws_security_group_rule" "mlflow_service_ingress_http_mlflow_dataflow_
   description = "ingress-mlflow-dataflow-lb"
 
   security_group_id = aws_security_group.mlflow_service[count.index].id
-  cidr_blocks       = ["${aws_lb.mlflow_dataflow.*.subnet_mapping[count.index].*.private_ipv4_address[0]}/32"]
+  cidr_blocks       = ["${aws_lb.mlflow_dataflow[*].subnet_mapping[count.index][*].private_ipv4_address[0]}/32"]
 
   type      = "ingress"
   from_port = local.mlflow_port
@@ -2255,7 +2255,7 @@ resource "aws_security_group_rule" "mlflow_service_egress_dns_udp_to_dns_rewrite
   description = "egress-dns-to-dns-rewrite-proxy"
 
   security_group_id = aws_security_group.mlflow_service[count.index].id
-  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+  cidr_blocks       = [aws_subnet.private_with_egress[*].cidr_block[0]]
 
   type      = "egress"
   from_port = "53"

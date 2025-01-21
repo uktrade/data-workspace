@@ -10,8 +10,8 @@ resource "aws_ecs_service" "airflow_webserver" {
   health_check_grace_period_seconds = "10"
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.airflow_webserver.id}"]
+    subnets         = [aws_subnet.private_with_egress[*].id[0]]
+    security_groups = [aws_security_group.airflow_webserver.id]
   }
 
   load_balancer {
@@ -63,11 +63,11 @@ resource "aws_lb" "airflow_webserver" {
   name                       = "${var.prefix}-af-ws" # Having airflow-webserver in the name makes it > the limit of 32
   load_balancer_type         = "network"
   internal                   = false
-  security_groups            = ["${aws_security_group.airflow_webserver_lb.id}"]
+  security_groups            = [aws_security_group.airflow_webserver_lb.id]
   enable_deletion_protection = true
 
   subnet_mapping {
-    subnet_id     = aws_subnet.public.*.id[0]
+    subnet_id     = aws_subnet.public[*].id[0]
     allocation_id = aws_eip.airflow_webserver[0].id
   }
 }
@@ -117,41 +117,41 @@ resource "aws_ecs_task_definition" "airflow_webserver" {
 
       container_image = "${aws_ecr_repository.airflow.repository_url}:master"
       container_name  = "airflow"
-      log_group       = "${aws_cloudwatch_log_group.airflow_webserver[count.index].name}"
-      log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.airflow_container_cpu}"
-      memory          = "${local.airflow_container_memory}"
+      log_group       = aws_cloudwatch_log_group.airflow_webserver[count.index].name
+      log_region      = data.aws_region.aws_region.name
+      cpu             = local.airflow_container_cpu
+      memory          = local.airflow_container_memory
 
-      db_host     = "${aws_rds_cluster.airflow[count.index].endpoint}"
-      db_name     = "${aws_rds_cluster.airflow[count.index].database_name}"
-      db_password = "${random_string.aws_db_instance_airflow_password.result}"
-      db_port     = "${aws_rds_cluster.airflow[count.index].port}"
-      db_user     = "${aws_rds_cluster.airflow[count.index].master_username}"
-      secret_key  = "${random_string.airflow_secret_key.result}"
+      db_host     = aws_rds_cluster.airflow[count.index].endpoint
+      db_name     = aws_rds_cluster.airflow[count.index].database_name
+      db_password = random_string.aws_db_instance_airflow_password.result
+      db_port     = aws_rds_cluster.airflow[count.index].port
+      db_user     = aws_rds_cluster.airflow[count.index].master_username
+      secret_key  = random_string.airflow_secret_key.result
 
-      datasets_db_host     = "${aws_rds_cluster.datasets.endpoint}"
-      datasets_db_name     = "${aws_rds_cluster.datasets.database_name}"
-      datasets_db_password = "${random_string.aws_rds_cluster_instance_datasets_password.result}"
-      datasets_db_port     = "${aws_rds_cluster.datasets.port}"
-      datasets_db_user     = "${var.datasets_rds_cluster_master_username}"
+      datasets_db_host     = aws_rds_cluster.datasets.endpoint
+      datasets_db_name     = aws_rds_cluster.datasets.database_name
+      datasets_db_password = random_string.aws_rds_cluster_instance_datasets_password.result
+      datasets_db_port     = aws_rds_cluster.datasets.port
+      datasets_db_user     = var.datasets_rds_cluster_master_username
 
-      sentry_dsn         = "${var.sentry_notebooks_dsn}"
-      sentry_environment = "${var.sentry_environment}"
+      sentry_dsn         = var.sentry_notebooks_dsn
+      sentry_environment = var.sentry_environment
 
-      authbroker_url           = "${var.airflow_authbroker_url}"
-      authbroker_client_id     = "${var.airflow_authbroker_client_id}"
-      authbroker_client_secret = "${var.airflow_authbroker_client_secret}"
+      authbroker_url           = var.airflow_authbroker_url
+      authbroker_client_id     = var.airflow_authbroker_client_id
+      authbroker_client_secret = var.airflow_authbroker_client_secret
 
-      subnets         = "${aws_subnet.private_with_egress.*.id[0]}"
-      security_groups = "${aws_security_group.airflow_webserver.id}"
-      task_definition = "${aws_ecs_task_definition.airflow_dag_tasks[0].arn}"
-      cluster         = "${aws_ecs_cluster.airflow_dag_tasks.name}"
+      subnets         = aws_subnet.private_with_egress[*].id[0]
+      security_groups = aws_security_group.airflow_webserver.id
+      task_definition = aws_ecs_task_definition.airflow_dag_tasks[0].arn
+      cluster         = aws_ecs_cluster.airflow_dag_tasks.name
 
-      cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
+      cloudwatch_log_group_arn = aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn
 
-      dag_sync_github_key               = "${var.dag_sync_github_key}"
-      data_workspace_s3_import_hawk_id  = "${var.airflow_data_workspace_s3_import_hawk_id}"
-      data_workspace_s3_import_hawk_key = "${var.airflow_data_workspace_s3_import_hawk_key}"
+      dag_sync_github_key               = var.dag_sync_github_key
+      data_workspace_s3_import_hawk_id  = var.airflow_data_workspace_s3_import_hawk_id
+      data_workspace_s3_import_hawk_key = var.airflow_data_workspace_s3_import_hawk_key
     }
   )
   execution_role_arn       = aws_iam_role.airflow_webserver_execution[count.index].arn
@@ -292,7 +292,7 @@ data "aws_iam_policy_document" "airflow_webserver_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.airflow.arn}",
+      aws_ecr_repository.airflow.arn,
     ]
   }
 

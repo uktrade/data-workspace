@@ -12,7 +12,7 @@ resource "aws_vpc_peering_connection" "jupyterhub" {
   }
 
   tags = {
-    Name = "${var.prefix}"
+    Name = var.prefix
   }
 }
 
@@ -65,7 +65,7 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "${var.prefix}"
+    Name = var.prefix
   }
 
   lifecycle {
@@ -78,7 +78,7 @@ resource "aws_vpc_dhcp_options" "main" {
   domain_name         = "eu-west-2.compute.internal"
 
   tags = {
-    Name = "${var.prefix}"
+    Name = var.prefix
   }
 }
 
@@ -184,7 +184,7 @@ resource "aws_subnet" "public_whitelisted_ingress" {
 
 resource "aws_route_table_association" "public_whitelisted_ingress" {
   count          = length(var.aws_availability_zones)
-  subnet_id      = aws_subnet.public_whitelisted_ingress.*.id[count.index]
+  subnet_id      = aws_subnet.public_whitelisted_ingress[*].id[count.index]
   route_table_id = aws_route_table.public.id
 }
 
@@ -213,7 +213,7 @@ resource "aws_route_table" "public" {
 
 resource "aws_route_table_association" "jupyterhub_public" {
   count          = length(var.aws_availability_zones)
-  subnet_id      = aws_subnet.public.*.id[count.index]
+  subnet_id      = aws_subnet.public[*].id[count.index]
   route_table_id = aws_route_table.public.id
 }
 
@@ -232,7 +232,7 @@ resource "aws_route_table" "private_with_egress" {
 
 resource "aws_route_table_association" "jupyterhub_private_with_egress" {
   count          = length(var.aws_availability_zones)
-  subnet_id      = aws_subnet.private_with_egress.*.id[count.index]
+  subnet_id      = aws_subnet.private_with_egress[*].id[count.index]
   route_table_id = aws_route_table.private_with_egress.id
 }
 
@@ -240,7 +240,7 @@ resource "aws_route" "jupyterhub_to_private_with_egress_to_notebooks" {
   count = length(var.aws_availability_zones)
 
   route_table_id            = aws_route_table.private_with_egress.id
-  destination_cidr_block    = aws_subnet.private_without_egress.*.cidr_block[count.index]
+  destination_cidr_block    = aws_subnet.private_without_egress[*].cidr_block[count.index]
   vpc_peering_connection_id = aws_vpc_peering_connection.jupyterhub.id
 }
 
@@ -254,16 +254,16 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "${var.prefix}"
+    Name = var.prefix
   }
 }
 
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat_gateway.id
-  subnet_id     = aws_subnet.public.*.id[0]
+  subnet_id     = aws_subnet.public[*].id[0]
 
   tags = {
-    Name = "${var.prefix}"
+    Name = var.prefix
   }
 }
 
@@ -282,13 +282,13 @@ resource "aws_route" "private_without_egress_to_jupyterhub" {
   count = length(var.aws_availability_zones)
 
   route_table_id            = aws_route_table.private_without_egress.id
-  destination_cidr_block    = aws_subnet.private_with_egress.*.cidr_block[count.index]
+  destination_cidr_block    = aws_subnet.private_with_egress[*].cidr_block[count.index]
   vpc_peering_connection_id = aws_vpc_peering_connection.jupyterhub.id
 }
 
 resource "aws_route_table_association" "jupyterhub_private_without_egress" {
   count          = length(var.aws_availability_zones)
-  subnet_id      = aws_subnet.private_without_egress.*.id[count.index]
+  subnet_id      = aws_subnet.private_without_egress[*].id[count.index]
   route_table_id = aws_route_table.private_without_egress.id
 }
 
@@ -471,7 +471,7 @@ resource "aws_subnet" "datasets" {
 
 resource "aws_route_table_association" "datasets" {
   count          = length(var.dataset_subnets_availability_zones)
-  subnet_id      = aws_subnet.datasets.*.id[count.index]
+  subnet_id      = aws_subnet.datasets[*].id[count.index]
   route_table_id = aws_route_table.datasets.id
 }
 
@@ -510,8 +510,8 @@ resource "aws_vpc_endpoint" "ecs" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.ecs"
   vpc_endpoint_type   = "Interface"
-  security_group_ids  = ["${aws_security_group.ecs.id}"]
-  subnet_ids          = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  security_group_ids  = [aws_security_group.ecs.id]
+  subnet_ids          = [aws_subnet.private_with_egress[*].id[0]]
   private_dns_enabled = true
 }
 
@@ -569,7 +569,7 @@ resource "aws_vpc_endpoint" "datasets_ec2_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ec2"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -585,7 +585,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ec2" {
     content {
       principals {
         type        = "AWS"
-        identifiers = ["${aws_iam_role.arango_ec2[0].arn}"]
+        identifiers = [aws_iam_role.arango_ec2[0].arn]
       }
 
       actions = [
@@ -594,7 +594,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ec2" {
 
       resources = [
         "arn:aws:ec2:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:instance/*",
-        "${aws_ebs_volume.arango[0].arn}"
+        aws_ebs_volume.arango[0].arn
       ]
     }
   }
@@ -605,7 +605,7 @@ resource "aws_vpc_endpoint" "datasets_ec2messages_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ec2messages"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -620,7 +620,7 @@ resource "aws_vpc_endpoint" "datasets_ssm_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ssm"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -635,7 +635,7 @@ resource "aws_vpc_endpoint" "datasets_ssmmessages_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ssmmessages"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -651,7 +651,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ssm" {
     content {
       principals {
         type        = "AWS"
-        identifiers = ["${aws_iam_role.arango_ec2[0].arn}"]
+        identifiers = [aws_iam_role.arango_ec2[0].arn]
       }
 
       actions = [
@@ -670,7 +670,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecs"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -685,7 +685,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_agent_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecs-agent"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -700,7 +700,7 @@ resource "aws_vpc_endpoint" "datasets_ecs_telemetry_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecs-telemetry"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -716,7 +716,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ecs" {
     content {
       principals {
         type        = "AWS"
-        identifiers = ["${aws_iam_role.arango_ec2[0].arn}"]
+        identifiers = [aws_iam_role.arango_ec2[0].arn]
       }
 
       actions = [
@@ -741,7 +741,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ecs" {
     content {
       principals {
         type        = "AWS"
-        identifiers = ["${aws_iam_role.arango_ec2[0].arn}"]
+        identifiers = [aws_iam_role.arango_ec2[0].arn]
       }
       actions = [
         "*"
@@ -759,7 +759,7 @@ resource "aws_vpc_endpoint" "datasets_logs_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.logs"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -776,7 +776,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_logs" {
     content {
       principals {
         type        = "AWS"
-        identifiers = ["${aws_iam_role.arango_task_execution[0].arn}"]
+        identifiers = [aws_iam_role.arango_task_execution[0].arn]
       }
 
       actions = [
@@ -795,7 +795,7 @@ resource "aws_vpc_endpoint" "datasets_ecr_api_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecr.api"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -810,7 +810,7 @@ resource "aws_vpc_endpoint" "datasets_ecr_dkr_endpoint" {
   vpc_id             = aws_vpc.datasets.id
   service_name       = "com.amazonaws.eu-west-2.ecr.dkr"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.datasets.*.id
+  subnet_ids         = aws_subnet.datasets[*].id
   security_group_ids = [aws_security_group.datasets_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -834,7 +834,7 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ecr" {
 
       principals {
         type        = "AWS"
-        identifiers = ["${aws_iam_role.arango_task_execution[0].arn}"]
+        identifiers = [aws_iam_role.arango_task_execution[0].arn]
       }
 
       actions = [
@@ -855,7 +855,7 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_with_egress.*.id
+  subnet_ids         = aws_subnet.private_with_egress[*].id
   security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -870,7 +870,7 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint" {
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_with_egress.*.id
+  subnet_ids         = aws_subnet.private_with_egress[*].id
   security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -906,7 +906,7 @@ resource "aws_vpc_endpoint" "sns_endpoint" {
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sns"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_with_egress.*.id
+  subnet_ids         = aws_subnet.private_with_egress[*].id
   security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix

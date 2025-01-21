@@ -9,8 +9,8 @@ resource "aws_ecs_service" "flower" {
   health_check_grace_period_seconds = "10"
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_without_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.flower_service.id}"]
+    subnets         = [aws_subnet.private_without_egress[*].id[0]]
+    security_groups = [aws_security_group.flower_service.id]
   }
 
   load_balancer {
@@ -30,13 +30,13 @@ resource "aws_ecs_task_definition" "flower_service" {
     "${path.module}/ecs_main_flower_container_definitions.json", {
       container_image = "${aws_ecr_repository.flower.repository_url}:master"
       container_name  = "flower"
-      log_group       = "${aws_cloudwatch_log_group.flower.name}"
-      log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.flower_container_cpu}"
-      memory          = "${local.flower_container_memory}"
-      redis_url       = "redis://${aws_elasticache_cluster.admin.cache_nodes.0.address}:6379"
-      flower_username = "${var.flower_username}"
-      flower_password = "${var.flower_password}"
+      log_group       = aws_cloudwatch_log_group.flower.name
+      log_region      = data.aws_region.aws_region.name
+      cpu             = local.flower_container_cpu
+      memory          = local.flower_container_memory
+      redis_url       = "redis://${aws_elasticache_cluster.admin.cache_nodes[0].address}:6379"
+      flower_username = var.flower_username
+      flower_password = var.flower_password
     }
   )
   execution_role_arn       = aws_iam_role.flower_task_execution.arn
@@ -105,7 +105,7 @@ data "aws_iam_policy_document" "flower_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.flower.arn}",
+      aws_ecr_repository.flower.arn,
     ]
   }
 
@@ -141,8 +141,8 @@ resource "aws_lb" "flower" {
   name                       = "${var.prefix}-flower"
   load_balancer_type         = "application"
   internal                   = true
-  security_groups            = ["${aws_security_group.flower_lb.id}"]
-  subnets                    = aws_subnet.private_without_egress.*.id
+  security_groups            = [aws_security_group.flower_lb.id]
+  subnets                    = aws_subnet.private_without_egress[*].id
   enable_deletion_protection = true
 }
 

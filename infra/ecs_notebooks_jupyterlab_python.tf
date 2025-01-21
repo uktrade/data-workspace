@@ -3,19 +3,19 @@ resource "aws_ecs_task_definition" "jupyterlabpython" {
   container_definitions = templatefile(
     "${path.module}/ecs_notebooks_notebook_container_definitions.json", {
       container_image = "${aws_ecr_repository.jupyterlab_python.repository_url}:${data.external.jupyterlabpython_current_tag.result.tag}"
-      container_name  = "${local.notebook_container_name}"
+      container_name  = local.notebook_container_name
 
-      log_group  = "${aws_cloudwatch_log_group.notebook.name}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.notebook.name
+      log_region = data.aws_region.aws_region.name
 
-      sentry_dsn         = "${var.sentry_notebooks_dsn}"
-      sentry_environment = "${var.sentry_environment}"
+      sentry_dsn         = var.sentry_notebooks_dsn
+      sentry_environment = var.sentry_environment
 
       metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:${data.external.jupyterlabpython_metrics_current_tag.result.tag}"
       s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:${data.external.jupyterlabpython_s3sync_current_tag.result.tag}"
 
-      cloudwatch_namespace = "${var.cloudwatch_namespace}"
-      cloudwatch_region    = "${var.cloudwatch_region}"
+      cloudwatch_namespace = var.cloudwatch_namespace
+      cloudwatch_region    = var.cloudwatch_region
 
       home_directory = "/home/jovyan"
     }
@@ -47,7 +47,7 @@ data "external" "jupyterlabpython_current_tag" {
 
   query = {
     task_family    = "${var.prefix}-jupyterlabpython"
-    container_name = "${local.notebook_container_name}"
+    container_name = local.notebook_container_name
   }
 }
 

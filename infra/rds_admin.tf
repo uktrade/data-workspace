@@ -20,7 +20,7 @@ resource "aws_db_instance" "admin" {
   final_snapshot_identifier = "${var.prefix}-admin-final-snapshot"
   copy_tags_to_snapshot     = true
 
-  vpc_security_group_ids = ["${aws_security_group.admin_db.id}"]
+  vpc_security_group_ids = [aws_security_group.admin_db.id]
   db_subnet_group_name   = aws_db_subnet_group.admin.name
 
   performance_insights_enabled = true
@@ -39,7 +39,7 @@ resource "aws_db_instance" "admin" {
 
 resource "aws_db_subnet_group" "admin" {
   name       = "${var.prefix}-admin"
-  subnet_ids = aws_subnet.private_with_egress.*.id
+  subnet_ids = aws_subnet.private_with_egress[*].id
 
   tags = {
     Name = "${var.prefix}-admin"

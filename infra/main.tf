@@ -71,7 +71,6 @@ variable "admin_deregistration_delay" {
 }
 
 variable "uploads_bucket" {}
-variable "appstream_bucket" {}
 variable "notebooks_bucket" {}
 variable "notebooks_bucket_cors_domains" {
   type = list(string)
@@ -189,10 +188,6 @@ variable "airflow_dag_processors" {
 variable "airflow_bucket_infix" {}
 
 variable "dag_sync_github_key" {}
-variable "github_ip_addresses" {
-  type    = list(any)
-  default = []
-}
 
 variable "datasets_rds_cluster_database_engine" {}
 variable "datasets_rds_cluster_instance_parameter_group" {}
@@ -231,10 +226,6 @@ variable "quicksight_author_iam_arn" {}
 
 variable "shared_keypair_public_key" {}
 
-variable "flower_on" {
-  type    = bool
-  default = true
-}
 variable "flower_username" {}
 variable "flower_password" {}
 
@@ -267,10 +258,6 @@ variable "s3_prefixes_for_external_role_copy" {
   default = ["import-data", "export-data"]
 }
 
-variable "sagemaker_example_inference_image" { default = "" }
-
-variable "sagemaker_models_folder" { default = "" }
-variable "hugging_face_model_image" { default = "" }
 variable "sagemaker_default_bucket" { default = "" }
 variable "sagemaker_budget_emails" { default = [""] }
 variable "slack_webhook_resource_alerts" { default = [""] }
@@ -285,7 +272,6 @@ locals {
   admin_container_memory = 2048
   admin_container_cpu    = 1024
   admin_alb_port         = "443"
-  admin_api_path         = "/api/v1/databases"
 
   celery_container_memory = 8192
   celery_container_cpu    = 1024
@@ -298,16 +284,9 @@ locals {
   notebook_container_cpu    = 1024
 
   user_provided_container_name   = "user-provided"
-  user_provided_container_port   = "8888"
   user_provided_container_memory = 8192
   user_provided_container_cpu    = 1024
 
-  logstash_container_name     = "jupyterhub-logstash"
-  logstash_alb_port           = "443"
-  logstash_container_memory   = 8192
-  logstash_container_cpu      = 2048
-  logstash_container_port     = "8889"
-  logstash_container_api_port = "9600"
 
   dns_rewrite_proxy_container_name   = "jupyterhub-dns-rewrite-proxy"
   dns_rewrite_proxy_container_memory = 512

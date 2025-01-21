@@ -319,42 +319,6 @@ resource "aws_ecr_repository" "sagemaker" {
   force_delete = false
 }
 
-data "aws_ecr_lifecycle_policy_document" "expire_preview_and_untagged_after_one_day" {
-  # Match *--prod images, but expire them in 1000 years...
-  rule {
-    priority = 1
-    selection {
-      tag_status       = "tagged"
-      tag_pattern_list = ["*--prod"]
-      count_type       = "sinceImagePushed"
-      count_unit       = "days"
-      count_number     = 365000
-    }
-  }
-  # ... and images that don't match *--prod, but have "*--*" are "preview" and we expire them 1 day
-  # after they have been pushed
-  rule {
-    priority = 2
-    selection {
-      tag_status       = "tagged"
-      tag_pattern_list = ["*--*"]
-      count_type       = "sinceImagePushed"
-      count_unit       = "days"
-      count_number     = 1
-    }
-  }
-  # ... and just in case we somehow end up with untagged images, expire them after 1 day as well
-  rule {
-    priority = 3
-    selection {
-      tag_status   = "untagged"
-      count_type   = "sinceImagePushed"
-      count_unit   = "days"
-      count_number = 1
-    }
-  }
-}
-
 data "aws_ecr_lifecycle_policy_document" "visualisation_base_expire_old_after_one_day" {
   # Match tagged python, but expire them in 1000 years...
   rule {
@@ -486,8 +450,8 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  security_group_ids = ["${aws_security_group.ecr_dkr.id}"]
-  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  security_group_ids = [aws_security_group.ecr_dkr.id]
+  subnet_ids         = [aws_subnet.private_with_egress[*].id[0]]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
 
@@ -500,8 +464,8 @@ resource "aws_vpc_endpoint" "ecr_api" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  security_group_ids = ["${aws_security_group.ecr_api.id}"]
-  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  security_group_ids = [aws_security_group.ecr_api.id]
+  subnet_ids         = [aws_subnet.private_with_egress[*].id[0]]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_ecr.json
 
@@ -514,7 +478,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   statement {
     principals {
       type        = "AWS"
-      identifiers = ["${aws_iam_role.admin_task.arn}"]
+      identifiers = [aws_iam_role.admin_task.arn]
     }
 
     actions = [
@@ -524,14 +488,14 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
     ]
 
     resources = [
-      "${aws_ecr_repository.user_provided.arn}",
+      aws_ecr_repository.user_provided.arn,
     ]
   }
 
   statement {
     principals {
       type        = "AWS"
-      identifiers = ["${aws_iam_role.admin_task.arn}"]
+      identifiers = [aws_iam_role.admin_task.arn]
     }
 
     actions = [
@@ -547,7 +511,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   statement {
     principals {
       type        = "AWS"
-      identifiers = ["${aws_iam_role.admin_task.arn}"]
+      identifiers = [aws_iam_role.admin_task.arn]
     }
 
     actions = [
@@ -563,7 +527,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   statement {
     principals {
       type        = "AWS"
-      identifiers = ["${aws_iam_role.admin_task.arn}"]
+      identifiers = [aws_iam_role.admin_task.arn]
     }
 
     actions = [
@@ -586,7 +550,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   statement {
     principals {
       type        = "AWS"
-      identifiers = ["${aws_iam_role.admin_task.arn}"]
+      identifiers = [aws_iam_role.admin_task.arn]
     }
 
     actions = [
@@ -638,27 +602,27 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
     ]
 
     resources = [
-      "${aws_ecr_repository.admin.arn}",
-      "${aws_ecr_repository.jupyterlab_python.arn}",
-      "${aws_ecr_repository.rstudio.arn}",
-      "${aws_ecr_repository.rstudio_rv4.arn}",
-      "${aws_ecr_repository.pgadmin.arn}",
-      "${aws_ecr_repository.remotedesktop.arn}",
-      "${aws_ecr_repository.theia.arn}",
-      "${aws_ecr_repository.vscode.arn}",
-      "${aws_ecr_repository.s3sync.arn}",
-      "${aws_ecr_repository.metrics.arn}",
-      "${aws_ecr_repository.sentryproxy.arn}",
-      "${aws_ecr_repository.dns_rewrite_proxy.arn}",
-      "${aws_ecr_repository.healthcheck.arn}",
-      "${aws_ecr_repository.prometheus.arn}",
-      "${aws_ecr_repository.gitlab.arn}",
-      "${aws_ecr_repository.mirrors_sync.arn}",
-      "${aws_ecr_repository.mirrors_sync_cran_binary.arn}",
-      "${aws_ecr_repository.superset.arn}",
-      "${aws_ecr_repository.airflow.arn}",
-      "${aws_ecr_repository.flower.arn}",
-      "${aws_ecr_repository.mlflow.arn}",
+      aws_ecr_repository.admin.arn,
+      aws_ecr_repository.jupyterlab_python.arn,
+      aws_ecr_repository.rstudio.arn,
+      aws_ecr_repository.rstudio_rv4.arn,
+      aws_ecr_repository.pgadmin.arn,
+      aws_ecr_repository.remotedesktop.arn,
+      aws_ecr_repository.theia.arn,
+      aws_ecr_repository.vscode.arn,
+      aws_ecr_repository.s3sync.arn,
+      aws_ecr_repository.metrics.arn,
+      aws_ecr_repository.sentryproxy.arn,
+      aws_ecr_repository.dns_rewrite_proxy.arn,
+      aws_ecr_repository.healthcheck.arn,
+      aws_ecr_repository.prometheus.arn,
+      aws_ecr_repository.gitlab.arn,
+      aws_ecr_repository.mirrors_sync.arn,
+      aws_ecr_repository.mirrors_sync_cran_binary.arn,
+      aws_ecr_repository.superset.arn,
+      aws_ecr_repository.airflow.arn,
+      aws_ecr_repository.flower.arn,
+      aws_ecr_repository.mlflow.arn,
     ]
   }
 
@@ -694,7 +658,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
       ]
 
       resources = [
-        "${aws_ecr_repository.visualisation_base.arn}",
+        aws_ecr_repository.visualisation_base.arn,
       ]
     }
   }
@@ -722,7 +686,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
         "ecr:PutImage",
       ]
       resources = [
-        "${aws_ecr_repository.user_provided.arn}",
+        aws_ecr_repository.user_provided.arn,
       ]
     }
   }

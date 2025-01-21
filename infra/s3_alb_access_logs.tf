@@ -49,7 +49,7 @@ data "aws_iam_policy_document" "aws_s3_bucket_policy_alb_access_logs" {
     effect = "Allow"
     principals {
       type        = "AWS"
-      identifiers = ["${var.alb_logs_account}"]
+      identifiers = [var.alb_logs_account]
     }
     actions = [
       "s3:PutObject",

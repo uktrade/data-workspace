@@ -24,10 +24,10 @@
 
 resource "aws_db_subnet_group" "jupyterhub" {
   name       = var.prefix
-  subnet_ids = aws_subnet.private_with_egress.*.id
+  subnet_ids = aws_subnet.private_with_egress[*].id
 
   tags = {
-    Name = "${var.prefix}"
+    Name = var.prefix
   }
 }
 

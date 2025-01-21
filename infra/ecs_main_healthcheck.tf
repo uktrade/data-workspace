@@ -8,8 +8,8 @@ resource "aws_ecs_service" "healthcheck" {
   deployment_maximum_percent = 600
 
   network_configuration {
-    subnets         = aws_subnet.private_with_egress.*.id
-    security_groups = ["${aws_security_group.healthcheck_service.id}"]
+    subnets         = aws_subnet.private_with_egress[*].id
+    security_groups = [aws_security_group.healthcheck_service.id]
   }
 
   load_balancer {
@@ -32,7 +32,7 @@ data "external" "healthcheck_current_tag" {
   program = ["${path.module}/container-tag.sh"]
 
   query = {
-    cluster_name   = "${aws_ecs_cluster.main_cluster.name}"
+    cluster_name   = aws_ecs_cluster.main_cluster.name
     service_name   = "${var.prefix}-healthcheck" # Manually specified to avoid a cycle
     container_name = "healthcheck"
   }
@@ -61,15 +61,15 @@ resource "aws_ecs_task_definition" "healthcheck" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_healthcheck_container_definitions.json", {
       container_image  = "${aws_ecr_repository.healthcheck.repository_url}:${data.external.healthcheck_current_tag.result.tag}"
-      container_name   = "${local.healthcheck_container_name}"
-      container_port   = "${local.healthcheck_container_port}"
-      container_cpu    = "${local.healthcheck_container_cpu}"
-      container_memory = "${local.healthcheck_container_memory}"
+      container_name   = local.healthcheck_container_name
+      container_port   = local.healthcheck_container_port
+      container_cpu    = local.healthcheck_container_cpu
+      container_memory = local.healthcheck_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.healthcheck.name}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.healthcheck.name
+      log_region = data.aws_region.aws_region.name
 
-      port = "${local.healthcheck_container_port}"
+      port = local.healthcheck_container_port
       url  = "https://${var.admin_domain}/healthcheck"
     }
   )
@@ -147,7 +147,7 @@ data "aws_iam_policy_document" "healthcheck_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.healthcheck.arn}",
+      aws_ecr_repository.healthcheck.arn,
     ]
   }
 
@@ -181,8 +181,8 @@ data "aws_iam_policy_document" "healthcheck_task_ecs_tasks_assume_role" {
 
 resource "aws_alb" "healthcheck" {
   name                       = "${var.prefix}-hc"
-  subnets                    = aws_subnet.public.*.id
-  security_groups            = ["${aws_security_group.healthcheck_alb.id}"]
+  subnets                    = aws_subnet.public[*].id
+  security_groups            = [aws_security_group.healthcheck_alb.id]
   enable_deletion_protection = true
   timeouts {}
 

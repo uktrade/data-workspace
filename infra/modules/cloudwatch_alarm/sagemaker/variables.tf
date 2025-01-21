@@ -1,7 +1,3 @@
-variable "alarm_name_prefix" {
-  type        = string
-  description = "The name of the CloudWatch alarm (the endpoint name is added after)"
-}
 
 variable "metric_name" {
   type        = string

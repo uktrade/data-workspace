@@ -9,8 +9,8 @@ resource "aws_ecs_service" "airflow_scheduler" {
   platform_version           = "1.4.0"
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_with_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.airflow_scheduler.id}"]
+    subnets         = [aws_subnet.private_with_egress[*].id[0]]
+    security_groups = [aws_security_group.airflow_scheduler.id]
   }
 }
 
@@ -23,42 +23,42 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
 
       container_image = "${aws_ecr_repository.airflow.repository_url}:master"
       container_name  = "airflow"
-      log_group       = "${aws_cloudwatch_log_group.airflow_scheduler[count.index].name}"
-      log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.airflow_container_cpu}"
-      memory          = "${local.airflow_container_memory}"
+      log_group       = aws_cloudwatch_log_group.airflow_scheduler[count.index].name
+      log_region      = data.aws_region.aws_region.name
+      cpu             = local.airflow_container_cpu
+      memory          = local.airflow_container_memory
 
-      db_host     = "${aws_rds_cluster.airflow[count.index].endpoint}"
-      db_name     = "${aws_rds_cluster.airflow[count.index].database_name}"
-      db_password = "${random_string.aws_db_instance_airflow_password.result}"
-      db_port     = "${aws_rds_cluster.airflow[count.index].port}"
-      db_user     = "${aws_rds_cluster.airflow[count.index].master_username}"
-      secret_key  = "${random_string.airflow_secret_key.result}"
+      db_host     = aws_rds_cluster.airflow[count.index].endpoint
+      db_name     = aws_rds_cluster.airflow[count.index].database_name
+      db_password = random_string.aws_db_instance_airflow_password.result
+      db_port     = aws_rds_cluster.airflow[count.index].port
+      db_user     = aws_rds_cluster.airflow[count.index].master_username
+      secret_key  = random_string.airflow_secret_key.result
 
-      datasets_db_host     = "${aws_rds_cluster.datasets.endpoint}"
-      datasets_db_name     = "${aws_rds_cluster.datasets.database_name}"
-      datasets_db_password = "${random_string.aws_rds_cluster_instance_datasets_password.result}"
-      datasets_db_port     = "${aws_rds_cluster.datasets.port}"
-      datasets_db_user     = "${var.datasets_rds_cluster_master_username}"
+      datasets_db_host     = aws_rds_cluster.datasets.endpoint
+      datasets_db_name     = aws_rds_cluster.datasets.database_name
+      datasets_db_password = random_string.aws_rds_cluster_instance_datasets_password.result
+      datasets_db_port     = aws_rds_cluster.datasets.port
+      datasets_db_user     = var.datasets_rds_cluster_master_username
 
-      sentry_dsn         = "${var.sentry_notebooks_dsn}"
-      sentry_environment = "${var.sentry_environment}"
+      sentry_dsn         = var.sentry_notebooks_dsn
+      sentry_environment = var.sentry_environment
 
-      authbroker_url           = "${var.airflow_authbroker_url}"
-      authbroker_client_id     = "${var.airflow_authbroker_client_id}"
-      authbroker_client_secret = "${var.airflow_authbroker_client_secret}"
+      authbroker_url           = var.airflow_authbroker_url
+      authbroker_client_id     = var.airflow_authbroker_client_id
+      authbroker_client_secret = var.airflow_authbroker_client_secret
 
-      subnets         = "${aws_subnet.private_with_egress.*.id[0]}"
-      security_groups = "${aws_security_group.airflow_dag_processor_service.id}"
-      task_definition = "${aws_ecs_task_definition.airflow_dag_tasks[0].arn}"
-      cluster         = "${aws_ecs_cluster.airflow_dag_tasks.name}"
+      subnets         = aws_subnet.private_with_egress[*].id[0]
+      security_groups = aws_security_group.airflow_dag_processor_service.id
+      task_definition = aws_ecs_task_definition.airflow_dag_tasks[0].arn
+      cluster         = aws_ecs_cluster.airflow_dag_tasks.name
 
       task_role_arn_prefix = "arn:aws:iam::${data.aws_caller_identity.aws_caller_identity.account_id}:role/${local.airflow_team_role_prefix}"
 
-      cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
+      cloudwatch_log_group_arn = aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn
 
-      dag_sync_github_key = "${var.dag_sync_github_key}"
-      prefix              = "${var.prefix}"
+      dag_sync_github_key = var.dag_sync_github_key
+      prefix              = var.prefix
     }
   )
   execution_role_arn       = aws_iam_role.airflow_scheduler_execution[count.index].arn
@@ -121,7 +121,7 @@ data "aws_iam_policy_document" "airflow_scheduler_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.airflow.arn}",
+      aws_ecr_repository.airflow.arn,
     ]
   }
 
@@ -228,7 +228,7 @@ data "aws_iam_policy_document" "airflow_scheduler_task" {
       "iam:PassRole"
     ]
     resources = concat([
-      "${aws_iam_role.airflow_webserver_execution[count.index].arn}",
+      aws_iam_role.airflow_webserver_execution[count.index].arn,
     ], [for team_role in aws_iam_role.airflow_team : team_role.arn])
   }
 

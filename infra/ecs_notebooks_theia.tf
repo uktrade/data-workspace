@@ -3,19 +3,19 @@ resource "aws_ecs_task_definition" "theia" {
   container_definitions = templatefile(
     "${path.module}/ecs_notebooks_notebook_container_definitions.json", {
       container_image = "${aws_ecr_repository.theia.repository_url}:master"
-      container_name  = "${local.notebook_container_name}"
+      container_name  = local.notebook_container_name
 
-      log_group  = "${aws_cloudwatch_log_group.notebook.name}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.notebook.name
+      log_region = data.aws_region.aws_region.name
 
-      sentry_dsn         = "${var.sentry_notebooks_dsn}"
-      sentry_environment = "${var.sentry_environment}"
+      sentry_dsn         = var.sentry_notebooks_dsn
+      sentry_environment = var.sentry_environment
 
       metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:master"
       s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:master"
 
-      cloudwatch_namespace = "${var.cloudwatch_namespace}"
-      cloudwatch_region    = "${var.cloudwatch_region}"
+      cloudwatch_namespace = var.cloudwatch_namespace
+      cloudwatch_region    = var.cloudwatch_region
 
       home_directory = "/home/theia"
     }
@@ -41,29 +41,3 @@ resource "aws_ecs_task_definition" "theia" {
   }
 }
 
-data "external" "theia_current_tag" {
-  program = ["${path.module}/task_definition_tag.sh"]
-
-  query = {
-    task_family    = "${var.prefix}-theia"
-    container_name = "${local.notebook_container_name}"
-  }
-}
-
-data "external" "theia_metrics_current_tag" {
-  program = ["${path.module}/task_definition_tag.sh"]
-
-  query = {
-    task_family    = "${var.prefix}-theia"
-    container_name = "metrics"
-  }
-}
-
-data "external" "theia_s3sync_current_tag" {
-  program = ["${path.module}/task_definition_tag.sh"]
-
-  query = {
-    task_family    = "${var.prefix}-theia"
-    container_name = "s3sync"
-  }
-}

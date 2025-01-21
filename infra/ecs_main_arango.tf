@@ -12,7 +12,7 @@ resource "aws_ecs_service" "arango" {
   }
 
   network_configuration {
-    subnets         = [aws_subnet.datasets.*.id[0]]
+    subnets         = [aws_subnet.datasets[*].id[0]]
     security_groups = [aws_security_group.arango_service[0].id]
   }
 
@@ -54,7 +54,7 @@ resource "aws_autoscaling_group" "arango_service" {
   desired_capacity          = 1
   health_check_grace_period = 120
   health_check_type         = "EC2"
-  vpc_zone_identifier       = ["${aws_subnet.datasets.*.id[0]}"]
+  vpc_zone_identifier       = [aws_subnet.datasets[*].id[0]]
 
   launch_template {
     id      = aws_launch_template.arango_service[0].id
@@ -72,11 +72,6 @@ resource "aws_autoscaling_group" "arango_service" {
   }
 }
 
-data "aws_autoscaling_groups" "arango_asgs" {
-  count = var.arango_on ? 1 : 0
-  names = ["${aws_autoscaling_group.arango_service[0].name}"]
-}
-
 resource "aws_launch_template" "arango_service" {
   count         = var.arango_on ? 1 : 0
   name_prefix   = "${var.prefix}-arango-service-"
@@ -90,7 +85,7 @@ resource "aws_launch_template" "arango_service" {
 
   network_interfaces {
     security_groups = [aws_security_group.arango-ec2[0].id]
-    subnet_id       = aws_subnet.datasets.*.id[0]
+    subnet_id       = aws_subnet.datasets[*].id[0]
   }
   iam_instance_profile {
     name = aws_iam_instance_profile.arango_ec2[0].name
@@ -137,9 +132,9 @@ resource "aws_ecs_task_definition" "arango_service" {
   container_definitions = templatefile("${path.module}/ecs_main_arango_container_definitions.json", {
     container_image = "${aws_ecr_repository.arango[0].repository_url}:latest"
     container_name  = "arango"
-    log_group       = "${aws_cloudwatch_log_group.arango[0].name}"
-    log_region      = "${data.aws_region.aws_region.name}"
-    root_password   = "${random_string.aws_arangodb_root_password[0].result}"
+    log_group       = aws_cloudwatch_log_group.arango[0].name
+    log_region      = data.aws_region.aws_region.name
+    root_password   = random_string.aws_arangodb_root_password[0].result
   })
 
   execution_role_arn       = aws_iam_role.arango_task_execution[0].arn
@@ -234,7 +229,7 @@ data "aws_iam_policy_document" "arango_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.arango[0].arn}",
+      aws_ecr_repository.arango[0].arn,
     ]
   }
 
@@ -331,7 +326,7 @@ data "aws_iam_policy_document" "arango_ebs" {
       "ec2:AttachVolume",
     ]
     resources = [
-      "${aws_ebs_volume.arango[0].arn}"
+      aws_ebs_volume.arango[0].arn
     ]
   }
   statement {
@@ -378,7 +373,7 @@ resource "aws_lb" "arango" {
   security_groups            = [aws_security_group.arango_lb[0].id]
   enable_deletion_protection = true
   internal                   = true
-  subnets                    = aws_subnet.datasets.*.id
+  subnets                    = aws_subnet.datasets[*].id
   idle_timeout               = 360
   tags = {
     name = "arango-to-notebook-lb"

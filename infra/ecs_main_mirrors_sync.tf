@@ -4,16 +4,16 @@ resource "aws_ecs_task_definition" "mirrors_sync_conda" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_mirrors_sync_container_definitions.json", {
       container_image  = "${aws_ecr_repository.mirrors_sync.repository_url}:latest"
-      container_name   = "${local.mirrors_sync_container_name}"
-      container_cpu    = "${local.mirrors_sync_container_cpu}"
-      container_memory = "${local.mirrors_sync_container_memory}"
+      container_name   = local.mirrors_sync_container_name
+      container_cpu    = local.mirrors_sync_container_cpu
+      container_memory = local.mirrors_sync_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.mirrors_sync[*].name[count.index]
+      log_region = data.aws_region.aws_region.name
 
-      mirrors_bucket_region = "${data.aws_region.aws_region.name}"
+      mirrors_bucket_region = data.aws_region.aws_region.name
       mirrors_bucket_host   = "s3-${data.aws_region.aws_region.name}.amazonaws.com"
-      mirrors_bucket_name   = "${var.mirrors_bucket_name}"
+      mirrors_bucket_name   = var.mirrors_bucket_name
 
       mirror_anaconda_r              = "True"
       mirror_anaconda_conda_forge    = "True"
@@ -24,8 +24,8 @@ resource "aws_ecs_task_definition" "mirrors_sync_conda" {
       mirror_nltk                    = "False"
     }
   )
-  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]
-  task_role_arn            = aws_iam_role.mirrors_sync_task.*.arn[count.index]
+  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution[*].arn[count.index]
+  task_role_arn            = aws_iam_role.mirrors_sync_task[*].arn[count.index]
   network_mode             = "awsvpc"
   cpu                      = local.mirrors_sync_container_cpu
   memory                   = local.mirrors_sync_container_memory
@@ -38,16 +38,16 @@ resource "aws_ecs_task_definition" "mirrors_sync_cran" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_mirrors_sync_container_definitions.json", {
       container_image  = "${aws_ecr_repository.mirrors_sync.repository_url}:latest"
-      container_name   = "${local.mirrors_sync_container_name}"
-      container_cpu    = "${local.mirrors_sync_container_cpu}"
-      container_memory = "${local.mirrors_sync_container_memory}"
+      container_name   = local.mirrors_sync_container_name
+      container_cpu    = local.mirrors_sync_container_cpu
+      container_memory = local.mirrors_sync_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.mirrors_sync[*].name[count.index]
+      log_region = data.aws_region.aws_region.name
 
-      mirrors_bucket_region = "${data.aws_region.aws_region.name}"
+      mirrors_bucket_region = data.aws_region.aws_region.name
       mirrors_bucket_host   = "s3-${data.aws_region.aws_region.name}.amazonaws.com"
-      mirrors_bucket_name   = "${var.mirrors_bucket_name}"
+      mirrors_bucket_name   = var.mirrors_bucket_name
 
       mirror_anaconda_r              = "False"
       mirror_anaconda_conda_forge    = "False"
@@ -58,8 +58,8 @@ resource "aws_ecs_task_definition" "mirrors_sync_cran" {
       mirror_nltk                    = "False"
     }
   )
-  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]
-  task_role_arn            = aws_iam_role.mirrors_sync_task.*.arn[count.index]
+  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution[*].arn[count.index]
+  task_role_arn            = aws_iam_role.mirrors_sync_task[*].arn[count.index]
   network_mode             = "awsvpc"
   cpu                      = local.mirrors_sync_container_cpu
   memory                   = local.mirrors_sync_container_memory
@@ -72,18 +72,18 @@ resource "aws_ecs_task_definition" "mirrors_sync_cran_binary" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_mirrors_sync_cran_binary_container_definition.json", {
       container_image  = "${aws_ecr_repository.mirrors_sync_cran_binary.repository_url}:latest"
-      container_name   = "${local.mirrors_sync_cran_binary_container_name}"
-      container_cpu    = "${local.mirrors_sync_cran_binary_container_cpu}"
-      container_memory = "${local.mirrors_sync_cran_binary_container_memory}"
+      container_name   = local.mirrors_sync_cran_binary_container_name
+      container_cpu    = local.mirrors_sync_cran_binary_container_cpu
+      container_memory = local.mirrors_sync_cran_binary_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.mirrors_sync[*].name[count.index]
+      log_region = data.aws_region.aws_region.name
 
-      mirrors_bucket_name = "${var.mirrors_bucket_name}"
+      mirrors_bucket_name = var.mirrors_bucket_name
     }
   )
-  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]
-  task_role_arn            = aws_iam_role.mirrors_sync_task.*.arn[count.index]
+  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution[*].arn[count.index]
+  task_role_arn            = aws_iam_role.mirrors_sync_task[*].arn[count.index]
   network_mode             = "awsvpc"
   cpu                      = local.mirrors_sync_container_cpu
   memory                   = local.mirrors_sync_container_memory
@@ -96,18 +96,18 @@ resource "aws_ecs_task_definition" "mirrors_sync_cran_binary_rv4" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_mirrors_sync_cran_binary_container_definition.json", {
       container_image  = "${aws_ecr_repository.mirrors_sync_cran_binary_rv4.repository_url}:master"
-      container_name   = "${local.mirrors_sync_cran_binary_container_name}"
-      container_cpu    = "${local.mirrors_sync_cran_binary_container_cpu}"
-      container_memory = "${local.mirrors_sync_cran_binary_container_memory}"
+      container_name   = local.mirrors_sync_cran_binary_container_name
+      container_cpu    = local.mirrors_sync_cran_binary_container_cpu
+      container_memory = local.mirrors_sync_cran_binary_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.mirrors_sync[*].name[count.index]
+      log_region = data.aws_region.aws_region.name
 
-      mirrors_bucket_name = "${var.mirrors_bucket_name}"
+      mirrors_bucket_name = var.mirrors_bucket_name
     }
   )
-  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]
-  task_role_arn            = aws_iam_role.mirrors_sync_task.*.arn[count.index]
+  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution[*].arn[count.index]
+  task_role_arn            = aws_iam_role.mirrors_sync_task[*].arn[count.index]
   network_mode             = "awsvpc"
   cpu                      = local.mirrors_sync_container_cpu
   memory                   = local.mirrors_sync_container_memory
@@ -120,16 +120,16 @@ resource "aws_ecs_task_definition" "mirrors_sync_pypi" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_mirrors_sync_container_definitions.json", {
       container_image  = "${aws_ecr_repository.mirrors_sync.repository_url}:latest"
-      container_name   = "${local.mirrors_sync_container_name}"
-      container_cpu    = "${local.mirrors_sync_container_cpu}"
-      container_memory = "${local.mirrors_sync_container_memory}"
+      container_name   = local.mirrors_sync_container_name
+      container_cpu    = local.mirrors_sync_container_cpu
+      container_memory = local.mirrors_sync_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.mirrors_sync[*].name[count.index]
+      log_region = data.aws_region.aws_region.name
 
-      mirrors_bucket_region = "${data.aws_region.aws_region.name}"
+      mirrors_bucket_region = data.aws_region.aws_region.name
       mirrors_bucket_host   = "s3-${data.aws_region.aws_region.name}.amazonaws.com"
-      mirrors_bucket_name   = "${var.mirrors_bucket_name}"
+      mirrors_bucket_name   = var.mirrors_bucket_name
 
       mirror_anaconda_r              = "False"
       mirror_anaconda_conda_forge    = "False"
@@ -140,8 +140,8 @@ resource "aws_ecs_task_definition" "mirrors_sync_pypi" {
       mirror_nltk                    = "False"
     }
   )
-  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]
-  task_role_arn            = aws_iam_role.mirrors_sync_task.*.arn[count.index]
+  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution[*].arn[count.index]
+  task_role_arn            = aws_iam_role.mirrors_sync_task[*].arn[count.index]
   network_mode             = "awsvpc"
   cpu                      = local.mirrors_sync_container_cpu
   memory                   = local.mirrors_sync_container_memory
@@ -154,16 +154,16 @@ resource "aws_ecs_task_definition" "mirrors_sync_debian" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_mirrors_sync_container_definitions.json", {
       container_image  = "${aws_ecr_repository.mirrors_sync.repository_url}:latest"
-      container_name   = "${local.mirrors_sync_container_name}"
-      container_cpu    = "${local.mirrors_sync_container_cpu}"
-      container_memory = "${local.mirrors_sync_container_memory}"
+      container_name   = local.mirrors_sync_container_name
+      container_cpu    = local.mirrors_sync_container_cpu
+      container_memory = local.mirrors_sync_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.mirrors_sync[*].name[count.index]
+      log_region = data.aws_region.aws_region.name
 
-      mirrors_bucket_region = "${data.aws_region.aws_region.name}"
+      mirrors_bucket_region = data.aws_region.aws_region.name
       mirrors_bucket_host   = "s3-${data.aws_region.aws_region.name}.amazonaws.com"
-      mirrors_bucket_name   = "${var.mirrors_bucket_name}"
+      mirrors_bucket_name   = var.mirrors_bucket_name
 
       mirror_anaconda_r              = "False"
       mirror_anaconda_conda_forge    = "False"
@@ -174,8 +174,8 @@ resource "aws_ecs_task_definition" "mirrors_sync_debian" {
       mirror_nltk                    = "False"
     }
   )
-  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]
-  task_role_arn            = aws_iam_role.mirrors_sync_task.*.arn[count.index]
+  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution[*].arn[count.index]
+  task_role_arn            = aws_iam_role.mirrors_sync_task[*].arn[count.index]
   network_mode             = "awsvpc"
   cpu                      = local.mirrors_sync_container_cpu
   memory                   = local.mirrors_sync_container_memory
@@ -188,16 +188,16 @@ resource "aws_ecs_task_definition" "mirrors_sync_nltk" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_mirrors_sync_container_definitions.json", {
       container_image  = "${aws_ecr_repository.mirrors_sync.repository_url}:latest"
-      container_name   = "${local.mirrors_sync_container_name}"
-      container_cpu    = "${local.mirrors_sync_container_cpu}"
-      container_memory = "${local.mirrors_sync_container_memory}"
+      container_name   = local.mirrors_sync_container_name
+      container_cpu    = local.mirrors_sync_container_cpu
+      container_memory = local.mirrors_sync_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.mirrors_sync[*].name[count.index]
+      log_region = data.aws_region.aws_region.name
 
-      mirrors_bucket_region = "${data.aws_region.aws_region.name}"
+      mirrors_bucket_region = data.aws_region.aws_region.name
       mirrors_bucket_host   = "s3-${data.aws_region.aws_region.name}.amazonaws.com"
-      mirrors_bucket_name   = "${var.mirrors_bucket_name}"
+      mirrors_bucket_name   = var.mirrors_bucket_name
 
       mirror_anaconda_r              = "False"
       mirror_anaconda_conda_forge    = "False"
@@ -208,8 +208,8 @@ resource "aws_ecs_task_definition" "mirrors_sync_nltk" {
       mirror_nltk                    = "True"
     }
   )
-  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]
-  task_role_arn            = aws_iam_role.mirrors_sync_task.*.arn[count.index]
+  execution_role_arn       = aws_iam_role.mirrors_sync_task_execution[*].arn[count.index]
+  task_role_arn            = aws_iam_role.mirrors_sync_task[*].arn[count.index]
   network_mode             = "awsvpc"
   cpu                      = local.mirrors_sync_container_cpu
   memory                   = local.mirrors_sync_container_memory
@@ -225,7 +225,7 @@ resource "aws_cloudwatch_log_group" "mirrors_sync" {
 resource "aws_cloudwatch_log_subscription_filter" "mirrors_sync" {
   count           = var.mirrors_bucket_name != "" && var.cloudwatch_subscription_filter ? 1 : 0
   name            = "jupyterhub-mirrors-sync"
-  log_group_name  = aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]
+  log_group_name  = aws_cloudwatch_log_group.mirrors_sync[*].name[count.index]
   filter_pattern  = ""
   destination_arn = var.cloudwatch_destination_arn
 }
@@ -234,7 +234,7 @@ resource "aws_iam_role" "mirrors_sync_task_execution" {
   count              = var.mirrors_bucket_name != "" ? 1 : 0
   name               = "mirrors-sync-task-execution"
   path               = "/"
-  assume_role_policy = data.aws_iam_policy_document.mirrors_sync_task_execution_ecs_tasks_assume_role.*.json[count.index]
+  assume_role_policy = data.aws_iam_policy_document.mirrors_sync_task_execution_ecs_tasks_assume_role[*].json[count.index]
 }
 
 data "aws_iam_policy_document" "mirrors_sync_task_execution_ecs_tasks_assume_role" {
@@ -251,15 +251,15 @@ data "aws_iam_policy_document" "mirrors_sync_task_execution_ecs_tasks_assume_rol
 
 resource "aws_iam_role_policy_attachment" "mirrors_sync_task_execution" {
   count      = var.mirrors_bucket_name != "" ? 1 : 0
-  role       = aws_iam_role.mirrors_sync_task_execution.*.name[count.index]
-  policy_arn = aws_iam_policy.mirrors_sync_task_execution.*.arn[count.index]
+  role       = aws_iam_role.mirrors_sync_task_execution[*].name[count.index]
+  policy_arn = aws_iam_policy.mirrors_sync_task_execution[*].arn[count.index]
 }
 
 resource "aws_iam_policy" "mirrors_sync_task_execution" {
   count  = var.mirrors_bucket_name != "" ? 1 : 0
   name   = "jupyterhub-mirrors-sync-task-execution"
   path   = "/"
-  policy = data.aws_iam_policy_document.mirrors_sync_task_execution.*.json[count.index]
+  policy = data.aws_iam_policy_document.mirrors_sync_task_execution[*].json[count.index]
 }
 
 data "aws_iam_policy_document" "mirrors_sync_task_execution" {
@@ -271,7 +271,7 @@ data "aws_iam_policy_document" "mirrors_sync_task_execution" {
     ]
 
     resources = [
-      "${aws_cloudwatch_log_group.mirrors_sync.*.arn[count.index]}:*",
+      "${aws_cloudwatch_log_group.mirrors_sync[*].arn[count.index]}:*",
     ]
   }
 
@@ -282,9 +282,9 @@ data "aws_iam_policy_document" "mirrors_sync_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.mirrors_sync.arn}",
-      "${aws_ecr_repository.mirrors_sync_cran_binary.arn}",
-      "${aws_ecr_repository.mirrors_sync_cran_binary_rv4.arn}",
+      aws_ecr_repository.mirrors_sync.arn,
+      aws_ecr_repository.mirrors_sync_cran_binary.arn,
+      aws_ecr_repository.mirrors_sync_cran_binary_rv4.arn,
     ]
   }
 
@@ -303,7 +303,7 @@ resource "aws_iam_role" "mirrors_sync_task" {
   count              = var.mirrors_bucket_name != "" ? 1 : 0
   name               = "jupyterhub-mirrors-sync-task"
   path               = "/"
-  assume_role_policy = data.aws_iam_policy_document.mirrors_sync_task_ecs_tasks_assume_role.*.json[count.index]
+  assume_role_policy = data.aws_iam_policy_document.mirrors_sync_task_ecs_tasks_assume_role[*].json[count.index]
 }
 
 data "aws_iam_policy_document" "mirrors_sync_task_ecs_tasks_assume_role" {
@@ -320,15 +320,15 @@ data "aws_iam_policy_document" "mirrors_sync_task_ecs_tasks_assume_role" {
 
 resource "aws_iam_role_policy_attachment" "mirrors_sync" {
   count      = var.mirrors_bucket_name != "" ? 1 : 0
-  role       = aws_iam_role.mirrors_sync_task.*.name[count.index]
-  policy_arn = aws_iam_policy.mirrors_sync_task.*.arn[count.index]
+  role       = aws_iam_role.mirrors_sync_task[*].name[count.index]
+  policy_arn = aws_iam_policy.mirrors_sync_task[*].arn[count.index]
 }
 
 resource "aws_iam_policy" "mirrors_sync_task" {
   count  = var.mirrors_bucket_name != "" ? 1 : 0
   name   = "jupyterhub-mirrors-sync-task"
   path   = "/"
-  policy = data.aws_iam_policy_document.mirrors_sync_task.*.json[count.index]
+  policy = data.aws_iam_policy_document.mirrors_sync_task[*].json[count.index]
 }
 
 data "aws_iam_policy_document" "mirrors_sync_task" {
@@ -341,7 +341,7 @@ data "aws_iam_policy_document" "mirrors_sync_task" {
     ]
 
     resources = [
-      "${aws_s3_bucket.mirrors.*.arn[count.index]}/*",
+      "${aws_s3_bucket.mirrors[*].arn[count.index]}/*",
     ]
   }
   statement {
@@ -350,7 +350,7 @@ data "aws_iam_policy_document" "mirrors_sync_task" {
     ]
 
     resources = [
-      "${aws_s3_bucket.mirrors.*.arn[count.index]}",
+      aws_s3_bucket.mirrors[*].arn[count.index],
     ]
   }
 }
@@ -367,18 +367,18 @@ resource "aws_cloudwatch_event_target" "mirrors_sync_cran_binary_scheduled_task"
   target_id = "${var.prefix}-mirror-cran-binary"
   arn       = aws_ecs_cluster.main_cluster.arn
   rule      = aws_cloudwatch_event_rule.daily_at_four_am[0].name
-  role_arn  = aws_iam_role.mirrors_sync_events.*.arn[count.index]
+  role_arn  = aws_iam_role.mirrors_sync_events[*].arn[count.index]
 
   ecs_target {
     task_count          = 1
-    task_definition_arn = aws_ecs_task_definition.mirrors_sync_cran_binary.*.arn[count.index]
+    task_definition_arn = aws_ecs_task_definition.mirrors_sync_cran_binary[*].arn[count.index]
     launch_type         = "FARGATE"
     propagate_tags      = "TASK_DEFINITION"
 
     network_configuration {
       # In a public subnet to KISS and minimise costs. NAT traffic is more expensive
-      subnets          = aws_subnet.public.*.id
-      security_groups  = ["${aws_security_group.mirrors_sync.id}"]
+      subnets          = aws_subnet.public[*].id
+      security_groups  = [aws_security_group.mirrors_sync.id]
       assign_public_ip = true
     }
   }
@@ -389,18 +389,18 @@ resource "aws_cloudwatch_event_target" "mirrors_sync_cran_binary_rv4_scheduled_t
   target_id = "${var.prefix}-mirror-cran-binary-rv4"
   arn       = aws_ecs_cluster.main_cluster.arn
   rule      = aws_cloudwatch_event_rule.daily_at_four_am[0].name
-  role_arn  = aws_iam_role.mirrors_sync_events.*.arn[count.index]
+  role_arn  = aws_iam_role.mirrors_sync_events[*].arn[count.index]
 
   ecs_target {
     task_count          = 1
-    task_definition_arn = aws_ecs_task_definition.mirrors_sync_cran_binary_rv4.*.arn[count.index]
+    task_definition_arn = aws_ecs_task_definition.mirrors_sync_cran_binary_rv4[*].arn[count.index]
     launch_type         = "FARGATE"
     propagate_tags      = "TASK_DEFINITION"
 
     network_configuration {
       # In a public subnet to KISS and minimise costs. NAT traffic is more expensive
-      subnets          = aws_subnet.public.*.id
-      security_groups  = ["${aws_security_group.mirrors_sync.id}"]
+      subnets          = aws_subnet.public[*].id
+      security_groups  = [aws_security_group.mirrors_sync.id]
       assign_public_ip = true
     }
   }
@@ -411,18 +411,18 @@ resource "aws_cloudwatch_event_target" "mirrors_sync_nltk_scheduled_task" {
   target_id = "${var.prefix}-mirror-nltk"
   arn       = aws_ecs_cluster.main_cluster.arn
   rule      = aws_cloudwatch_event_rule.daily_at_four_am[0].name
-  role_arn  = aws_iam_role.mirrors_sync_events.*.arn[count.index]
+  role_arn  = aws_iam_role.mirrors_sync_events[*].arn[count.index]
 
   ecs_target {
     task_count          = 1
-    task_definition_arn = aws_ecs_task_definition.mirrors_sync_nltk.*.arn[count.index]
+    task_definition_arn = aws_ecs_task_definition.mirrors_sync_nltk[*].arn[count.index]
     launch_type         = "FARGATE"
     propagate_tags      = "TASK_DEFINITION"
 
     network_configuration {
       # In a public subnet to KISS and minimise costs. NAT traffic is more expensive
-      subnets          = aws_subnet.public.*.id
-      security_groups  = ["${aws_security_group.mirrors_sync.id}"]
+      subnets          = aws_subnet.public[*].id
+      security_groups  = [aws_security_group.mirrors_sync.id]
       assign_public_ip = true
     }
   }
@@ -433,18 +433,18 @@ resource "aws_cloudwatch_event_target" "mirrors_sync_debian_task" {
   target_id = "${var.prefix}-mirror-debian"
   arn       = aws_ecs_cluster.main_cluster.arn
   rule      = aws_cloudwatch_event_rule.daily_at_four_am[1].name
-  role_arn  = aws_iam_role.mirrors_sync_events.*.arn[count.index]
+  role_arn  = aws_iam_role.mirrors_sync_events[*].arn[count.index]
 
   ecs_target {
     task_count          = 1
-    task_definition_arn = aws_ecs_task_definition.mirrors_sync_debian.*.arn[count.index]
+    task_definition_arn = aws_ecs_task_definition.mirrors_sync_debian[*].arn[count.index]
     launch_type         = "FARGATE"
     propagate_tags      = "TASK_DEFINITION"
 
     network_configuration {
       # In a public subnet to KISS and minimise costs. NAT traffic is more expensive
-      subnets          = aws_subnet.public.*.id
-      security_groups  = ["${aws_security_group.mirrors_sync.id}"]
+      subnets          = aws_subnet.public[*].id
+      security_groups  = [aws_security_group.mirrors_sync.id]
       assign_public_ip = true
     }
   }
@@ -453,7 +453,7 @@ resource "aws_cloudwatch_event_target" "mirrors_sync_debian_task" {
 resource "aws_iam_role" "mirrors_sync_events" {
   count              = var.mirrors_bucket_name != "" ? 1 : 0
   name               = "${var.prefix_underscore}_mirrors_sync_events"
-  assume_role_policy = data.aws_iam_policy_document.mirrors_sync_events_assume_role_policy.*.json[count.index]
+  assume_role_policy = data.aws_iam_policy_document.mirrors_sync_events_assume_role_policy[*].json[count.index]
 }
 
 data "aws_iam_policy_document" "mirrors_sync_events_assume_role_policy" {
@@ -470,8 +470,8 @@ data "aws_iam_policy_document" "mirrors_sync_events_assume_role_policy" {
 resource "aws_iam_role_policy" "mirrors_sync_events_run_mirror" {
   count  = var.mirrors_bucket_name != "" ? 1 : 0
   name   = "${var.prefix_underscore}_mirrors_sync_events_run_mirror"
-  role   = aws_iam_role.mirrors_sync_events.*.id[count.index]
-  policy = data.aws_iam_policy_document.mirrors_sync_events_run_tasks.*.json[count.index]
+  role   = aws_iam_role.mirrors_sync_events[*].id[count.index]
+  policy = data.aws_iam_policy_document.mirrors_sync_events_run_tasks[*].json[count.index]
 }
 
 data "aws_iam_policy_document" "mirrors_sync_events_run_tasks" {
@@ -482,12 +482,12 @@ data "aws_iam_policy_document" "mirrors_sync_events_run_tasks" {
     ]
 
     resources = [
-      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_cran.*.family[count.index]}:*",
-      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_cran_binary.*.family[count.index]}:*",
-      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_conda.*.family[count.index]}:*",
-      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_pypi.*.family[count.index]}:*",
-      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_nltk.*.family[count.index]}:*",
-      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_debian.*.family[count.index]}:*",
+      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_cran[*].family[count.index]}:*",
+      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_cran_binary[*].family[count.index]}:*",
+      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_conda[*].family[count.index]}:*",
+      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_pypi[*].family[count.index]}:*",
+      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_nltk[*].family[count.index]}:*",
+      "arn:aws:ecs:*:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.mirrors_sync_debian[*].family[count.index]}:*",
     ]
   }
 
@@ -496,8 +496,8 @@ data "aws_iam_policy_document" "mirrors_sync_events_run_tasks" {
       "iam:PassRole"
     ]
     resources = [
-      "${aws_iam_role.mirrors_sync_task.*.arn[count.index]}",
-      "${aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]}",
+      aws_iam_role.mirrors_sync_task[*].arn[count.index],
+      aws_iam_role.mirrors_sync_task_execution[*].arn[count.index],
     ]
     condition {
       test     = "StringLike"

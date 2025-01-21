@@ -192,7 +192,7 @@ data "aws_iam_policy_document" "lambda_execution_policy" {
     ]
     resources = [
       "${var.s3_bucket_arn}/*",
-      "${var.s3_bucket_arn}"
+      var.s3_bucket_arn
     ]
   }
 

@@ -3,19 +3,19 @@ resource "aws_ecs_task_definition" "notebook" {
   container_definitions = templatefile(
     "${path.module}/ecs_notebooks_notebook_container_definitions.json", {
       container_image = "${var.notebook_container_image}:${data.external.notebook_current_tag.result.tag}"
-      container_name  = "${local.notebook_container_name}"
+      container_name  = local.notebook_container_name
 
-      log_group  = "${aws_cloudwatch_log_group.notebook.name}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.notebook.name
+      log_region = data.aws_region.aws_region.name
 
-      sentry_dsn         = "${var.sentry_notebooks_dsn}"
-      sentry_environment = "${var.sentry_environment}"
+      sentry_dsn         = var.sentry_notebooks_dsn
+      sentry_environment = var.sentry_environment
 
       metrics_container_image = "${aws_ecr_repository.metrics.repository_url}:${data.external.notebook_metrics_current_tag.result.tag}"
       s3sync_container_image  = "${aws_ecr_repository.s3sync.repository_url}:${data.external.notebook_s3sync_current_tag.result.tag}"
 
-      cloudwatch_namespace = "${var.cloudwatch_namespace}"
-      cloudwatch_region    = "${var.cloudwatch_region}"
+      cloudwatch_namespace = var.cloudwatch_namespace
+      cloudwatch_region    = var.cloudwatch_region
 
       home_directory = "/home/jovyan"
     }
@@ -47,7 +47,7 @@ data "external" "notebook_current_tag" {
 
   query = {
     task_family    = "${var.prefix}-notebook"
-    container_name = "${local.notebook_container_name}"
+    container_name = local.notebook_container_name
   }
 }
 
@@ -172,7 +172,7 @@ data "aws_iam_policy_document" "notebook_s3_access_ecs_tasks_assume_role" {
 
     principals {
       type        = "AWS"
-      identifiers = ["${aws_iam_role.admin_task.arn}"]
+      identifiers = [aws_iam_role.admin_task.arn]
     }
   }
 }
@@ -184,7 +184,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     ]
 
     resources = [
-      "${aws_s3_bucket.notebooks.arn}",
+      aws_s3_bucket.notebooks.arn,
     ]
 
     condition {
@@ -249,7 +249,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
       test     = "StringEquals"
       variable = "aws:PrincipalAccount"
       values = [
-        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+        data.aws_caller_identity.aws_caller_identity.account_id
       ]
     }
   }
@@ -269,7 +269,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     }
 
     resources = [
-      "${aws_efs_file_system.notebooks.arn}",
+      aws_efs_file_system.notebooks.arn,
     ]
   }
 
@@ -322,7 +322,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "s3:ListBucket",
     ]
     resources = concat([
-      "${aws_s3_bucket.notebooks.arn}",
+      aws_s3_bucket.notebooks.arn,
       ], [
       for bucket in aws_s3_bucket.mlflow : bucket.arn
     ])
@@ -463,7 +463,7 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
     ]
 
     resources = [
-      "${aws_s3_bucket.notebooks.arn}",
+      aws_s3_bucket.notebooks.arn,
     ]
   }
 
@@ -541,7 +541,7 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
       test     = "StringEquals"
       variable = "aws:PrincipalAccount"
       values = [
-        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+        data.aws_caller_identity.aws_caller_identity.account_id
       ]
     }
   }
@@ -553,7 +553,7 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
     ]
 
     resources = [
-      "${aws_efs_file_system.notebooks.arn}",
+      aws_efs_file_system.notebooks.arn,
     ]
   }
 }
@@ -568,8 +568,8 @@ resource "aws_vpc_endpoint" "cloudwatch_logs" {
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.logs"
   vpc_endpoint_type = "Interface"
 
-  security_group_ids = ["${aws_security_group.cloudwatch.id}"]
-  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  security_group_ids = [aws_security_group.cloudwatch.id]
+  subnet_ids         = [aws_subnet.private_with_egress[*].id[0]]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_cloudwatch_logs.json
 
@@ -595,7 +595,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_cloudwatch_logs" {
       test     = "StringEquals"
       variable = "aws:PrincipalAccount"
       values = [
-        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+        data.aws_caller_identity.aws_caller_identity.account_id
       ]
     }
   }
@@ -606,8 +606,8 @@ resource "aws_vpc_endpoint" "cloudwatch_monitoring" {
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.monitoring"
   vpc_endpoint_type = "Interface"
 
-  security_group_ids = ["${aws_security_group.cloudwatch.id}"]
-  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  security_group_ids = [aws_security_group.cloudwatch.id]
+  subnet_ids         = [aws_subnet.private_with_egress[*].id[0]]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_cloudwatch_monitoring.json
 
@@ -633,7 +633,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_cloudwatch_monitoring" {
       test     = "StringEquals"
       variable = "aws:PrincipalAccount"
       values = [
-        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+        data.aws_caller_identity.aws_caller_identity.account_id
       ]
     }
   }

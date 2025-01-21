@@ -2,15 +2,15 @@ locals {
   mlflow_container_vars = [for i, v in var.mlflow_instances : {
     container_image      = "${aws_ecr_repository.mlflow.repository_url}:master"
     container_name       = "mlflow"
-    log_group            = "${aws_cloudwatch_log_group.mlflow[i].name}"
-    log_region           = "${data.aws_region.aws_region.name}"
-    cpu                  = "${local.mlflow_container_cpu}"
-    memory               = "${local.mlflow_container_memory}"
-    artifact_bucket_name = "${aws_s3_bucket.mlflow[i].bucket}"
-    jwt_public_key       = "${var.jwt_public_key}"
+    log_group            = aws_cloudwatch_log_group.mlflow[i].name
+    log_region           = data.aws_region.aws_region.name
+    cpu                  = local.mlflow_container_cpu
+    memory               = local.mlflow_container_memory
+    artifact_bucket_name = aws_s3_bucket.mlflow[i].bucket
+    jwt_public_key       = var.jwt_public_key
     mlflow_hostname      = "http://mlflow--${var.mlflow_instances_long[i]}.${var.admin_domain}"
     database_uri         = "postgresql://${aws_rds_cluster.mlflow[i].master_username}:${random_string.aws_db_instance_mlflow_password[i].result}@${aws_rds_cluster.mlflow[i].endpoint}:5432/${aws_rds_cluster.mlflow[i].database_name}"
-    proxy_port           = "${local.mlflow_port}"
+    proxy_port           = local.mlflow_port
   }]
 }
 
@@ -26,8 +26,8 @@ resource "aws_ecs_service" "mlflow" {
   health_check_grace_period_seconds = "10"
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_without_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.mlflow_service[count.index].id}"]
+    subnets         = [aws_subnet.private_without_egress[*].id[0]]
+    security_groups = [aws_security_group.mlflow_service[count.index].id]
   }
 
   load_balancer {
@@ -150,7 +150,7 @@ data "aws_iam_policy_document" "mlflow_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.mlflow.arn}",
+      aws_ecr_repository.mlflow.arn,
     ]
   }
 
@@ -219,7 +219,7 @@ data "aws_iam_policy_document" "mlflow_access_artifacts_bucket" {
     ]
 
     resources = [
-      "${aws_s3_bucket.mlflow[count.index].arn}",
+      aws_s3_bucket.mlflow[count.index].arn,
     ]
   }
 }
@@ -233,8 +233,8 @@ resource "aws_lb" "mlflow" {
   enable_deletion_protection       = true
 
   subnet_mapping {
-    subnet_id            = aws_subnet.private_without_egress.*.id[0]
-    private_ipv4_address = cidrhost("${aws_subnet.private_without_egress.*.cidr_block[0]}", 7 + count.index)
+    subnet_id            = aws_subnet.private_without_egress[*].id[0]
+    private_ipv4_address = cidrhost(aws_subnet.private_without_egress[*].cidr_block[0], 7 + count.index)
   }
 }
 
@@ -281,8 +281,8 @@ resource "aws_lb" "mlflow_dataflow" {
   enable_deletion_protection       = true
 
   subnet_mapping {
-    subnet_id            = aws_subnet.datasets.*.id[0]
-    private_ipv4_address = cidrhost("${aws_subnet.datasets.*.cidr_block[0]}", 7 + count.index)
+    subnet_id            = aws_subnet.datasets[*].id[0]
+    private_ipv4_address = cidrhost(aws_subnet.datasets[*].cidr_block[0], 7 + count.index)
   }
 }
 
@@ -358,7 +358,7 @@ resource "aws_rds_cluster" "mlflow" {
   preferred_backup_window = "03:29-03:59"
   apply_immediately       = true
 
-  vpc_security_group_ids = ["${aws_security_group.mlflow_db[count.index].id}"]
+  vpc_security_group_ids = [aws_security_group.mlflow_db[count.index].id]
   db_subnet_group_name   = aws_db_subnet_group.mlflow[count.index].name
 
   final_snapshot_identifier = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
@@ -378,7 +378,7 @@ resource "aws_rds_cluster_instance" "mlflow" {
 resource "aws_db_subnet_group" "mlflow" {
   count      = var.mlflow_on ? length(var.mlflow_instances) : 0
   name       = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
-  subnet_ids = aws_subnet.private_without_egress.*.id
+  subnet_ids = aws_subnet.private_without_egress[*].id
 
   tags = {
     Name = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"

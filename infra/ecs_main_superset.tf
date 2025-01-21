@@ -10,8 +10,8 @@ resource "aws_ecs_service" "superset" {
   health_check_grace_period_seconds = "10"
 
   network_configuration {
-    subnets         = ["${aws_subnet.private_without_egress.*.id[0]}"]
-    security_groups = ["${aws_security_group.superset_service.id}"]
+    subnets         = [aws_subnet.private_without_egress[*].id[0]]
+    security_groups = [aws_security_group.superset_service.id]
   }
 
   load_balancer {
@@ -32,21 +32,21 @@ resource "aws_ecs_task_definition" "superset_service" {
     "${path.module}/ecs_main_superset_container_definitions.json", {
       container_image = "${aws_ecr_repository.superset.repository_url}:master"
       container_name  = "superset"
-      log_group       = "${aws_cloudwatch_log_group.superset[count.index].name}"
-      log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.superset_container_cpu}"
-      memory          = "${local.superset_container_memory}"
+      log_group       = aws_cloudwatch_log_group.superset[count.index].name
+      log_region      = data.aws_region.aws_region.name
+      cpu             = local.superset_container_cpu
+      memory          = local.superset_container_memory
 
-      db_host     = "${aws_rds_cluster.superset[count.index].endpoint}"
-      db_name     = "${aws_rds_cluster.superset[count.index].database_name}"
-      db_password = "${random_string.aws_db_instance_superset_password.result}"
-      db_port     = "${aws_rds_cluster.superset[count.index].port}"
-      db_user     = "${aws_rds_cluster.superset[count.index].master_username}"
-      admin_users = "${var.superset_admin_users}"
-      secret_key  = "${random_string.superset_secret_key.result}"
+      db_host     = aws_rds_cluster.superset[count.index].endpoint
+      db_name     = aws_rds_cluster.superset[count.index].database_name
+      db_password = random_string.aws_db_instance_superset_password.result
+      db_port     = aws_rds_cluster.superset[count.index].port
+      db_user     = aws_rds_cluster.superset[count.index].master_username
+      admin_users = var.superset_admin_users
+      secret_key  = random_string.superset_secret_key.result
 
-      sentry_dsn         = "${var.sentry_notebooks_dsn}"
-      sentry_environment = "${var.sentry_environment}"
+      sentry_dsn         = var.sentry_notebooks_dsn
+      sentry_environment = var.sentry_environment
     }
   )
   execution_role_arn       = aws_iam_role.superset_task_execution[count.index].arn
@@ -129,7 +129,7 @@ data "aws_iam_policy_document" "superset_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.superset.arn}",
+      aws_ecr_repository.superset.arn,
     ]
   }
 
@@ -168,8 +168,8 @@ resource "aws_lb" "superset" {
   name                       = "${var.prefix}-superset"
   load_balancer_type         = "application"
   internal                   = true
-  security_groups            = ["${aws_security_group.superset_lb.id}"]
-  subnets                    = aws_subnet.private_without_egress.*.id
+  security_groups            = [aws_security_group.superset_lb.id]
+  subnets                    = aws_subnet.private_without_egress[*].id
   enable_deletion_protection = true
 }
 
@@ -223,7 +223,7 @@ resource "aws_rds_cluster" "superset" {
   preferred_backup_window = "03:29-03:59"
   apply_immediately       = true
 
-  vpc_security_group_ids = ["${aws_security_group.superset_db.id}"]
+  vpc_security_group_ids = [aws_security_group.superset_db.id]
   db_subnet_group_name   = aws_db_subnet_group.superset[count.index].name
 
   final_snapshot_identifier = "${var.prefix}-superset"
@@ -245,7 +245,7 @@ resource "aws_rds_cluster_instance" "superset" {
 resource "aws_db_subnet_group" "superset" {
   count      = var.superset_on ? 1 : 0
   name       = "${var.prefix}-superset"
-  subnet_ids = aws_subnet.private_without_egress.*.id
+  subnet_ids = aws_subnet.private_without_egress[*].id
 
   tags = {
     Name = "${var.prefix}-superset"

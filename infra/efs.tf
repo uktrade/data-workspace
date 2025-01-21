@@ -45,23 +45,23 @@ data "aws_iam_policy_document" "aws_efs_file_system_policy_notebooks" {
     actions = [""]
 
     resources = [
-      "${aws_efs_file_system.notebooks.arn}",
+      aws_efs_file_system.notebooks.arn,
     ]
   }
 }
 
 resource "aws_efs_mount_target" "notebooks" {
   file_system_id = aws_efs_file_system.notebooks.id
-  subnet_id      = aws_subnet.private_with_egress.*.id[0]
+  subnet_id      = aws_subnet.private_with_egress[*].id[0]
 
-  security_groups = ["${aws_security_group.efs_mount_target_notebooks.id}"]
+  security_groups = [aws_security_group.efs_mount_target_notebooks.id]
 }
 
 resource "aws_vpc_endpoint" "efs_notebooks" {
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.${data.aws_region.aws_region.name}.elasticfilesystem"
   vpc_endpoint_type  = "Interface"
-  security_group_ids = ["${aws_security_group.efs_notebooks.id}"]
+  security_group_ids = [aws_security_group.efs_notebooks.id]
 
   policy = data.aws_iam_policy_document.aws_vpc_endpoint_s3_notebooks.json
 
@@ -69,20 +69,3 @@ resource "aws_vpc_endpoint" "efs_notebooks" {
 
 }
 
-data "aws_iam_policy_document" "aws_vpc_endpoint_efs" {
-  statement {
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-
-    actions = [
-      "elasticfilesystem:ClientMount",
-      "elasticfilesystem:ClientWrite",
-    ]
-
-    resources = [
-      "${aws_efs_file_system.notebooks.arn}",
-    ]
-  }
-}

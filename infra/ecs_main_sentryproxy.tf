@@ -7,8 +7,8 @@ resource "aws_ecs_service" "sentryproxy" {
   platform_version = "1.4.0"
 
   network_configuration {
-    subnets         = aws_subnet.private_with_egress.*.id
-    security_groups = ["${aws_security_group.sentryproxy_service.id}"]
+    subnets         = aws_subnet.private_with_egress[*].id
+    security_groups = [aws_security_group.sentryproxy_service.id]
   }
 
   service_registries {
@@ -20,9 +20,9 @@ data "external" "sentryproxy_current_tag" {
   program = ["${path.module}/container-tag.sh"]
 
   query = {
-    cluster_name   = "${aws_ecs_cluster.main_cluster.name}"
+    cluster_name   = aws_ecs_cluster.main_cluster.name
     service_name   = "${var.prefix}-sentryproxy"
-    container_name = "${local.sentryproxy_container_name}"
+    container_name = local.sentryproxy_container_name
   }
 }
 
@@ -50,12 +50,12 @@ resource "aws_ecs_task_definition" "sentryproxy" {
   container_definitions = templatefile(
     "${path.module}/ecs_main_sentryproxy_container_definitions.json", {
       container_image  = "${aws_ecr_repository.sentryproxy.repository_url}:${data.external.sentryproxy_current_tag.result.tag}"
-      container_name   = "${local.sentryproxy_container_name}"
-      container_cpu    = "${local.sentryproxy_container_cpu}"
-      container_memory = "${local.sentryproxy_container_memory}"
+      container_name   = local.sentryproxy_container_name
+      container_cpu    = local.sentryproxy_container_cpu
+      container_memory = local.sentryproxy_container_memory
 
-      log_group  = "${aws_cloudwatch_log_group.sentryproxy.name}"
-      log_region = "${data.aws_region.aws_region.name}"
+      log_group  = aws_cloudwatch_log_group.sentryproxy.name
+      log_region = data.aws_region.aws_region.name
     }
   )
   execution_role_arn       = aws_iam_role.sentryproxy_task_execution.arn
@@ -132,7 +132,7 @@ data "aws_iam_policy_document" "sentryproxy_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.sentryproxy.arn}",
+      aws_ecr_repository.sentryproxy.arn,
     ]
   }
 

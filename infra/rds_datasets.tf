@@ -8,7 +8,7 @@ resource "aws_rds_cluster" "datasets" {
   master_password                 = random_string.aws_rds_cluster_instance_datasets_password.result
   master_username                 = var.datasets_rds_cluster_master_username
   storage_encrypted               = var.datasets_rds_cluster_storage_encryption_enabled
-  vpc_security_group_ids          = ["${aws_security_group.datasets.id}"]
+  vpc_security_group_ids          = [aws_security_group.datasets.id]
   skip_final_snapshot             = true
   deletion_protection             = true
   enabled_cloudwatch_logs_exports = ["postgresql"]
@@ -37,7 +37,7 @@ resource "aws_rds_cluster_instance" "datasets" {
 
 resource "aws_db_subnet_group" "datasets" {
   name       = "${var.prefix}-datasets"
-  subnet_ids = aws_subnet.datasets.*.id
+  subnet_ids = aws_subnet.datasets[*].id
 
   tags = {
     Name = "${var.prefix}-datasets"
