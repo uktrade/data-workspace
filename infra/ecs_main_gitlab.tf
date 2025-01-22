@@ -781,20 +781,20 @@ resource "aws_launch_configuration" "gitlab_runner_tap" {
   EOF
 }
 
-resource "aws_autoscaling_group" "gitlab_runner_data_science" {
+resource "aws_autoscaling_group" "gitlab_runner_ddat_data_science" {
   count                     = var.gitlab_on ? 1 : 0
-  name_prefix               = "${var.prefix}-gitlab-runner-data-science-"
+  name_prefix               = "${var.prefix}-gitlab-runner-ddat-data-science-"
   max_size                  = 2
   min_size                  = 1
   desired_capacity          = 1
   health_check_grace_period = 120
   health_check_type         = "EC2"
-  launch_configuration      = aws_launch_configuration.gitlab_runner_data_science[0].name
+  launch_configuration      = aws_launch_configuration.gitlab_runner_ddat_data_science[0].name
   vpc_zone_identifier       = aws_subnet.private_without_egress.*.id
 
   tag {
     key                 = "Name"
-    value               = "${var.prefix}-gitlab-runner-data-science-asg"
+    value               = "${var.prefix}-gitlab-runner-ddat-data-science-asg"
     propagate_at_launch = true
   }
 
@@ -803,15 +803,15 @@ resource "aws_autoscaling_group" "gitlab_runner_data_science" {
   }
 }
 
-resource "aws_launch_configuration" "gitlab_runner_data_science" {
+resource "aws_launch_configuration" "gitlab_runner_ddat_data_science" {
   count       = var.gitlab_on ? 1 : 0
   name_prefix = "${var.prefix}-gitlab-runner-data-science-"
   # This is the ECS optimized image, although we're not running ECS. It's
   # handy since it has everything docker installed, and cuts down on the
   # types of infrastructure
   image_id             = "ami-0749bd3fac17dc2cc"
-  instance_type        = var.gitlab_runner_data_science_instance_type
-  iam_instance_profile = aws_iam_instance_profile.gitlab_runner_data_science[count.index].name
+  instance_type        = var.gitlab_runner_ddat_data_science_instance_type
+  iam_instance_profile = aws_iam_instance_profile.gitlab_runner_ddat_data_science[count.index].name
   security_groups      = ["${aws_security_group.gitlab_runner[count.index].id}"]
   key_name             = aws_key_pair.shared.key_name
 
@@ -856,9 +856,9 @@ resource "aws_launch_configuration" "gitlab_runner_data_science" {
     --non-interactive \
     --url "http://${var.gitlab_domain}/" \
     --clone-url "http://${var.gitlab_domain}/" \
-    --registration-token "${var.gitlab_runner_data_science_project_token}" \
+    --registration-token "${var.gitlab_runner_ddat_data_science_project_token}" \
     --executor "shell" \
-    --description "data science" \
+    --description "ddat data science" \
     --access-level "not_protected" \
     --run-untagged="true" \
     --locked="true"
@@ -951,20 +951,20 @@ resource "aws_iam_policy_attachment" "gitlab_runner" {
   policy_arn = aws_iam_policy.gitlab_runner[count.index].arn
 }
 
-resource "aws_iam_instance_profile" "gitlab_runner_data_science" {
+resource "aws_iam_instance_profile" "gitlab_runner_ddat_data_science" {
   count = var.gitlab_on ? 1 : 0
-  name  = "${var.prefix}-gitlab-runner-data-science"
-  role  = aws_iam_role.gitlab_runner_data_science[count.index].name
+  name  = "${var.prefix}-gitlab-runner-ddat-data-science"
+  role  = aws_iam_role.gitlab_runner_ddat_data_science[count.index].name
 }
 
-resource "aws_iam_role" "gitlab_runner_data_science" {
+resource "aws_iam_role" "gitlab_runner_ddat_data_science" {
   count              = var.gitlab_on ? 1 : 0
-  name               = "${var.prefix}-gitlab-runner-data-science"
+  name               = "${var.prefix}-gitlab-runner-ddat-data-science"
   path               = "/"
-  assume_role_policy = data.aws_iam_policy_document.gitlab_runner_data_science_assume_role[count.index].json
+  assume_role_policy = data.aws_iam_policy_document.gitlab_runner_ddat_data_science_assume_role[count.index].json
 }
 
-data "aws_iam_policy_document" "gitlab_runner_data_science_assume_role" {
+data "aws_iam_policy_document" "gitlab_runner_ddat_data_science_assume_role" {
   count = var.gitlab_on ? 1 : 0
   statement {
     actions = ["sts:AssumeRole"]
@@ -976,13 +976,13 @@ data "aws_iam_policy_document" "gitlab_runner_data_science_assume_role" {
   }
 }
 
-resource "aws_iam_policy" "gitlab_runner_data_science" {
+resource "aws_iam_policy" "gitlab_runner_ddat_data_science" {
   count  = var.gitlab_on ? 1 : 0
-  name   = "${var.prefix}-gitlab-runner-data-science"
-  policy = data.aws_iam_policy_document.gitlab_runner_data_science[count.index].json
+  name   = "${var.prefix}-gitlab-runner-ddat-data-science"
+  policy = data.aws_iam_policy_document.gitlab_runner_ddat_data_science[count.index].json
 }
 
-data "aws_iam_policy_document" "gitlab_runner_data_science" {
+data "aws_iam_policy_document" "gitlab_runner_ddat_data_science" {
   count = var.gitlab_on ? 1 : 0
 
   statement {
@@ -1027,11 +1027,11 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
   }
 }
 
-resource "aws_iam_policy_attachment" "gitlab_runner_data_science" {
+resource "aws_iam_policy_attachment" "gitlab_runner_ddat_data_science" {
   count      = var.gitlab_on ? 1 : 0
-  name       = "${var.prefix}-gitlab-runner-data-science"
-  roles      = ["${aws_iam_role.gitlab_runner_data_science[count.index].name}"]
-  policy_arn = aws_iam_policy.gitlab_runner_data_science[count.index].arn
+  name       = "${var.prefix}-gitlab-runner-ddat-data-science"
+  roles      = ["${aws_iam_role.gitlab_runner_ddat_data_science[count.index].name}"]
+  policy_arn = aws_iam_policy.gitlab_runner_ddat_data_science[count.index].arn
 }
 
 resource "aws_autoscaling_group" "gitlab_runner_ag_data_science" {
