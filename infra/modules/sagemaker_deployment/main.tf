@@ -181,11 +181,7 @@ resource "aws_sns_topic" "sns_topic_alarmstate" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow",
         Principal = {
-          Service = "cloudwatch.amazonaws.com"
-        },
-        Action   = "sns:Publish",
         Resource = "*"
       }
     ]
