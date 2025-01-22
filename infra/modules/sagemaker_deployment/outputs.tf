@@ -6,23 +6,18 @@ output "endpoint_name" {
   value = aws_sagemaker_endpoint.sagemaker_endpoint.name
 }
 
-output "scale_up_policy_arn" {
-  value = aws_appautoscaling_policy.scale_up_policy.arn
+output "scale_up_to_one_policy_arn" {
+  value = aws_appautoscaling_policy.scale_up_to_one_policy.arn
 }
 
-output "scale_in_to_zero_policy_arn" {
-  value = aws_appautoscaling_policy.scale_in_to_zero_policy.arn
+output "scale_down_to_zero_policy_arn" {
+  value = aws_appautoscaling_policy.scale_down_to_zero_policy.arn
 }
 
-output "scale_in_to_zero_based_on_backlog_arn" {
-  description = "ARN of the autoscaling policy to scale in to zero for backlog queries when 0 for x minutes"
-  value       = aws_appautoscaling_policy.scale_in_to_zero_based_on_backlog.arn
+output "scale_up_to_n_policy_arn" {
+  value = aws_appautoscaling_policy.scale_up_to_n_policy.arn
 }
 
-output "sns_topic_arns" {
-  value = [for sns in aws_sns_topic.sns_topic : sns.arn]
-}
-
-output "sns_to_webhook_mapping" {
-  value = local.sns_to_webhook_mapping
+output "scale_down_to_n_policy_arn" {
+  value = aws_appautoscaling_policy.scale_down_to_n_policy.arn
 }
