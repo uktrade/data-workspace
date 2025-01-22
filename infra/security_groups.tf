@@ -2672,3 +2672,29 @@ resource "aws_security_group_rule" "matchbox_service_egress_udp_to_dns_rewrite_p
   to_port   = "53"
   protocol  = "udp"
 }
+
+resource "aws_security_group_rule" "matchbox_db_https_ingress_from_matchbox_service" {
+  count       = length(var.matchbox_instances)
+  description = "ingress-https-to-matchbox-db"
+
+  security_group_id        = aws_security_group.matchbox_db[count.index].id
+  source_security_group_id = aws_security_group.matchbox_service[count.index].id
+
+  type      = "ingress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "matchbox_service_egress_https_to_matchbox_db" {
+  count       = length(var.matchbox_instances)
+  description = "egress-matchbox-service"
+
+  security_group_id        = aws_security_group.matchbox_service[count.index].id
+  source_security_group_id = aws_security_group.matchbox_db[count.index].id
+
+  type      = "egress"
+  from_port = "5432"
+  to_port   = "5432"
+  protocol  = "tcp"
+}
