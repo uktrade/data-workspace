@@ -2313,6 +2313,19 @@ resource "aws_security_group_rule" "notebooks_egress_http_to_mlflow_service" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "notebooks_egress_http_to_matchbox_service" {
+  count       = length(var.matchbox_instances)
+  description = "egress-http-to-matchbox-service-${var.matchbox_instances[count.index]}-temp"
+
+  security_group_id        = aws_security_group.notebooks.id
+  source_security_group_id = aws_security_group.matchbox_service[count.index].id
+
+  type      = "egress"
+  from_port = local.matchbox_port
+  to_port   = local.matchbox_port
+  protocol  = "tcp"
+}
+
 resource "aws_security_group" "ecs" {
   name   = "${var.prefix}-ecs"
   vpc_id = aws_vpc.main.id
@@ -2553,6 +2566,58 @@ resource "aws_security_group" "matchbox_service" {
   }
 }
 
+resource "aws_security_group_rule" "matchbox_egress_https_to_matchbox_endpoints" {
+  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
+  description = "egress-https-from-matchbox-service"
+
+  security_group_id        = aws_security_group.matchbox_service[count.index].id
+  source_security_group_id = aws_security_group.matchbox_endpoints.id
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "matchbox_api_ingress_http_from_notebooks" {
+  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
+  description = "matchbox-api-ingress-https-from-notebooks"
+
+  security_group_id        = aws_security_group.matchbox_service[count.index].id
+  source_security_group_id = aws_security_group.notebooks.id
+
+  type      = "ingress"
+  from_port = "80"
+  to_port   = "80"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "matchbox_api_ingress_http_from_notebooks_matchbox_port" {
+  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
+  description = "matchbox-api-ingress-https-from-notebooks"
+
+  security_group_id        = aws_security_group.matchbox_service[count.index].id
+  source_security_group_id = aws_security_group.notebooks.id
+
+  type      = "ingress"
+  from_port = local.matchbox_port
+  to_port   = local.matchbox_port
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "matchbox_egress_https_all" {
+  count       = length(var.matchbox_instances)
+  description = "egress-https-to-all"
+
+  security_group_id = aws_security_group.matchbox_service[count.index].id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group" "matchbox_db" {
   count       = length(var.matchbox_instances)
   name        = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-db"
@@ -2566,4 +2631,44 @@ resource "aws_security_group" "matchbox_db" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+resource "aws_security_group" "matchbox_endpoints" {
+  name        = "${var.prefix}-matchbox-endpoints"
+  description = "${var.prefix}-matchbox-endpoints"
+  vpc_id      = aws_vpc.matchbox.id
+
+  tags = {
+    Name = "${var.prefix}-matchbox-endpoints"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "matchbox_endpoints_https_ingress_from_matchbox_service" {
+  count       = var.matchbox_on ? 1 : 0
+  description = "ingress-matchbox-endpoints"
+
+  security_group_id        = aws_security_group.matchbox_endpoints.id
+  source_security_group_id = aws_security_group.matchbox_service[count.index].id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "matchbox_service_egress_udp_to_dns_rewrite_proxy" {
+  count       = length(var.matchbox_instances)
+  description = "egress-dns-to-dns-rewrite-proxy"
+
+  security_group_id = aws_security_group.matchbox_service[count.index].id
+  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+
+  type      = "egress"
+  from_port = "53"
+  to_port   = "53"
+  protocol  = "udp"
 }
