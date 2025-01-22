@@ -2698,3 +2698,29 @@ resource "aws_security_group_rule" "matchbox_service_egress_https_to_matchbox_db
   to_port   = "5432"
   protocol  = "tcp"
 }
+
+resource "aws_security_group_rule" "matchbox_db_ingress_https_from_notebooks" {
+  count       = var.matchbox_debug_mode ? length(var.matchbox_instances) : 0
+  description = "matchbox-db-ingress-https-from-notebooks"
+
+  security_group_id        = aws_security_group.matchbox_db[count.index].id
+  source_security_group_id = aws_security_group.notebooks.id
+
+  type      = "ingress"
+  from_port = 5432
+  to_port   = 5432
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "notebooks_egress_https_to_matchbox_db" {
+  count       = var.matchbox_debug_mode ? length(var.matchbox_instances) : 0
+  description = "notebooks-egress-https-to-matchbox-db"
+
+  security_group_id        = aws_security_group.notebooks.id
+  source_security_group_id = aws_security_group.matchbox_db[count.index].id
+
+  type      = "egress"
+  from_port = 5432
+  to_port   = 5432
+  protocol  = "tcp"
+}
