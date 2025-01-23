@@ -162,7 +162,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   statistic           = var.alarms[count.index].statistic
   alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.sns_topic_alarmstate[count.index].arn])
   ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.sns_topic_okstate[count.index].arn])
-  dimensions = count.index == 0 ? {                               # TODO: this logic is brittle as it assumes "backlog" has index 0; it would be better to have a logic that rests on the specific name of that metric
+  dimensions = (count.index == 0 || count.index == 1) ? {         # TODO: this logic is brittle as it assumes "backlog" has index [0,1]; it would be better to have a logic that rests on the specific name of that metric
     EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name # Only EndpointName is used in this case
     } : {
     EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name,                                          # Both EndpointName and VariantName are used in all other cases
