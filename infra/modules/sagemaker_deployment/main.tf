@@ -162,21 +162,33 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   statistic           = var.alarms[count.index].statistic
   alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.sns_topic_alarmstate[count.index].arn])
   ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.sns_topic_okstate[count.index].arn])
-  dimensions          = count.index == 0 ? {  # TODO: this logic is brittle as it assumes "backlog" has index 0; it would be better to have a logic that rests on the specific name of that metric
-                                              EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name  # Only EndpointName is used in this case
-                                              } : {
-                                              EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name,  # Both EndpointName and VariantName are used in all other cases
-                                              VariantName  = aws_sagemaker_endpoint_configuration.endpoint_config.production_variants[0].variant_name  # Note this logic would not work if there were ever more than one production variant deployed for an LLM
-                                            }
-
+  dimensions = count.index == 0 ? {                               # TODO: this logic is brittle as it assumes "backlog" has index 0; it would be better to have a logic that rests on the specific name of that metric
+    EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name # Only EndpointName is used in this case
+    } : {
+    EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name,                                          # Both EndpointName and VariantName are used in all other cases
+    VariantName  = aws_sagemaker_endpoint_configuration.endpoint_config.production_variants[0].variant_name # Note this logic would not work if there were ever more than one production variant deployed for an LLM
+  }
 
   depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.sns_topic_alarmstate, aws_sns_topic.sns_topic_okstate]
+}
+
+resource "aws_cloudwatch_composite_alarm" "composite_alarm" {
+  count = length(var.alarm_composites)
+
+  alarm_name        = "${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
+  alarm_description = var.alarm_composites[count.index].alarm_description
+  alarm_rule        = var.alarm_composites[count.index].alarm_rule
+  alarm_actions     = var.alarm_composites[count.index].alarm_actions
+  ok_actions        = var.alarm_composites[count.index].ok_actions
+
+  depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_cloudwatch_metric_alarm.cloudwatch_alarm]
+
 }
 
 resource "aws_sns_topic" "sns_topic_alarmstate" {
   count = length(var.alarms)
 
-  name       = "alarm-alarmstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
+  name = "alarm-alarmstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -213,7 +225,7 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_alarmstate" {
 resource "aws_sns_topic" "sns_topic_okstate" {
   count = length(var.alarms)
 
-  name       = "alarm-okstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
+  name = "alarm-okstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
 
   policy = jsonencode({
     Version = "2012-10-17",
