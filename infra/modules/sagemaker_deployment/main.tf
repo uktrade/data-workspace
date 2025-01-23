@@ -178,11 +178,61 @@ resource "aws_cloudwatch_composite_alarm" "composite_alarm" {
   alarm_name        = "${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
   alarm_description = var.alarm_composites[count.index].alarm_description
   alarm_rule        = var.alarm_composites[count.index].alarm_rule
-  alarm_actions     = var.alarm_composites[count.index].alarm_actions
+  alarm_actions     = concat(var.alarm_composites[count.index].alarm_actions, [aws_sns_topic.alarm_composite_notifications[count.index].arn])
   ok_actions        = var.alarm_composites[count.index].ok_actions
 
-  depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_cloudwatch_metric_alarm.cloudwatch_alarm]
+  depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.alarm_composite_notifications,]
 
+}
+
+resource "aws_sns_topic" "alarm_composite_notifications" {
+  count = length(var.alarm_composites)
+  name = "alarm-composite-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-sns-topic"
+  
+}
+
+resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
+  count = length(var.alarm_composites)
+
+  arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid   = "AllowPublishFromCloudWatch"
+        Effect = "Allow",
+        Principal = {
+          Service = "cloudwatch.amazonaws.com"
+        },
+        Action   = "SNS:Publish",
+        Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
+      },
+      {
+        Sid   = "AllowSubscriptionActions"
+        Effect = "Allow",
+        Principal = "*",
+        Action = [
+          "sns:Subscribe",
+          "sns:Receive"
+        ],
+        Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
+      }
+    ]
+  })
+
+}
+
+resource "aws_sns_topic_subscription" "email_subscription" {
+  count = length(var.alarm_composites)
+  topic_arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
+  protocol = "email"
+  endpoint = flatten([
+    for variables in var.alarm_composites:
+    [
+      for email in variables.emails :
+      email
+    ]
+  ])[count.index]
 }
 
 resource "aws_sns_topic" "sns_topic_alarmstate" {

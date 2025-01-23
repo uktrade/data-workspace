@@ -241,6 +241,7 @@ module "gpt_neo_125m_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
     }
 
   ]
@@ -485,6 +486,7 @@ module "phi_2_3b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
     }
 
   ]
@@ -697,7 +699,7 @@ module "mistral_7b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 20 * 4 # TODO: we must manually multiply by CPU count as Normalized metric not available
+      threshold           = 20 * 48 # TODO: we must manually multiply by CPU count as Normalized metric not available
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 3600
@@ -731,6 +733,7 @@ module "mistral_7b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
     }
 
   ]
@@ -942,7 +945,7 @@ module "gemma_2_27b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 20 * 4 # TODO: we must manually multiply by CPU count as Normalized metric not available
+      threshold           = 20 * 192 # TODO: we must manually multiply by CPU count as Normalized metric not available
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 3600
@@ -977,6 +980,7 @@ module "gemma_2_27b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
     }
 
   ]
@@ -1195,7 +1199,7 @@ module "llama_3_70b_deployment" {
       metric_name         = "CPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
       comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 20 * 4 # TODO: we must manually multiply by CPU count as Normalized metric not available
+      threshold           = 20 * 96 # TODO: we must manually multiply by CPU count as Normalized metric not available
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 3600
@@ -1229,6 +1233,7 @@ module "llama_3_70b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
     }
   ]
 

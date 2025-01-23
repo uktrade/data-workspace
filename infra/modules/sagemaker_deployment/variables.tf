@@ -101,6 +101,7 @@ variable "alarm_composites" {
     alarm_actions     = list(string)
     ok_actions        = list(string)
     slack_webhook_url = string
+    emails            = list(string)
   }))
   description = "List of CloudWatch composite alarms to be created utilizing pre-existing alarms"
 }
