@@ -58,8 +58,8 @@ module "gpt_neo_125m_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
+      evaluation_periods  = 5
+      datapoints_to_alarm = 5
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -275,8 +275,8 @@ module "phi_2_3b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
+      evaluation_periods  = 5
+      datapoints_to_alarm = 5
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -494,8 +494,8 @@ module "mistral_7b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
+      evaluation_periods  = 5
+      datapoints_to_alarm = 5
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -697,8 +697,8 @@ module "gemma_2_27b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
+      evaluation_periods  = 5
+      datapoints_to_alarm = 5
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -922,8 +922,8 @@ module "llama_3_70b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
+      evaluation_periods  = 5
+      datapoints_to_alarm = 5
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -1126,8 +1126,8 @@ module "falcon_bf16_180b_deployment" {
       namespace               = "AWS/SageMaker"
       comparison_operator     = "GreaterThanOrEqualToThreshold"
       threshold               = 1
-      evaluation_periods      = 1
-      datapoints_to_alarm     = 1
+      evaluation_periods  = 5
+      datapoints_to_alarm = 5
       period                  = 60
       statistic               = "Maximum"
       slack_webhook_url       = var.slack_webhook_backlog_alerts
