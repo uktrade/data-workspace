@@ -37,8 +37,8 @@ module "gpt_neo_125m_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
-      alarm_description   = "Scale based on existence of backlog or not"
+      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale up based on existence of backlog"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -49,7 +49,22 @@ module "gpt_neo_125m_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.gpt_neo_125m_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.gpt_neo_125m_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale down based on non-existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.gpt_neo_125m_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-cpu"
@@ -239,8 +254,8 @@ module "phi_2_3b_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
-      alarm_description   = "Scale based on existence of backlog or not"
+      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale up based on existence of backlog"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -251,7 +266,22 @@ module "phi_2_3b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale down based on non-existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-cpu"
@@ -443,8 +473,8 @@ module "mistral_7b_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
-      alarm_description   = "Scale based on existence of backlog or not"
+      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale up based on existence of backlog"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -455,21 +485,21 @@ module "mistral_7b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.mistral_7b_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.mistral_7b_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
     },
     {
-      alarm_name_prefix   = "high-cpu"
-      alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 48 # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale down based on non-existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 1
       evaluation_periods  = 1
       datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-      alarm_actions       = [module.mistral_7b_deployment.scale_up_to_n_policy_arn]
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.mistral_7b_deployment.scale_down_to_zero_policy_arn]
       ok_actions          = []
     },
     {
@@ -646,8 +676,8 @@ module "gemma_2_27b_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
-      alarm_description   = "Scale based on existence of backlog or not"
+      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale up based on existence of backlog"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -658,7 +688,22 @@ module "gemma_2_27b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.gemma_2_27b_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale down based on non-existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-cpu"
@@ -856,8 +901,8 @@ module "llama_3_70b_deployment" {
 
   alarms = [
     {
-      alarm_name_prefix   = "backlog" # TODO: backlog is currently required to have index 0, which is brittle
-      alarm_description   = "Scale based on existence of backlog or not"
+      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale up based on existence of backlog"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -868,7 +913,22 @@ module "llama_3_70b_deployment" {
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_one_policy_arn]
-      ok_actions          = [module.llama_3_70b_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale down based on non-existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
     },
     {
       alarm_name_prefix   = "high-cpu"
