@@ -92,6 +92,8 @@ resource "aws_ecs_task_definition" "gitlab" {
       )}"
       bucket        = "${aws_s3_bucket.gitlab[count.index].id}"
       bucket_region = "${aws_s3_bucket.gitlab[count.index].region}"
+
+      secret_name = "${aws_secretsmanager_secret.gitlab[count.index].name}"
     }
   )
   execution_role_arn       = aws_iam_role.gitlab_task_execution[count.index].arn
@@ -111,6 +113,11 @@ resource "aws_ecs_task_definition" "gitlab" {
       "revision",
     ]
   }
+}
+
+resource "aws_secretsmanager_secret" "gitlab" {
+  count = var.gitlab_on ? 1 : 0
+  name  = "${var.prefix}/gitlab"
 }
 
 resource "aws_cloudwatch_log_group" "gitlab" {
@@ -200,6 +207,32 @@ resource "aws_iam_role" "gitlab_task" {
   name               = "${var.prefix}-gitlab-task"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.gitlab_task_ecs_tasks_assume_role[count.index].json
+}
+
+resource "aws_iam_role_policy_attachment" "gitlab_secret" {
+  count      = var.gitlab_on ? 1 : 0
+  role       = aws_iam_role.gitlab_task[count.index].name
+  policy_arn = aws_iam_policy.gitlab_secret[count.index].arn
+}
+
+resource "aws_iam_policy" "gitlab_secret" {
+  count  = var.gitlab_on ? 1 : 0
+  name   = "${var.prefix}-gitlab-secret"
+  path   = "/"
+  policy = data.aws_iam_policy_document.gitlab_secret[count.index].json
+}
+
+data "aws_iam_policy_document" "gitlab_secret" {
+  count = var.gitlab_on ? 1 : 0
+  statement {
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      "${aws_secretsmanager_secret.gitlab[count.index].arn}"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "gitlab_access_gitlab_bucket" {
