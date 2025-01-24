@@ -2321,8 +2321,8 @@ resource "aws_security_group_rule" "notebooks_egress_http_to_matchbox_service" {
   source_security_group_id = aws_security_group.matchbox_service[count.index].id
 
   type      = "egress"
-  from_port = local.matchbox_port
-  to_port   = local.matchbox_port
+  from_port = local.matchbox_api_port
+  to_port   = local.matchbox_api_port
   protocol  = "tcp"
 }
 
@@ -2613,8 +2613,8 @@ resource "aws_security_group_rule" "matchbox_api_ingress_http_from_notebooks_mat
   source_security_group_id = aws_security_group.notebooks.id
 
   type      = "ingress"
-  from_port = local.matchbox_port
-  to_port   = local.matchbox_port
+  from_port = local.matchbox_api_port
+  to_port   = local.matchbox_api_port
   protocol  = "tcp"
 }
 
@@ -2694,8 +2694,8 @@ resource "aws_security_group_rule" "matchbox_db_https_ingress_from_matchbox_serv
   source_security_group_id = aws_security_group.matchbox_service[count.index].id
 
   type      = "ingress"
-  from_port = "5432"
-  to_port   = "5432"
+  from_port = local.matchbox_db_port
+  to_port   = local.matchbox_db_port
   protocol  = "tcp"
 }
 
@@ -2707,8 +2707,8 @@ resource "aws_security_group_rule" "matchbox_service_egress_https_to_matchbox_db
   source_security_group_id = aws_security_group.matchbox_db[count.index].id
 
   type      = "egress"
-  from_port = "5432"
-  to_port   = "5432"
+  from_port = local.matchbox_db_port
+  to_port   = local.matchbox_db_port
   protocol  = "tcp"
 }
 
@@ -2733,8 +2733,8 @@ resource "aws_security_group_rule" "matchbox_db_ingress_https_from_notebooks" {
   source_security_group_id = aws_security_group.notebooks.id
 
   type      = "ingress"
-  from_port = 5432
-  to_port   = 5432
+  from_port = local.matchbox_db_port
+  to_port   = local.matchbox_db_port
   protocol  = "tcp"
 }
 
@@ -2746,7 +2746,7 @@ resource "aws_security_group_rule" "notebooks_egress_https_to_matchbox_db" {
   source_security_group_id = aws_security_group.matchbox_db[count.index].id
 
   type      = "egress"
-  from_port = 5432
-  to_port   = 5432
+  from_port = local.matchbox_db_port
+  to_port   = local.matchbox_db_port
   protocol  = "tcp"
 }
