@@ -217,6 +217,21 @@ module "gpt_neo_125m_deployment" {
       ok_actions          = []
     },
     {
+      alarm_name_prefix   = "low-gpu-composite"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
       alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Detect if queries in backlog for extended time period"
       metric_name         = "ApproximateBacklogSize"
@@ -238,6 +253,15 @@ module "gpt_neo_125m_deployment" {
       alarm_name        = "ElevatedCPUUtilizationNoBackLog"
       alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
       alarm_rule        = "ALARM(elevated-cpu-composite-${module.gpt_neo_125m_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.gpt_neo_125m_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
+    },
+    {
+      alarm_name        = "ElevatedGPUUtilizationNoBackLog"
+      alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(low-gpu-composite-${module.gpt_neo_125m_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.gpt_neo_125m_deployment.model_name}-endpoint)"
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
@@ -462,6 +486,21 @@ module "phi_2_3b_deployment" {
       ok_actions          = []
     },
     {
+      alarm_name_prefix   = "low-gpu-composite"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
       alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Detect if queries in backlog for extended time period"
       metric_name         = "ApproximateBacklogSize"
@@ -483,6 +522,15 @@ module "phi_2_3b_deployment" {
       alarm_name        = "ElevatedCPUUtilizationNoBackLog"
       alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
       alarm_rule        = "ALARM(elevated-cpu-composite-${module.phi_2_3b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
+    },
+    {
+      alarm_name        = "ElevatedGPUUtilizationNoBackLog"
+      alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(low-gpu-composite-${module.phi_2_3b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment.model_name}-endpoint)"
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
@@ -709,6 +757,21 @@ module "mistral_7b_deployment" {
       ok_actions          = []
     },
     {
+      alarm_name_prefix   = "low-gpu-composite"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 4 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
       alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Detect if queries in backlog for extended time period"
       metric_name         = "ApproximateBacklogSize"
@@ -730,6 +793,15 @@ module "mistral_7b_deployment" {
       alarm_name        = "ElevatedCPUUtilizationNoBackLog"
       alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
       alarm_rule        = "ALARM(elevated-cpu-composite-${module.mistral_7b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.mistral_7b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
+    },
+    {
+      alarm_name        = "ElevatedGPUUtilizationNoBackLog"
+      alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(low-gpu-composite-${module.mistral_7b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.mistral_7b_deployment.model_name}-endpoint)"
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
@@ -955,6 +1027,21 @@ module "gemma_2_27b_deployment" {
       ok_actions          = []
     },
     {
+      alarm_name_prefix   = "low-gpu-composite"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 8 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
       alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Detect if queries in backlog for extended time period"
       metric_name         = "ApproximateBacklogSize"
@@ -977,6 +1064,15 @@ module "gemma_2_27b_deployment" {
       alarm_name        = "ElevatedCPUUtilizationNoBackLog"
       alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
       alarm_rule        = "ALARM(elevated-cpu-composite-${module.gemma_2_27b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.gemma_2_27b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails             = var.sagemaker_budget_emails
+    },
+    {
+      alarm_name        = "ElevatedGPUUtilizationNoBackLog"
+      alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(low-gpu-composite-${module.gemma_2_27b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.gemma_2_27b_deployment.model_name}-endpoint)"
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
@@ -1213,12 +1309,12 @@ module "llama_3_70b_deployment" {
       alarm_description   = "Scale down when GPU usage is light"
       metric_name         = "GPUUtilization"
       namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanOrEqualToThreshold"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
       threshold           = 20 * 8
       evaluation_periods  = 3
       datapoints_to_alarm = 3
       period              = 3600
-      statistic           = "Maximum"
+      statistic           = "Average"
       slack_webhook_url   = var.slack_webhook_gpu_alerts
       alarm_actions       = []
       ok_actions          = []
