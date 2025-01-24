@@ -146,6 +146,24 @@ resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
   }
 }
 
+# Mapping SNS topic ARNs to Slack webhook URLs
+locals {
+  sns_to_webhook_mapping = merge({
+    for idx, alarm in var.alarms :
+    replace(aws_sns_topic.sns_topic_alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
+    }, {
+    for idx, alarm in var.alarms :
+    replace(aws_sns_topic.sns_topic_okstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
+   }
+  #   Below is commented out now due to the fact that we are exceeding env var limits at this stage
+  #  Possible solution is to compress the information and decompress in the lambda
+  # OR we can remove the ARN first line and keep only the alarm name and concat in the lambdagraph
+   , {
+    for idx, alarm_composite in var.alarm_composites:
+    replace(aws_sns_topic.sns_topic_composite[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm_composite.slack_webhook_url
+  }
+   )
+}
 
 resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   count = length(var.alarms)
@@ -178,11 +196,49 @@ resource "aws_cloudwatch_composite_alarm" "composite_alarm" {
   alarm_name        = "${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
   alarm_description = var.alarm_composites[count.index].alarm_description
   alarm_rule        = var.alarm_composites[count.index].alarm_rule
-  alarm_actions     = concat(var.alarm_composites[count.index].alarm_actions, [aws_sns_topic.alarm_composite_notifications[count.index].arn])
+  alarm_actions     = concat(var.alarm_composites[count.index].alarm_actions, [aws_sns_topic.alarm_composite_notifications[count.index].arn], [aws_sns_topic.sns_topic_composite[count.index].arn])
   ok_actions        = var.alarm_composites[count.index].ok_actions
 
-  depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.alarm_composite_notifications,]
+  depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.alarm_composite_notifications, aws_sns_topic.sns_topic_composite]
 
+}
+
+resource "aws_sns_topic" "sns_topic_composite" {
+  count = length(var.alarm_composites)
+
+  name = "alarm-alarm-composite-lambda-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-topic"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "cloudwatch.amazonaws.com"
+        },
+        Action   = "sns:Publish",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_lambda_permission" "allow_sns_composite" {
+  count = length(var.alarm_composites)
+
+  statement_id  = "AllowSNS-composite-${count.index}"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.slack_alert_function.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.sns_topic_composite[count.index].arn
+}
+
+resource "aws_sns_topic_subscription" "sns_lambda_subscription_composite" {
+  count = length(var.alarm_composites)
+
+  topic_arn = aws_sns_topic.sns_topic_composite[count.index].arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.slack_alert_function.arn
 }
 
 resource "aws_sns_topic" "alarm_composite_notifications" {
@@ -310,16 +366,8 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_okstate" {
   endpoint  = aws_lambda_function.slack_alert_function.arn
 }
 
-# Mpping SNS topic ARNs to Slack webhook URLs
-locals {
-  sns_to_webhook_mapping = merge({
-    for idx, alarm in var.alarms :
-    aws_sns_topic.sns_topic_alarmstate[idx].arn => alarm.slack_webhook_url
-    }, {
-    for idx, alarm in var.alarms :
-    aws_sns_topic.sns_topic_okstate[idx].arn => alarm.slack_webhook_url
-  })
-}
+
+
 
 data "archive_file" "lambda_payload" {
   type        = "zip"
@@ -339,7 +387,8 @@ resource "aws_lambda_function" "slack_alert_function" {
 
   environment {
     variables = {
-      SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping)
+      SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping),
+      ADDRESS = "arn:aws:sns:eu-west-2:${var.aws_account_id}:"
     }
   }
 }
