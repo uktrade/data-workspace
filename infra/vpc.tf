@@ -1053,11 +1053,11 @@ data "aws_iam_policy_document" "vpc_sagemaker_flow_log_vpc_flow_logs_assume_role
 
 resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint_sagemaker" {
   # source                                = "./modules/sagemaker_init/security"
-  vpc_id             = aws_vpc.sagemaker.id
+  vpc_id             = aws_vpc.notebooks.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
+  subnet_ids         = aws_subnet.private_without_egress.*.id
+  security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
     Name        = "notebooks-sagemaker-runtime-endpoint"
@@ -1068,11 +1068,11 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint_sagemaker" {
 
 resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint_sagemaker" {
   # source                                = "./modules/sagemaker_init/security"
-  vpc_id             = aws_vpc.sagemaker.id
+  vpc_id             = aws_vpc.notebooks.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
+  subnet_ids         = aws_subnet.private_without_egress.*.id
+  security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
     Name        = "notebooks-sagemaker-api-endpoint"
