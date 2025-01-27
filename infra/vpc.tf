@@ -1088,11 +1088,13 @@ data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
       identifiers = ["*"]
     }
     actions = [
-      "sagemaker:InvokeEndpoint",
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescribeEndpointConfig",
+      "sagemaker:DescribeModel",
       "sagemaker:InvokeEndpointAsync",
       "sagemaker:ListEndpoints",
-      "sagemaker:DescribeEndpoint",
-      "sagemaker:DescibeTransformJob"
+      "sagemaker:ListEndpointConfigs",
+      "sagemaker:ListModels",
     ]
     resources = [
       "*"

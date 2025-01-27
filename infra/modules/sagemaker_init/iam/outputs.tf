@@ -13,7 +13,6 @@ output "default_sagemaker_bucket" {
   value       = data.aws_s3_bucket.sagemaker_default_bucket
 }
 
-# Output for Lambda Execution Role ARN
 output "lambda_execution_role_arn" {
   value       = aws_iam_role.lambda_execution_role.arn
   description = "The ARN of the Lambda execution role"
