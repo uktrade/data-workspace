@@ -211,6 +211,61 @@ resource "random_string" "aws_db_instance_matchbox_password" {
   special = false
 }
 
+resource "aws_rds_cluster_role_association" "matchbox_s3_import_role_association" {
+  count                 = var.matchbox_on ? 1 : 0
+  db_cluster_identifier = aws_rds_cluster.matchbox[count.index].id
+  feature_name          = "s3Import"
+  role_arn              = aws_iam_role.matchbox_s3_import.arn
+
+  lifecycle {
+    replace_triggered_by = [
+      aws_rds_cluster.matchbox[count.index].id
+    ]
+  }
+}
+
+resource "aws_iam_role" "matchbox_s3_import" {
+  name = "matchbox-s3-import-association-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "rds.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "matchbox_s3_import" {
+  count      = var.matchbox_on ? 1 : 0
+  role       = aws_iam_role.matchbox_s3_import.name
+  policy_arn = aws_iam_policy.matchbox_s3_import_policy[count.index].arn
+}
+
+resource "aws_iam_policy" "matchbox_s3_import_policy" {
+  count  = var.matchbox_on ? 1 : 0
+  name   = "${var.prefix}-rds-s3-access"
+  path   = "/"
+  policy = data.aws_iam_policy_document.matchbox_s3_import_policy_template[count.index].json
+}
+
+data "aws_iam_policy_document" "matchbox_s3_import_policy_template" {
+  count = var.matchbox_on ? 1 : 0
+
+  statement {
+    actions = [
+      "s3:GetObject",
+    ]
+
+    resources = ["arn:aws:s3:::${aws_s3_bucket.matchbox[count.index].id}/*"]
+  }
+}
+
 resource "aws_s3_bucket" "matchbox" {
   count  = length(var.matchbox_instances)
   bucket = "${var.matchbox_artifacts_bucket}-${var.matchbox_instances[count.index]}"

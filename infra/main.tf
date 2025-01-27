@@ -279,6 +279,7 @@ variable "matchbox_instances_long" {}
 variable "matchbox_db_instance_class" {}
 variable "vpc_matchbox_subnets_num_bits" {}
 variable "matchbox_artifacts_bucket" {}
+variable "matchbox_debug_mode" {}
 
 locals {
   admin_container_name   = "jupyterhub-admin"
@@ -355,5 +356,6 @@ locals {
 
   matchbox_container_memory = 8192
   matchbox_container_cpu    = 1024
-  matchbox_port             = 8000
+  matchbox_api_port         = 8000
+  matchbox_db_port          = 5432
 }
