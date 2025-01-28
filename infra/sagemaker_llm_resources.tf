@@ -272,7 +272,7 @@ module "gpt_neo_125m_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     },
     {
       alarm_name        = "ElevatedGPUUtilizationNoBackLog"
@@ -281,7 +281,7 @@ module "gpt_neo_125m_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     }
 
   ]
@@ -320,7 +320,7 @@ module "phi_2_3b_deployment" {
     "SAGEMAKER_PROGRAM" : "inference.py"
   }
 
-   alarms = [
+  alarms = [
     {
       alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
       alarm_description   = "Scale up based on existence of backlog"
@@ -351,7 +351,7 @@ module "phi_2_3b_deployment" {
       alarm_actions       = [] #[module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
       ok_actions          = []
     },
-{
+    {
       alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Detect if queries in backlog for extended time period"
       metric_name         = "ApproximateBacklogSize"
@@ -556,7 +556,7 @@ module "phi_2_3b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     },
     {
       alarm_name        = "ElevatedGPUUtilizationNoBackLog"
@@ -565,7 +565,7 @@ module "phi_2_3b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     }
 
   ]
@@ -606,7 +606,7 @@ module "mistral_7b_deployment" {
     "SAGEMAKER_PROGRAM" : "inference.py"
   }
 
-   alarms = [
+  alarms = [
     {
       alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
       alarm_description   = "Scale up based on existence of backlog"
@@ -828,7 +828,7 @@ module "mistral_7b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     },
     {
       alarm_name        = "ElevatedGPUUtilizationNoBackLog"
@@ -837,7 +837,7 @@ module "mistral_7b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     }
 
   ]
@@ -877,7 +877,7 @@ module "gemma_2_27b_deployment" {
     "SM_NUM_GPUS" : "8"
   }
 
- alarms = [
+  alarms = [
     {
       alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
       alarm_description   = "Scale up based on existence of backlog"
@@ -908,7 +908,7 @@ module "gemma_2_27b_deployment" {
       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_zero_policy_arn]
       ok_actions          = []
     },
-{
+    {
       alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
       alarm_description   = "Detect if queries in backlog for extended time period"
       metric_name         = "ApproximateBacklogSize"
@@ -1114,7 +1114,7 @@ module "gemma_2_27b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     },
     {
       alarm_name        = "ElevatedGPUUtilizationNoBackLog"
@@ -1123,7 +1123,7 @@ module "gemma_2_27b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     }
 
   ]
@@ -1170,7 +1170,7 @@ module "llama_3_70b_deployment" {
     "SAGEMAKER_PROGRAM" : "inference.py"
   }
 
- alarms = [
+  alarms = [
     {
       alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
       alarm_description   = "Scale up based on existence of backlog"
@@ -1406,7 +1406,7 @@ module "llama_3_70b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     },
     {
       alarm_name        = "ElevatedGPUUtilizationNoBackLog"
@@ -1415,7 +1415,7 @@ module "llama_3_70b_deployment" {
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails             = var.sagemaker_budget_emails
+      emails            = var.sagemaker_budget_emails
     }
   ]
 

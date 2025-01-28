@@ -105,7 +105,6 @@ resource "aws_appautoscaling_policy" "scale_down_to_n_policy" {
 
 resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
   name = "scale-up-to-one-policy-${var.model_name}"
-  # "No step adjustment found for metric value [2.0] and breach delta 1.0"
 
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
@@ -123,25 +122,6 @@ resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
       metric_interval_upper_bound = null
     }
   }
-}
-
-# Mapping SNS topic ARNs to Slack webhook URLs
-locals {
-  sns_to_webhook_mapping = merge({
-    for idx, alarm in var.alarms :
-    replace(aws_sns_topic.sns_topic_alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
-    }, {
-    for idx, alarm in var.alarms :
-    replace(aws_sns_topic.sns_topic_okstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
-   }
-  #   Below is commented out now due to the fact that we are exceeding env var limits at this stage
-  #  Possible solution is to compress the information and decompress in the lambda
-  # OR we can remove the ARN first line and keep only the alarm name and concat in the lambdagraph
-   , {
-    for idx, alarm_composite in var.alarm_composites:
-    replace(aws_sns_topic.sns_topic_composite[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm_composite.slack_webhook_url
-  }
-   )
 }
 
 resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
@@ -165,6 +145,20 @@ resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
   }
 }
 
+# Mapping SNS topic ARNs to Slack webhook URLs
+locals {
+  sns_to_webhook_mapping = merge({
+    for idx, alarm in var.alarms :
+    replace(aws_sns_topic.sns_topic_alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
+    }, {
+    for idx, alarm in var.alarms :
+    replace(aws_sns_topic.sns_topic_okstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
+    }, {
+    for idx, alarm_composite in var.alarm_composites :
+    replace(aws_sns_topic.sns_topic_composite[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm_composite.slack_webhook_url
+    }
+  )
+}
 
 resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   count = length(var.alarms)
@@ -181,8 +175,8 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   statistic           = var.alarms[count.index].statistic
   alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.sns_topic_alarmstate[count.index].arn])
   ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.sns_topic_okstate[count.index].arn])
-  dimensions = (count.index == 0 || count.index == 1 || count.index == 2) ? {                               # TODO: this logic is brittle as it assumes "backlog" has index [0,1]; it would be better to have a logic that rests on the specific name of that metric
-    EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name # Only EndpointName is used in this case
+  dimensions = (count.index == 0 || count.index == 1 || count.index == 2) ? { # TODO: this logic is brittle as it assumes "backlog" has index [0,1]; it would be better to have a logic that rests on the specific name of that metric
+    EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name             # Only EndpointName is used in this case
     } : {
     EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name,                                          # Both EndpointName and VariantName are used in all other cases
     VariantName  = aws_sagemaker_endpoint_configuration.endpoint_config.production_variants[0].variant_name # Note this logic would not work if there were ever more than one production variant deployed for an LLM
@@ -249,8 +243,8 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_composite" {
 
 resource "aws_sns_topic" "alarm_composite_notifications" {
   count = length(var.alarm_composites)
-  name = "alarm-composite-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-sns-topic"
-  
+  name  = "alarm-composite-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-sns-topic"
+
 }
 
 resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
@@ -261,7 +255,7 @@ resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
     Version = "2012-10-17",
     Statement = [
       {
-        Sid   = "AllowPublishFromCloudWatch"
+        Sid    = "AllowPublishFromCloudWatch"
         Effect = "Allow",
         Principal = {
           Service = "cloudwatch.amazonaws.com"
@@ -270,8 +264,8 @@ resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
         Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
       },
       {
-        Sid   = "AllowSubscriptionActions"
-        Effect = "Allow",
+        Sid       = "AllowSubscriptionActions"
+        Effect    = "Allow",
         Principal = "*",
         Action = [
           "sns:Subscribe",
@@ -285,11 +279,11 @@ resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
 }
 
 resource "aws_sns_topic_subscription" "email_subscription" {
-  count = length(var.alarm_composites)
+  count     = length(var.alarm_composites)
   topic_arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
-  protocol = "email"
+  protocol  = "email"
   endpoint = flatten([
-    for variables in var.alarm_composites:
+    for variables in var.alarm_composites :
     [
       for email in variables.emails :
       email
@@ -390,7 +384,7 @@ resource "aws_lambda_function" "slack_alert_function" {
   environment {
     variables = {
       SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping),
-      ADDRESS = "arn:aws:sns:eu-west-2:${var.aws_account_id}:"
+      ADDRESS             = "arn:aws:sns:eu-west-2:${var.aws_account_id}:"
     }
   }
 }
