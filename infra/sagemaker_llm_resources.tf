@@ -333,7 +333,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [] # [module.phi_2_3b_deployment.scale_up_to_one_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_one_policy_arn]
       ok_actions          = []
     },
     {
@@ -348,7 +348,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [] #[module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
       ok_actions          = []
     },
     {
@@ -378,7 +378,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_cpu_alerts
-      alarm_actions       = [] #[module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -393,7 +393,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_cpu_alerts
-      alarm_actions       = [] # [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -408,7 +408,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_gpu_alerts
-      alarm_actions       = [] #[module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -423,7 +423,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_gpu_alerts
-      alarm_actions       = [] # [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -438,7 +438,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [] # [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -453,7 +453,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [] # [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -468,7 +468,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [] # [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -483,7 +483,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [] # [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
