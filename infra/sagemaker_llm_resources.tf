@@ -306,7 +306,7 @@ module "phi_2_3b_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
-  min_capacity          = 1 # Please change this back to 0, currently at 1 for Andrea!
+  min_capacity          = 0 
   scale_up_cooldown     = 0
   scale_down_cooldown   = 0
   environment_variables = {
