@@ -93,6 +93,19 @@ variable "alarms" {
   description = "List of CloudWatch alarms to be created"
 }
 
+variable "alarm_composites" {
+  type = list(object({
+    alarm_name        = string
+    alarm_description = string
+    alarm_rule        = string
+    alarm_actions     = list(string)
+    ok_actions        = list(string)
+    slack_webhook_url = string
+    emails            = list(string)
+  }))
+  description = "List of CloudWatch composite alarms to be created utilizing pre-existing alarms"
+}
+
 variable "aws_account_id" {
   type = string
 }

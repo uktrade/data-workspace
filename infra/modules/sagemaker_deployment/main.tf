@@ -103,7 +103,6 @@ resource "aws_appautoscaling_policy" "scale_down_to_n_policy" {
   }
 }
 
-
 resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
   name = "scale-up-to-one-policy-${var.model_name}"
 
@@ -115,10 +114,10 @@ resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
 
   step_scaling_policy_configuration {
     adjustment_type = "ExactCapacity"
-    cooldown        = var.scale_up_cooldown
+    cooldown        = var.scale_down_cooldown
 
     step_adjustment {
-      scaling_adjustment          = 1 # means set =1 (NOT add or subtract)
+      scaling_adjustment          = 1 # means set =0 (NOT add or subtract)
       metric_interval_lower_bound = 0
       metric_interval_upper_bound = null
     }
@@ -146,6 +145,20 @@ resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
   }
 }
 
+# Mapping SNS topic ARNs to Slack webhook URLs
+locals {
+  sns_to_webhook_mapping = merge({
+    for idx, alarm in var.alarms :
+    replace(aws_sns_topic.sns_topic_alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
+    }, {
+    for idx, alarm in var.alarms :
+    replace(aws_sns_topic.sns_topic_okstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
+    }, {
+    for idx, alarm_composite in var.alarm_composites :
+    replace(aws_sns_topic.sns_topic_composite[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm_composite.slack_webhook_url
+    }
+  )
+}
 
 resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   count = length(var.alarms)
@@ -162,15 +175,120 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   statistic           = var.alarms[count.index].statistic
   alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.sns_topic_alarmstate[count.index].arn])
   ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.sns_topic_okstate[count.index].arn])
-  dimensions = (count.index == 0 || count.index == 1) ? {         # TODO: this logic is brittle as it assumes "backlog" has index [0,1]; it would be better to have a logic that rests on the specific name of that metric
-    EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name # Only EndpointName is used in this case
+  dimensions = (count.index == 0 || count.index == 1 || count.index == 2) ? { # TODO: this logic is brittle as it assumes "backlog" has index [0,1]; it would be better to have a logic that rests on the specific name of that metric
+    EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name             # Only EndpointName is used in this case
     } : {
     EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name,                                          # Both EndpointName and VariantName are used in all other cases
     VariantName  = aws_sagemaker_endpoint_configuration.endpoint_config.production_variants[0].variant_name # Note this logic would not work if there were ever more than one production variant deployed for an LLM
   }
 
-
   depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.sns_topic_alarmstate, aws_sns_topic.sns_topic_okstate]
+}
+
+resource "null_resource" "wait_for_metric_alarms" {
+  #  Aggregating metric alarms dependencies so we wait for them to be deleted/created before composite alarms are created or deleted. This prevents cyclic dependency issues.
+  depends_on = [aws_cloudwatch_metric_alarm.cloudwatch_alarm]
+}
+
+resource "aws_cloudwatch_composite_alarm" "composite_alarm" {
+  count = length(var.alarm_composites)
+
+  alarm_name        = "${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
+  alarm_description = var.alarm_composites[count.index].alarm_description
+  alarm_rule        = var.alarm_composites[count.index].alarm_rule
+  alarm_actions     = concat(var.alarm_composites[count.index].alarm_actions, [aws_sns_topic.alarm_composite_notifications[count.index].arn], [aws_sns_topic.sns_topic_composite[count.index].arn])
+  ok_actions        = var.alarm_composites[count.index].ok_actions
+
+  depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.alarm_composite_notifications, aws_sns_topic.sns_topic_composite, null_resource.wait_for_metric_alarms]
+
+}
+
+resource "aws_sns_topic" "sns_topic_composite" {
+  count = length(var.alarm_composites)
+
+  name = "alarm-alarm-composite-lambda-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-topic"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "cloudwatch.amazonaws.com"
+        },
+        Action   = "sns:Publish",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_lambda_permission" "allow_sns_composite" {
+  count = length(var.alarm_composites)
+
+  statement_id  = "AllowSNS-composite-${count.index}"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.slack_alert_function.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.sns_topic_composite[count.index].arn
+}
+
+resource "aws_sns_topic_subscription" "sns_lambda_subscription_composite" {
+  count = length(var.alarm_composites)
+
+  topic_arn = aws_sns_topic.sns_topic_composite[count.index].arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.slack_alert_function.arn
+}
+
+resource "aws_sns_topic" "alarm_composite_notifications" {
+  count = length(var.alarm_composites)
+  name  = "alarm-composite-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-sns-topic"
+
+}
+
+resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
+  count = length(var.alarm_composites)
+
+  arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "AllowPublishFromCloudWatch"
+        Effect = "Allow",
+        Principal = {
+          Service = "cloudwatch.amazonaws.com"
+        },
+        Action   = "SNS:Publish",
+        Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
+      },
+      {
+        Sid       = "AllowSubscriptionActions"
+        Effect    = "Allow",
+        Principal = "*",
+        Action = [
+          "sns:Subscribe",
+          "sns:Receive"
+        ],
+        Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
+      }
+    ]
+  })
+
+}
+
+resource "aws_sns_topic_subscription" "email_subscription" {
+  count     = length(var.alarm_composites)
+  topic_arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
+  protocol  = "email"
+  endpoint = flatten([
+    for variables in var.alarm_composites :
+    [
+      for email in variables.emails :
+      email
+    ]
+  ])[count.index]
 }
 
 resource "aws_sns_topic" "sns_topic_alarmstate" {
@@ -247,18 +365,6 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_okstate" {
   protocol  = "lambda"
   endpoint  = aws_lambda_function.slack_alert_function.arn
 }
-
-# Mpping SNS topic ARNs to Slack webhook URLs
-locals {
-  sns_to_webhook_mapping = merge({
-    for idx, alarm in var.alarms :
-    aws_sns_topic.sns_topic_alarmstate[idx].arn => alarm.slack_webhook_url
-    }, {
-    for idx, alarm in var.alarms :
-    aws_sns_topic.sns_topic_okstate[idx].arn => alarm.slack_webhook_url
-  })
-}
-
 data "archive_file" "lambda_payload" {
   type        = "zip"
   source_file = "${path.module}/lambda_function.py"
@@ -277,7 +383,8 @@ resource "aws_lambda_function" "slack_alert_function" {
 
   environment {
     variables = {
-      SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping)
+      SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping),
+      ADDRESS             = "arn:aws:sns:eu-west-2:${var.aws_account_id}:"
     }
   }
 }
