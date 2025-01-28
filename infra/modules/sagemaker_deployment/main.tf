@@ -96,37 +96,23 @@ resource "aws_appautoscaling_policy" "scale_down_to_n_policy" {
     cooldown        = var.scale_down_cooldown
 
     step_adjustment {
-      scaling_adjustment          = -1
-      metric_interval_lower_bound = null
-      metric_interval_upper_bound = 0
+      metric_interval_lower_bound = null # No lower bound to cover everything
+      metric_interval_upper_bound = 5    # Upper bound is 5%
+      scaling_adjustment          = 0
     }
-  }
-}
 
+    step_adjustment {
+      metric_interval_lower_bound = 5    # Lower bound starts at 5%
+      metric_interval_upper_bound = null # No upper bound
+      scaling_adjustment          = 1    # Maintains min capacity of one instance
+    }
+
+  }
+
+}
 
 resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
   name = "scale-up-to-one-policy-${var.model_name}"
-
-  policy_type        = "StepScaling"
-  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
-  depends_on         = [aws_appautoscaling_target.autoscaling_target]
-
-  step_scaling_policy_configuration {
-    adjustment_type = "ExactCapacity"
-    cooldown        = var.scale_up_cooldown
-
-    step_adjustment {
-      scaling_adjustment          = 1 # means set =1 (NOT add or subtract)
-      metric_interval_lower_bound = 0
-      metric_interval_upper_bound = null
-    }
-  }
-}
-
-resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
-  name = "scale-down-to-zero-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
@@ -164,6 +150,28 @@ locals {
   }
    )
 }
+
+resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
+  name = "scale-down-to-zero-policy-${var.model_name}"
+
+  policy_type        = "StepScaling"
+  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
+  depends_on         = [aws_appautoscaling_target.autoscaling_target]
+
+  step_scaling_policy_configuration {
+    adjustment_type = "ExactCapacity"
+    cooldown        = var.scale_down_cooldown
+
+    step_adjustment {
+      scaling_adjustment          = 0 # means set =0 (NOT add or subtract)
+      metric_interval_lower_bound = null
+      metric_interval_upper_bound = 0
+    }
+  }
+}
+
 
 resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   count = length(var.alarms)
@@ -370,10 +378,6 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_okstate" {
   protocol  = "lambda"
   endpoint  = aws_lambda_function.slack_alert_function.arn
 }
-
-
-
-
 data "archive_file" "lambda_payload" {
   type        = "zip"
   source_file = "${path.module}/lambda_function.py"

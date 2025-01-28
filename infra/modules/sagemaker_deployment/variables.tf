@@ -13,6 +13,11 @@ variable "s3_output_path" {
   description = "Where the async output of the model is sent"
 }
 
+variable "s3_output_path" {
+  type        = string
+  description = "Where the async output of the model is sent"
+}
+
 variable "execution_role_arn" {
   type        = string
   description = "Execution role ARN for SageMaker"
@@ -69,6 +74,7 @@ variable "scale_up_cooldown" {
 }
 
 variable "scale_down_cooldown" {
+variable "scale_down_cooldown" {
   type        = number
   description = "Cooldown period for scale down"
 }
@@ -76,6 +82,7 @@ variable "scale_down_cooldown" {
 
 variable "alarms" {
   type = list(object({
+    alarm_name_prefix   = string
     alarm_name_prefix   = string
     alarm_description   = string
     metric_name         = string
@@ -86,6 +93,9 @@ variable "alarms" {
     datapoints_to_alarm = number
     period              = number
     statistic           = string
+    slack_webhook_url   = string
+    alarm_actions       = list(string)
+    ok_actions          = list(string)
     slack_webhook_url   = string
     alarm_actions       = list(string)
     ok_actions          = list(string)
