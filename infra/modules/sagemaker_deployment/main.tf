@@ -96,23 +96,16 @@ resource "aws_appautoscaling_policy" "scale_down_to_n_policy" {
     cooldown        = var.scale_down_cooldown
 
     step_adjustment {
-      metric_interval_lower_bound = null # No lower bound to cover everything
-      metric_interval_upper_bound = 5    # Upper bound is 5%
-      scaling_adjustment          = 0
+      scaling_adjustment          = -1
+      metric_interval_lower_bound = null
+      metric_interval_upper_bound = 0
     }
-
-    step_adjustment {
-      metric_interval_lower_bound = 5    # Lower bound starts at 5%
-      metric_interval_upper_bound = null # No upper bound
-      scaling_adjustment          = 1    # Maintains min capacity of one instance
-    }
-
   }
-
 }
 
 resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
   name = "scale-up-to-one-policy-${var.model_name}"
+  # "No step adjustment found for metric value [2.0] and breach delta 1.0"
 
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
@@ -125,9 +118,9 @@ resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
     cooldown        = var.scale_down_cooldown
 
     step_adjustment {
-      scaling_adjustment          = 0 # means set =0 (NOT add or subtract)
-      metric_interval_lower_bound = null
-      metric_interval_upper_bound = 0
+      scaling_adjustment          = 1 # means set =0 (NOT add or subtract)
+      metric_interval_lower_bound = 0
+      metric_interval_upper_bound = null
     }
   }
 }
