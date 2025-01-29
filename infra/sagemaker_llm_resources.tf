@@ -641,8 +641,8 @@ module "mistral_7b_deployment" {
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.notebooks.id]
-  subnets               = aws_subnet.private_without_egress.*.id
+  security_group_ids    = [aws_security_group.sagemaker.id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
   s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
