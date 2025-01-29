@@ -893,23 +893,23 @@ resource "aws_subnet" "sagemaker_private_without_egress" {
 }
 
 # # To enable use of VPC endpoints in main
-# resource "aws_vpc_peering_connection" "main_to_sagemaker" {
-#   peer_vpc_id = aws_vpc.sagemaker.id
-#   vpc_id      = aws_vpc.main.id
-#   auto_accept = true
+resource "aws_vpc_peering_connection" "main_to_sagemaker" {
+  peer_vpc_id = aws_vpc.sagemaker.id
+  vpc_id      = aws_vpc.main.id
+  auto_accept = true
 
-#   accepter {
-#     allow_remote_vpc_dns_resolution = false
-#   }
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
 
-#   requester {
-#     allow_remote_vpc_dns_resolution = false
-#   }
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
 
-#   tags = {
-#     Name = "${var.prefix}-main-to-sagemaker"
-#   }
-# }
+  tags = {
+    Name = "${var.prefix}-main-to-sagemaker"
+  }
+}
 
 # To enable use of VPC endpoints in datasets
 # resource "aws_vpc_peering_connection" "datasets_to_sagemaker" {
@@ -967,13 +967,13 @@ resource "aws_route_table_association" "private_without_egress_sagemaker" {
   route_table_id = aws_route_table.sagemaker.id
 }
 
-# resource "aws_route" "main_private_with_egress_to_sagemaker" {
-#   count = length(var.aws_availability_zones)
+resource "aws_route" "main_private_with_egress_to_sagemaker" {
+  count = length(var.aws_availability_zones)
 
-#   route_table_id            = aws_route_table.private_with_egress.id
-#   destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
-#   vpc_peering_connection_id = aws_vpc_peering_connection.main_to_sagemaker.id
-# }
+  route_table_id            = aws_route_table.private_with_egress.id
+  destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
+  vpc_peering_connection_id = aws_vpc_peering_connection.main_to_sagemaker.id
+}
 
 resource "aws_route" "pcx_sagemaker_to_notebooks" {
   route_table_id            = aws_route_table.sagemaker.id
@@ -1017,46 +1017,12 @@ data "aws_iam_policy_document" "vpc_sagemaker_flow_log_vpc_flow_logs_assume_role
   }
 }
 
-# resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
-#   # source                                = "./modules/sagemaker_init/security"
-#   vpc_id             = aws_vpc.main.id
-#   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
-#   vpc_endpoint_type  = "Interface"
-#   subnet_ids         = aws_subnet.private_with_egress.*.id
-#   security_group_ids = [aws_security_group.notebooks_endpoints.id]
-#   tags = {
-#     Environment = var.prefix
-#     Name        = "notebooks-sagemaker-runtime-endpoint"
-#   }
-#   private_dns_enabled = true
-#   policy              = data.aws_iam_policy_document.sagemaker_notebooks_endpoint_policy.json
-# }
-
-# resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint" {
-#   # source                                = "./modules/sagemaker_init/security"
-#   vpc_id             = aws_vpc.main.id
-#   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
-#   vpc_endpoint_type  = "Interface"
-#   subnet_ids         = aws_subnet.private_with_egress.*.id
-#   security_group_ids = [aws_security_group.notebooks_endpoints.id]
-#   tags = {
-#     Environment = var.prefix
-#     Name        = "notebooks-sagemaker-api-endpoint"
-#   }
-#   private_dns_enabled = true
-#   policy              = data.aws_iam_policy_document.sagemaker_notebooks_endpoint_policy.json
-# }
-#################################################
-## Move SageMaker endpoints into SageMaker VPC ##
-## Remove endpoints in Main VPC once tested    ##
-#################################################
-
-resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint_sagemaker" {
+resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
   # source                                = "./modules/sagemaker_init/security"
-  vpc_id             = aws_vpc.notebooks.id
+  vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_without_egress.*.id
+  subnet_ids         = aws_subnet.private_with_egress.*.id
   security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -1066,12 +1032,12 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint_sagemaker" {
   policy              = data.aws_iam_policy_document.sagemaker_notebooks_endpoint_policy.json
 }
 
-resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint_sagemaker" {
+resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint" {
   # source                                = "./modules/sagemaker_init/security"
-  vpc_id             = aws_vpc.notebooks.id
+  vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_without_egress.*.id
+  subnet_ids         = aws_subnet.private_with_egress.*.id
   security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
@@ -1080,6 +1046,40 @@ resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint_sagemaker" {
   private_dns_enabled = true
   policy              = data.aws_iam_policy_document.sagemaker_notebooks_endpoint_policy.json
 }
+#################################################
+## Move SageMaker endpoints into SageMaker VPC ##
+## Remove endpoints in Main VPC once tested    ##
+#################################################
+
+# resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint_sagemaker" {
+#   # source                                = "./modules/sagemaker_init/security"
+#   vpc_id             = aws_vpc.notebooks.id
+#   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
+#   vpc_endpoint_type  = "Interface"
+#   subnet_ids         = aws_subnet.private_without_egress.*.id
+#   security_group_ids = [aws_security_group.notebooks_endpoints.id]
+#   tags = {
+#     Environment = var.prefix
+#     Name        = "notebooks-sagemaker-runtime-endpoint"
+#   }
+#   private_dns_enabled = false
+#   policy              = data.aws_iam_policy_document.sagemaker_notebooks_endpoint_policy.json
+# }
+
+# resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint_sagemaker" {
+#   # source                                = "./modules/sagemaker_init/security"
+#   vpc_id             = aws_vpc.notebooks.id
+#   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
+#   vpc_endpoint_type  = "Interface"
+#   subnet_ids         = aws_subnet.private_without_egress.*.id
+#   security_group_ids = [aws_security_group.notebooks_endpoints.id]
+#   tags = {
+#     Environment = var.prefix
+#     Name        = "notebooks-sagemaker-api-endpoint"
+#   }
+#   private_dns_enabled = false
+#   policy              = data.aws_iam_policy_document.sagemaker_notebooks_endpoint_policy.json
+# }
 
 data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
   statement {
@@ -1161,31 +1161,12 @@ data "aws_iam_policy_document" "aws_sagemaker_endpoint_ecr" {
 
 #######################
 
-# resource "aws_vpc_endpoint" "sns_endpoint" {
-#   vpc_id             = aws_vpc.main.id
-#   service_name       = "com.amazonaws.eu-west-2.sns"
-#   vpc_endpoint_type  = "Interface"
-#   subnet_ids         = aws_subnet.private_with_egress.*.id
-#   security_group_ids = [aws_security_group.notebooks_endpoints.id]
-#   tags = {
-#     Environment = var.prefix
-#     Name        = "sns-endpoint"
-#   }
-#   private_dns_enabled = true
-#   policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
-# }
-
-###################################################
-## Move SageMaker endpoints into VPC             ##
-## Remove endpoints in Notebooks VPC once tested ##
-###################################################
-
-resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
-  vpc_id             = aws_vpc.sagemaker.id
+resource "aws_vpc_endpoint" "sns_endpoint" {
+  vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sns"
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
+  subnet_ids         = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.notebooks_endpoints.id]
   tags = {
     Environment = var.prefix
     Name        = "sns-endpoint"
@@ -1193,6 +1174,25 @@ resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
   private_dns_enabled = true
   policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
 }
+
+###################################################
+## Move SageMaker endpoints into VPC             ##
+## Remove endpoints in Notebooks VPC once tested ##
+###################################################
+
+# resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
+#   vpc_id             = aws_vpc.sagemaker.id
+#   service_name       = "com.amazonaws.eu-west-2.sns"
+#   vpc_endpoint_type  = "Interface"
+#   subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
+#   security_group_ids = [aws_security_group.sagemaker_endpoints.id]
+#   tags = {
+#     Environment = var.prefix
+#     Name        = "sns-endpoint"
+#   }
+#   private_dns_enabled = true
+#   policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
+# }
 
 ###########
 

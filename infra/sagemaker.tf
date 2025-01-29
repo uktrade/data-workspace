@@ -48,7 +48,7 @@ resource "aws_security_group" "notebooks_endpoints" {
 }
 
 resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
-  description = "endpoint-ingress-from-datasets-vpc"
+  description = "endpoint-ingress-from-notebooks-vpc"
 
   security_group_id = aws_security_group.notebooks_endpoints.id
   cidr_blocks       = [aws_vpc.notebooks.cidr_block]
@@ -60,7 +60,7 @@ resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
 }
 
 resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
-  description = "endpoint-ingress-from-datasets-vpc"
+  description = "endpoint-ingress-from-notebooks-vpc"
 
   security_group_id = aws_security_group.notebooks_endpoints.id
   cidr_blocks       = [aws_vpc.notebooks.cidr_block]
@@ -106,6 +106,32 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker_test" {
 
   security_group_id = aws_security_group.sagemaker_endpoints.id
   cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+#### Used to allow access to VPC endpoints in Main
+
+resource "aws_security_group_rule" "main_ingress_sagemaker_endpoints" {
+  description = "endpoint-ingress-sagemaker-to-main-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints.id
+  cidr_blocks       = [aws_vpc.main.cidr_block]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "sagemaker_endpoints_egress_main" {
+  description = "endpoint-egress-notebooks-to-main-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints.id
+  cidr_blocks       = [aws_vpc.main.cidr_block]
 
   type      = "egress"
   from_port = "0"
