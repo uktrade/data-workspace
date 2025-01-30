@@ -899,11 +899,11 @@ resource "aws_vpc_peering_connection" "main_to_sagemaker" {
   auto_accept = true
 
   accepter {
-    allow_remote_vpc_dns_resolution = false
+    allow_remote_vpc_dns_resolution = true
   }
 
   requester {
-    allow_remote_vpc_dns_resolution = false
+    allow_remote_vpc_dns_resolution = true
   }
 
   tags = {
@@ -972,6 +972,14 @@ resource "aws_route" "main_private_with_egress_to_sagemaker" {
 
   route_table_id            = aws_route_table.private_with_egress.id
   destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
+  vpc_peering_connection_id = aws_vpc_peering_connection.main_to_sagemaker.id
+}
+
+resource "aws_route" "sagemaker_to_main_private_with_egress" {
+  count = length(var.aws_availability_zones)
+
+  route_table_id            = aws_route_table.sagemaker.id
+  destination_cidr_block    = aws_subnet.private_with_egress.*.cidr_block[count.index]
   vpc_peering_connection_id = aws_vpc_peering_connection.main_to_sagemaker.id
 }
 
@@ -1180,21 +1188,21 @@ resource "aws_vpc_endpoint" "sns_endpoint" {
 ## Remove endpoints in Notebooks VPC once tested ##
 ###################################################
 
-# resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
-#   vpc_id             = aws_vpc.sagemaker.id
-#   service_name       = "com.amazonaws.eu-west-2.sns"
-#   vpc_endpoint_type  = "Interface"
-#   subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-#   security_group_ids = [aws_security_group.sagemaker_endpoints.id]
-#   tags = {
-#     Environment = var.prefix
-#     Name        = "sns-endpoint"
-#   }
-#   private_dns_enabled = true
-#   policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
-# }
+resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
+  vpc_id             = aws_vpc.sagemaker.id
+  service_name       = "com.amazonaws.eu-west-2.sns"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
+  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "sns-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
+}
 
-###########
+##########
 
 data "aws_iam_policy_document" "sns_endpoint_policy" {
   statement {
