@@ -1188,19 +1188,19 @@ resource "aws_vpc_endpoint" "sns_endpoint" {
 ## Remove endpoints in Notebooks VPC once tested ##
 ###################################################
 
-resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
-  vpc_id             = aws_vpc.sagemaker.id
-  service_name       = "com.amazonaws.eu-west-2.sns"
-  vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
-  tags = {
-    Environment = var.prefix
-    Name        = "sns-endpoint"
-  }
-  private_dns_enabled = true
-  policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
-}
+# resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
+#   vpc_id             = aws_vpc.sagemaker.id
+#   service_name       = "com.amazonaws.eu-west-2.sns"
+#   vpc_endpoint_type  = "Interface"
+#   subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
+#   security_group_ids = [aws_security_group.sagemaker_endpoints.id]
+#   tags = {
+#     Environment = var.prefix
+#     Name        = "sns-endpoint"
+#   }
+#   private_dns_enabled = true
+#   policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
+# }
 
 ##########
 

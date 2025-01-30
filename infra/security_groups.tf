@@ -662,7 +662,7 @@ resource "aws_security_group_rule" "egress_sagemaker_vpc" {
   type      = "egress"
   from_port = "0"
   to_port   = "65535"
-  protocol  = "TCP"
+  protocol  = "tcp"
 }
 
 resource "aws_security_group_rule" "ingress_notebooks_vpc" {
@@ -674,7 +674,7 @@ resource "aws_security_group_rule" "ingress_notebooks_vpc" {
   type      = "ingress"
   from_port = "443"
   to_port   = "443"
-  protocol  = "TCP"
+  protocol  = "tcp"
 }
 
 #######################
