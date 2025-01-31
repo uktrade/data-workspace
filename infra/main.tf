@@ -88,6 +88,10 @@ variable "cloudwatch_destination_arn" {}
 
 variable "mirrors_bucket_name" {}
 variable "mirrors_data_bucket_name" {}
+variable "mirrors_bucket_non_prod_account_ids" {
+  type    = list(string)
+  default = []
+}
 
 variable "sentry_dsn" {}
 variable "sentry_notebooks_dsn" {}
