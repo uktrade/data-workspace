@@ -1,0 +1,34 @@
+[
+  {
+    "environment": [
+      {
+        "name": "DATABASE_URI",
+        "value": "${database_uri}"
+      },
+      {
+        "name": "AWS_DEFAULT_REGION",
+        "value": "eu-west-2"
+      }
+    ],
+    "essential": true,
+    "image": "${container_image}",
+    "networkMode": "awsvpc",
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${log_group}",
+        "awslogs-region": "${log_region}",
+        "awslogs-stream-prefix": "${container_name}"
+      }
+    },
+    "memoryReservation": ${memory},
+    "cpu": ${cpu},
+    "mountPoints": [],
+    "name": "${container_name}",
+    "portMappings": [{
+      "containerPort": 8000,
+      "hostPort": 8000,
+      "protocol": "tcp"
+  }]
+  }
+]
