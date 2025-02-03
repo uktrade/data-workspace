@@ -108,21 +108,3 @@ resource "aws_s3_bucket_lifecycle_configuration" "intelligent_tier" {
     }
   }
 }
-
-resource "aws_s3_bucket_lifecycle_configuration" "intelligent_tier" {
-  count = var.mirrors_bucket_name != "" ? 1 : 0
-
-  bucket = aws_s3_bucket.mirrors.*.id[count.index]
-
-  rule {
-    id = "Move objects >128KB to Intelligent Tier"
-    # Objects smaller than 128 KB will not transition by default to any storage class
-
-    status = "Enabled"
-
-    transition {
-      days          = 0
-      storage_class = "INTELLIGENT_TIERING"
-    }
-  }
-}
