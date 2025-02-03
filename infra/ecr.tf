@@ -6,7 +6,6 @@
 
 resource "aws_ecr_repository" "user_provided" {
   name         = "${var.prefix}-user-provided"
-  force_delete = false
 }
 
 resource "aws_ecr_lifecycle_policy" "user_provided_expire_untagged_after_one_day" {
