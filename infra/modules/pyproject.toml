@@ -1,0 +1,14 @@
+[project]
+name = "lambda_functions"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["boto3"]  # strictly speaking boto3-stubs but this may not be installed in the lambda
+
+[tool.mypy]
+pretty = true
+strict = true
+show_error_codes = true
+warn_unreachable = true
+
+[tool.ruff.lint]
+select = ["A", "B", "BLE", "E", "ERA", "F", "I", "RUF", "T", "T10", "T20", "W"]
