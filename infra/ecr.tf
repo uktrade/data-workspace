@@ -33,11 +33,6 @@ resource "aws_ecr_lifecycle_policy" "admin_keep_last_five_releases" {
   policy     = data.aws_ecr_lifecycle_policy_document.keep_last_five_releases.json
 }
 
-resource "aws_ecr_lifecycle_policy" "admin_keep_last_five_releases" {
-  repository = aws_ecr_repository.admin.name
-  policy     = data.aws_ecr_lifecycle_policy_document.keep_last_five_releases.json
-}
-
 resource "aws_ecr_repository" "jupyterlab_python" {
   name         = "${var.prefix}-jupyterlab-python"
   force_delete = false
@@ -53,19 +48,9 @@ resource "aws_ecr_lifecycle_policy" "jupyterlab_python_expire_non_master_non_lat
   policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "jupyterlab_python_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.jupyterlab_python.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
 resource "aws_ecr_repository" "rstudio" {
   name         = "${var.prefix}-rstudio"
   force_delete = false
-}
-
-resource "aws_ecr_lifecycle_policy" "rstudio_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.rstudio.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
 resource "aws_ecr_lifecycle_policy" "rstudio_expire_untagged_after_one_day" {
@@ -88,11 +73,6 @@ resource "aws_ecr_lifecycle_policy" "rstudio_rv4_expire_non_master_non_latest_af
   policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "rstudio_rv4_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.rstudio_rv4.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
 resource "aws_ecr_repository" "pgadmin" {
   name         = "${var.prefix}-pgadmin"
   force_delete = false
@@ -101,11 +81,6 @@ resource "aws_ecr_repository" "pgadmin" {
 resource "aws_ecr_lifecycle_policy" "pgadmin_expire_untagged_after_one_day" {
   repository = aws_ecr_repository.pgadmin.name
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
-resource "aws_ecr_lifecycle_policy" "pgadmin_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.pgadmin.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
 resource "aws_ecr_lifecycle_policy" "pgadmin_expire_non_master_non_latest_after_one_day" {
@@ -128,11 +103,6 @@ resource "aws_ecr_lifecycle_policy" "remotedesktop_rv4_expire_non_master_non_lat
   policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "remotedesktop_rv4_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.remotedesktop.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
 resource "aws_ecr_repository" "theia" {
   name         = "${var.prefix}-theia"
   force_delete = false
@@ -148,19 +118,9 @@ resource "aws_ecr_lifecycle_policy" "theia_expire_non_master_non_latest_after_on
   policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "theia_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.theia.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
 resource "aws_ecr_repository" "vscode" {
   name         = "${var.prefix}-vscode"
   force_delete = false
-}
-
-resource "aws_ecr_lifecycle_policy" "vscode_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.vscode.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
 resource "aws_ecr_lifecycle_policy" "vscode_expire_untagged_after_one_day" {
@@ -183,11 +143,6 @@ resource "aws_ecr_lifecycle_policy" "s3sync_expire_non_master_non_latest_after_o
   policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "s3sync_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.s3sync.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
 resource "aws_ecr_repository" "metrics" {
   name         = "${var.prefix}-metrics"
   force_delete = false
@@ -203,22 +158,10 @@ resource "aws_ecr_lifecycle_policy" "metrics_expire_non_master_non_latest_after_
   policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "metrics_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.metrics.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
 resource "aws_ecr_repository" "sentryproxy" {
   name         = "${var.prefix}-sentryproxy"
   force_delete = false
 }
-
-
-resource "aws_ecr_lifecycle_policy" "sentryproxy_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.sentryproxy.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
 
 resource "aws_ecr_lifecycle_policy" "sentryproxy_expire_untagged_after_one_day" {
   repository = aws_ecr_repository.sentryproxy.name
@@ -228,11 +171,6 @@ resource "aws_ecr_lifecycle_policy" "sentryproxy_expire_untagged_after_one_day" 
 resource "aws_ecr_repository" "dns_rewrite_proxy" {
   name         = "${var.prefix}-dns-rewrite-proxy"
   force_delete = false
-}
-
-resource "aws_ecr_lifecycle_policy" "dns_rewrite_proxy_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.dns_rewrite_proxy.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
 resource "aws_ecr_lifecycle_policy" "dns_rewrite_proxy_expire_untagged_after_one_day" {
@@ -250,11 +188,6 @@ resource "aws_ecr_lifecycle_policy" "healthcheck_expire_untagged_after_one_day" 
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "healthcheck_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.healthcheck.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
 resource "aws_ecr_repository" "prometheus" {
   name         = "${var.prefix}-prometheus"
   force_delete = false
@@ -265,19 +198,9 @@ resource "aws_ecr_lifecycle_policy" "prometheus_expire_untagged_after_one_day" {
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "prometheus_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.prometheus.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
 resource "aws_ecr_repository" "gitlab" {
   name         = "${var.prefix}-gitlab"
   force_delete = false
-}
-
-resource "aws_ecr_lifecycle_policy" "gitlab_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.gitlab.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
 resource "aws_ecr_lifecycle_policy" "gitlab_expire_untagged_after_one_day" {
@@ -305,19 +228,9 @@ resource "aws_ecr_lifecycle_policy" "mirrors_sync_expire_untagged_after_one_day"
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "mirrors_sync_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.mirrors_sync.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
 resource "aws_ecr_repository" "mirrors_sync_cran_binary" {
   name         = "${var.prefix}-mirrors-sync-cran-binary"
   force_delete = false
-}
-
-resource "aws_ecr_lifecycle_policy" "mirrors_sync_cran_binary_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.mirrors_sync_cran_binary.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
 resource "aws_ecr_lifecycle_policy" "mirrors_sync_cran_binary_expire_untagged_after_one_day" {
@@ -340,19 +253,9 @@ resource "aws_ecr_lifecycle_policy" "mirrors_sync_cran_binary_rv4_expire_non_mas
   policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "mirrors_sync_cran_binary_rv4_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.mirrors_sync_cran_binary_rv4.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
 resource "aws_ecr_repository" "superset" {
   name         = "${var.prefix}-superset"
   force_delete = false
-}
-
-resource "aws_ecr_lifecycle_policy" "superset_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.superset.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
 resource "aws_ecr_lifecycle_policy" "superset_expire_untagged_after_one_day" {
@@ -370,11 +273,6 @@ resource "aws_ecr_lifecycle_policy" "airflow_expire_untagged_after_one_day" {
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "airflow_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.airflow.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
 resource "aws_ecr_repository" "flower" {
   name         = "${var.prefix}-flower"
   force_delete = false
@@ -385,19 +283,9 @@ resource "aws_ecr_lifecycle_policy" "flower_expire_untagged_after_one_day" {
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
-resource "aws_ecr_lifecycle_policy" "flower_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.flower.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
 resource "aws_ecr_repository" "mlflow" {
   name         = "${var.prefix}-mlflow"
   force_delete = false
-}
-
-resource "aws_ecr_lifecycle_policy" "mlflow_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.mlflow.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
 resource "aws_ecr_lifecycle_policy" "mlflow_expire_untagged_after_one_day" {
