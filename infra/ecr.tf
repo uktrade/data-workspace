@@ -5,8 +5,7 @@
 // layers, or no-longer deployed images
 
 resource "aws_ecr_repository" "user_provided" {
-  name         = "${var.prefix}-user-provided"
-  force_delete = false
+  name = "${var.prefix}-user-provided"
 }
 
 resource "aws_ecr_lifecycle_policy" "user_provided_expire_untagged_after_one_day" {
@@ -15,8 +14,7 @@ resource "aws_ecr_lifecycle_policy" "user_provided_expire_untagged_after_one_day
 }
 
 resource "aws_ecr_repository" "admin" {
-  name         = "${var.prefix}-admin"
-  force_delete = false
+  name = "${var.prefix}-admin"
 }
 
 resource "aws_ecr_lifecycle_policy" "admin_expire_untagged_after_one_day" {
@@ -30,8 +28,7 @@ resource "aws_ecr_lifecycle_policy" "admin_keep_last_five_releases" {
 }
 
 resource "aws_ecr_repository" "jupyterlab_python" {
-  name         = "${var.prefix}-jupyterlab-python"
-  force_delete = false
+  name = "${var.prefix}-jupyterlab-python"
 }
 
 resource "aws_ecr_lifecycle_policy" "jupyterlab_python_expire_untagged_after_one_day" {
@@ -45,8 +42,7 @@ resource "aws_ecr_lifecycle_policy" "jupyterlab_python_expire_non_master_non_lat
 }
 
 resource "aws_ecr_repository" "rstudio" {
-  name         = "${var.prefix}-rstudio"
-  force_delete = false
+  name = "${var.prefix}-rstudio"
 }
 
 resource "aws_ecr_lifecycle_policy" "rstudio_expire_untagged_after_one_day" {
@@ -55,8 +51,7 @@ resource "aws_ecr_lifecycle_policy" "rstudio_expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "rstudio_rv4" {
-  name         = "${var.prefix}-rstudio-rv4"
-  force_delete = false
+  name = "${var.prefix}-rstudio-rv4"
 }
 
 resource "aws_ecr_lifecycle_policy" "rstudio_rv4_expire_untagged_after_one_day" {
@@ -70,8 +65,7 @@ resource "aws_ecr_lifecycle_policy" "rstudio_rv4_expire_non_master_non_latest_af
 }
 
 resource "aws_ecr_repository" "pgadmin" {
-  name         = "${var.prefix}-pgadmin"
-  force_delete = false
+  name = "${var.prefix}-pgadmin"
 }
 
 resource "aws_ecr_lifecycle_policy" "pgadmin_expire_untagged_after_one_day" {
@@ -85,8 +79,7 @@ resource "aws_ecr_lifecycle_policy" "pgadmin_expire_non_master_non_latest_after_
 }
 
 resource "aws_ecr_repository" "remotedesktop" {
-  name         = "${var.prefix}-remotedesktop"
-  force_delete = false
+  name = "${var.prefix}-remotedesktop"
 }
 
 resource "aws_ecr_lifecycle_policy" "remotedesktop_rv4_expire_untagged_after_one_day" {
@@ -100,8 +93,7 @@ resource "aws_ecr_lifecycle_policy" "remotedesktop_rv4_expire_non_master_non_lat
 }
 
 resource "aws_ecr_repository" "theia" {
-  name         = "${var.prefix}-theia"
-  force_delete = false
+  name = "${var.prefix}-theia"
 }
 
 resource "aws_ecr_lifecycle_policy" "theia_expire_untagged_after_one_day" {
@@ -115,8 +107,7 @@ resource "aws_ecr_lifecycle_policy" "theia_expire_non_master_non_latest_after_on
 }
 
 resource "aws_ecr_repository" "vscode" {
-  name         = "${var.prefix}-vscode"
-  force_delete = false
+  name = "${var.prefix}-vscode"
 }
 
 resource "aws_ecr_lifecycle_policy" "vscode_expire_untagged_after_one_day" {
@@ -125,8 +116,7 @@ resource "aws_ecr_lifecycle_policy" "vscode_expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "s3sync" {
-  name         = "${var.prefix}-s3sync"
-  force_delete = false
+  name = "${var.prefix}-s3sync"
 }
 
 resource "aws_ecr_lifecycle_policy" "s3sync_expire_untagged_after_one_day" {
@@ -140,8 +130,7 @@ resource "aws_ecr_lifecycle_policy" "s3sync_expire_non_master_non_latest_after_o
 }
 
 resource "aws_ecr_repository" "metrics" {
-  name         = "${var.prefix}-metrics"
-  force_delete = false
+  name = "${var.prefix}-metrics"
 }
 
 resource "aws_ecr_lifecycle_policy" "metrics_expire_untagged_after_one_day" {
@@ -155,10 +144,8 @@ resource "aws_ecr_lifecycle_policy" "metrics_expire_non_master_non_latest_after_
 }
 
 resource "aws_ecr_repository" "sentryproxy" {
-  name         = "${var.prefix}-sentryproxy"
-  force_delete = false
+  name = "${var.prefix}-sentryproxy"
 }
-
 
 resource "aws_ecr_lifecycle_policy" "sentryproxy_expire_untagged_after_one_day" {
   repository = aws_ecr_repository.sentryproxy.name
@@ -166,8 +153,7 @@ resource "aws_ecr_lifecycle_policy" "sentryproxy_expire_untagged_after_one_day" 
 }
 
 resource "aws_ecr_repository" "dns_rewrite_proxy" {
-  name         = "${var.prefix}-dns-rewrite-proxy"
-  force_delete = false
+  name = "${var.prefix}-dns-rewrite-proxy"
 }
 
 resource "aws_ecr_lifecycle_policy" "dns_rewrite_proxy_expire_untagged_after_one_day" {
@@ -176,8 +162,7 @@ resource "aws_ecr_lifecycle_policy" "dns_rewrite_proxy_expire_untagged_after_one
 }
 
 resource "aws_ecr_repository" "healthcheck" {
-  name         = "${var.prefix}-healthcheck"
-  force_delete = false
+  name = "${var.prefix}-healthcheck"
 }
 
 resource "aws_ecr_lifecycle_policy" "healthcheck_expire_untagged_after_one_day" {
@@ -186,8 +171,7 @@ resource "aws_ecr_lifecycle_policy" "healthcheck_expire_untagged_after_one_day" 
 }
 
 resource "aws_ecr_repository" "prometheus" {
-  name         = "${var.prefix}-prometheus"
-  force_delete = false
+  name = "${var.prefix}-prometheus"
 }
 
 resource "aws_ecr_lifecycle_policy" "prometheus_expire_untagged_after_one_day" {
@@ -196,8 +180,7 @@ resource "aws_ecr_lifecycle_policy" "prometheus_expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "gitlab" {
-  name         = "${var.prefix}-gitlab"
-  force_delete = false
+  name = "${var.prefix}-gitlab"
 }
 
 resource "aws_ecr_lifecycle_policy" "gitlab_expire_untagged_after_one_day" {
@@ -206,8 +189,7 @@ resource "aws_ecr_lifecycle_policy" "gitlab_expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "visualisation_base" {
-  name         = "${var.prefix}-visualisation-base"
-  force_delete = false
+  name = "${var.prefix}-visualisation-base"
 }
 
 resource "aws_ecr_lifecycle_policy" "visualisation_base_expire_old_after_one_day" {
@@ -216,8 +198,7 @@ resource "aws_ecr_lifecycle_policy" "visualisation_base_expire_old_after_one_day
 }
 
 resource "aws_ecr_repository" "mirrors_sync" {
-  name         = "${var.prefix}-mirrors-sync"
-  force_delete = false
+  name = "${var.prefix}-mirrors-sync"
 }
 
 resource "aws_ecr_lifecycle_policy" "mirrors_sync_expire_untagged_after_one_day" {
@@ -226,8 +207,7 @@ resource "aws_ecr_lifecycle_policy" "mirrors_sync_expire_untagged_after_one_day"
 }
 
 resource "aws_ecr_repository" "mirrors_sync_cran_binary" {
-  name         = "${var.prefix}-mirrors-sync-cran-binary"
-  force_delete = false
+  name = "${var.prefix}-mirrors-sync-cran-binary"
 }
 
 resource "aws_ecr_lifecycle_policy" "mirrors_sync_cran_binary_expire_untagged_after_one_day" {
@@ -251,8 +231,7 @@ resource "aws_ecr_lifecycle_policy" "mirrors_sync_cran_binary_rv4_expire_non_mas
 }
 
 resource "aws_ecr_repository" "superset" {
-  name         = "${var.prefix}-superset"
-  force_delete = false
+  name = "${var.prefix}-superset"
 }
 
 resource "aws_ecr_lifecycle_policy" "superset_expire_untagged_after_one_day" {
@@ -261,8 +240,7 @@ resource "aws_ecr_lifecycle_policy" "superset_expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "airflow" {
-  name         = "${var.prefix}-airflow"
-  force_delete = false
+  name = "${var.prefix}-airflow"
 }
 
 resource "aws_ecr_lifecycle_policy" "airflow_expire_untagged_after_one_day" {
@@ -271,8 +249,7 @@ resource "aws_ecr_lifecycle_policy" "airflow_expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "flower" {
-  name         = "${var.prefix}-flower"
-  force_delete = false
+  name = "${var.prefix}-flower"
 }
 
 resource "aws_ecr_lifecycle_policy" "flower_expire_untagged_after_one_day" {
@@ -281,8 +258,7 @@ resource "aws_ecr_lifecycle_policy" "flower_expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "mlflow" {
-  name         = "${var.prefix}-mlflow"
-  force_delete = false
+  name = "${var.prefix}-mlflow"
 }
 
 resource "aws_ecr_lifecycle_policy" "mlflow_expire_untagged_after_one_day" {
@@ -291,9 +267,8 @@ resource "aws_ecr_lifecycle_policy" "mlflow_expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "arango" {
-  count        = var.arango_on ? 1 : 0
-  name         = "${var.prefix}-arango"
-  force_delete = false
+  count = var.arango_on ? 1 : 0
+  name  = "${var.prefix}-arango"
 }
 
 resource "aws_ecr_lifecycle_policy" "arango_expire_untagged_after_one_day" {
@@ -315,8 +290,7 @@ data "aws_ecr_lifecycle_policy_document" "expire_untagged_after_one_day" {
 }
 
 resource "aws_ecr_repository" "sagemaker" {
-  name         = "${var.prefix}-sagemaker"
-  force_delete = false
+  name = "${var.prefix}-sagemaker"
 }
 
 data "aws_ecr_lifecycle_policy_document" "expire_preview_and_untagged_after_one_day" {

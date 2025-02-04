@@ -69,6 +69,26 @@ data "aws_iam_policy_document" "mirrors" {
       ]
     }
   }
+
+  # Non-prod accounts use this bucket as Terraform "data" resource, and as part of that
+  # they check check it exists, and to do that need s3:ListBucket
+  dynamic "statement" {
+    for_each = var.mirrors_bucket_non_prod_account_ids
+    content {
+      sid = "Allow non-prod account"
+      principals {
+        type        = "AWS"
+        identifiers = ["arn:aws:iam::${statement.value}:root"]
+      }
+      actions = [
+        "s3:ListBucket",
+      ]
+
+      resources = [
+        "${aws_s3_bucket.mirrors.*.arn[count.index]}",
+      ]
+    }
+  }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "intelligent_tier" {
