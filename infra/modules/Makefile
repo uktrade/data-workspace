@@ -9,9 +9,9 @@ help: ## Show all available commands
 bump: install format
 	@echo "You must have committed your changes before running this"
 	@uv run bump-my-version bump patch;
-	@echo "Upgraded version to $(shell bump-my-version show current_version)"
 	@git add .bumpversion.toml
 	@git commit -m "Upgraded version to $(shell bump-my-version show current_version)"
+	@echo "Upgraded version to $(shell bump-my-version show current_version)"
 
 .PHONY: format
 format: install # You must install terraform https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
@@ -23,6 +23,7 @@ format: install # You must install terraform https://developer.hashicorp.com/ter
 .PHONY: quality
 quality: install
 	@uv run ruff check .;
+	@terraform fmt -check -recursive -diff;
 
 .PHONY: install
 install: # You must install uv https://docs.astral.sh/uv/getting-started/installation/
