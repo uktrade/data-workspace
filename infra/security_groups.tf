@@ -657,7 +657,7 @@ resource "aws_security_group_rule" "egress_sagemaker_vpc" {
   description = "egress-sagemaker-vpc"
 
   security_group_id = aws_security_group.sagemaker.id
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = [aws_vpc.main.cidr_block]
 
   type      = "egress"
   from_port = "0"
@@ -670,6 +670,18 @@ resource "aws_security_group_rule" "ingress_notebooks_vpc" {
 
   security_group_id = aws_security_group.sagemaker.id
   cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "ingress_main_vpc" {
+  description = "ingress-main-sagemaker-vpc"
+
+  security_group_id = aws_security_group.sagemaker.id
+  cidr_blocks       = [aws_vpc.main.cidr_block]
 
   type      = "ingress"
   from_port = "443"
