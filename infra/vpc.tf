@@ -989,6 +989,11 @@ resource "aws_route" "pcx_sagemaker_to_notebooks" {
   vpc_peering_connection_id = aws_vpc_peering_connection.sagemaker_to_notebooks.id
 }
 
+resource "aws_vpc_endpoint_route_table_association" "s3_sagemaker" {
+  vpc_endpoint_id = aws_vpc_endpoint.sagemaker_s3.id
+  route_table_id  = aws_route_table.sagemaker.id
+}
+
 # resource "aws_route" "pcx_datasets_to_sagemaker" {
 #   count = length(var.aws_availability_zones)
 
