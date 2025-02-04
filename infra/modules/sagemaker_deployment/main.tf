@@ -114,7 +114,7 @@ resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
 
   step_scaling_policy_configuration {
     adjustment_type = "ExactCapacity"
-    cooldown        = var.scale_down_cooldown
+    cooldown        = var.scale_up_cooldown
 
     step_adjustment {
       scaling_adjustment          = 1 # means set =0 (NOT add or subtract)

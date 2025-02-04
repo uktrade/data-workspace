@@ -6,7 +6,6 @@ locals {
     module.mistral_7b_deployment.model_name,
     module.gemma_2_27b_deployment.model_name,
     module.llama_3_70b_deployment.model_name,
-    #module.falcon_bf16_180b_deployment.model_name,
   ]
 }
 
@@ -58,8 +57,8 @@ module "gpt_neo_125m_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -307,7 +306,7 @@ module "phi_2_3b_deployment" {
   instance_type         = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 0
+  scale_up_cooldown     = 1800
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -343,8 +342,8 @@ module "phi_2_3b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -352,7 +351,7 @@ module "phi_2_3b_deployment" {
       ok_actions          = []
     },
     {
-      alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
+      alarm_name_prefix   = "backlog-composite-alarm"
       alarm_description   = "Detect if queries in backlog for extended time period"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
@@ -629,8 +628,8 @@ module "mistral_7b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -900,8 +899,8 @@ module "gemma_2_27b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -1193,8 +1192,8 @@ module "llama_3_70b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -1428,73 +1427,3 @@ module "llama_3_70b_deployment" {
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn    = module.iam.inference_role
 }
-
-/*
-###############
-# Falcon bf16 180b
-###############
-module "falcon_bf16_180b_deployment" {
-  model_name                = "falcon-bf16-180b"
-  container_image           = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
-  model_uri                 = "s3://jumpstart-cache-prod-eu-west-2/huggingface-infer/prepack/v1.2.0/infer-prepack-huggingface-llm-falcon-180b-bf16.tar.gz"
-  model_uri_compression     = "Gzip"
-  instance_type             = "ml.p5.48xlarge" # 192 vCPU and 8 GPUs and 2048 GB-RAM
-  max_capacity              = 2
-  min_capacity              = 0
-  scale_up_cooldown         = 0
-  scale_down_cooldown       = 0
-  environment_variables     =  {
-    "ENDPOINT_SERVER_TIMEOUT": "3600",
-    "HF_MODEL_ID": "/opt/ml/model",
-    "MAX_INPUT_LENGTH": "1024",
-    "MAX_TOTAL_TOKENS": "2048",
-    "MODEL_CACHE_ROOT": "/opt/ml/model",
-    "SAGEMAKER_ENV": "1",
-    "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-    "SAGEMAKER_PROGRAM": "inference.py",
-    "SM_NUM_GPUS": "8"
-  }
-
-  alarms = [
-    {
-      alarm_name_prefix       = "backlog"  # TODO: backlog is currently required to have index 0, which is brittle
-      alarm_description       = "Scale based on existence of backlog or not"
-      metric_name             = "ApproximateBacklogSize"
-      namespace               = "AWS/SageMaker"
-      comparison_operator     = "GreaterThanOrEqualToThreshold"
-      threshold               = 1
-      evaluation_periods      = 1
-      datapoints_to_alarm     = 1
-      period                  = 60
-      statistic               = "Maximum"
-      slack_webhook_url       = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.falcon_bf16_180b_deployment.scale_up_from_zero_policy_arn]
-      ok_actions          = [module.falcon_bf16_180b_deployment.scale_down_to_zero_policy_arn]
-    },
-    {
-      alarm_name_prefi    = "unauthorized-operations"
-      alarm_description   = "Unauthorized operations are detected in the CloudTrail Logs"
-      metric_name         = "UnauthorizedOperationsCount"
-      namespace           = "CloudTrailMetrics"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Sum"
-      slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = []
-      ok_actions          = []
-    }
-  ]
-
-  # These variables do not change between LLMs
-  source                    = "./modules/sagemaker_deployment"
-  security_group_ids        = [aws_security_group.notebooks.id]
-  subnets                   = aws_subnet.private_without_egress.*.id
-  s3_output_path            = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
-  aws_account_id            = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn     = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn        = module.iam.inference_role
-}
-*/
