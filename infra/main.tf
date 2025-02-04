@@ -88,6 +88,10 @@ variable "cloudwatch_destination_arn" {}
 
 variable "mirrors_bucket_name" {}
 variable "mirrors_data_bucket_name" {}
+variable "mirrors_bucket_non_prod_account_ids" {
+  type    = list(string)
+  default = []
+}
 
 variable "sentry_dsn" {}
 variable "sentry_notebooks_dsn" {}
@@ -146,6 +150,7 @@ variable "gitlab_ebs_volume_size" {
 variable "gitlab_runner_instance_type" {}
 variable "gitlab_runner_tap_instance_type" {}
 variable "gitlab_runner_data_science_instance_type" {}
+variable "gitlab_runner_ag_data_science_instance_type" {}
 variable "gitlab_runner_root_volume_size" {}
 variable "gitlab_runner_team_root_volume_size" {}
 variable "gitlab_db_instance_class" {}

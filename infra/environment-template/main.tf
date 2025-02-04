@@ -71,7 +71,7 @@ module "jupyterhub" {
   admin_authbroker_client_id     = "REPLACE_ME"
   admin_authbroker_client_secret = "REPLACE_ME"
   admin_authbroker_url           = "REPLACE_ME"
-  admin_environment              = file("admin_environment.json")
+  admin_environment              = locals.secret["admin_environment.json"]
   admin_deregistration_delay     = 300
 
   uploads_bucket                = "REPLACE_ME"

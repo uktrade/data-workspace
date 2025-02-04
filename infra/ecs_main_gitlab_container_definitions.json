@@ -9,6 +9,9 @@
     }, {
       "name": "AWS_DEFAULT_REGION",
       "value": "${bucket_region}"
+    }, {
+      "name": "SECRET_NAME",
+      "value": "${secret_name}"
     }],
     "essential": true,
     "image": "${container_image}",
