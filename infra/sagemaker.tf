@@ -48,7 +48,7 @@ resource "aws_security_group" "notebooks_endpoints" {
 }
 
 resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
-  description = "endpoint-ingress-from-datasets-vpc"
+  description = "endpoint-ingress-from-notebooks-vpc"
 
   security_group_id = aws_security_group.notebooks_endpoints.id
   cidr_blocks       = [aws_vpc.notebooks.cidr_block]
@@ -60,10 +60,181 @@ resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker" {
 }
 
 resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker" {
-  description = "endpoint-ingress-from-datasets-vpc"
+  description = "endpoint-ingress-from-notebooks-vpc"
 
   security_group_id = aws_security_group.notebooks_endpoints.id
   cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "endpoint_ingress_sagemaker_vpc" {
+  description = "endpoint-ingress-from-sagemaker-vpc"
+
+  security_group_id = aws_security_group.notebooks_endpoints.id
+  cidr_blocks       = [aws_vpc.sagemaker.cidr_block]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "endpoint_egress_sagemaker_vpc" {
+  description = "endpoint-ingress-from-sagemaker-vpc"
+
+  security_group_id = aws_security_group.notebooks_endpoints.id
+  cidr_blocks       = [aws_vpc.sagemaker.cidr_block]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+###############################
+## To test new SageMaker VPC ##
+###############################
+
+resource "aws_security_group" "sagemaker_endpoints" {
+  name        = "${var.prefix}-sagemaker-endpoints"
+  description = "${var.prefix}-sagemaker-endpoints"
+  vpc_id      = aws_vpc.sagemaker.id
+
+  tags = {
+    Name = "${var.prefix}-sagemaker-endpoints"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "notebooks_endpoint_ingress_sagemaker_test" {
+  description = "endpoint-ingress-sagemaker-to-notebooks-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints.id
+  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker_test" {
+  description = "endpoint-egress-notebooks-to-sagemaker-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints.id
+  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+#  Get SNS endoints in main working
+
+resource "aws_security_group" "sagemaker_endpoints_in_main" {
+  name        = "${var.prefix}-sagemaker-endpoints-in-main"
+  description = "${var.prefix}-access-VPC-endpoints-in-main"
+  vpc_id      = aws_vpc.sagemaker.id
+
+  tags = {
+    Name = "${var.prefix}-sagemaker-endpoints-main"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "main_to_sagemake_ingressr" {
+  description = "endpoint-ingress-main-to-sagemaker-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints_in_main.id
+  cidr_blocks       = [aws_vpc.main.cidr_block]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "main_to_sagemake_egress" {
+  description = "endpoint-egress-main-to-sagemaker-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints_in_main.id
+  cidr_blocks       = [aws_vpc.main.cidr_block]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group" "main_to_sagemaker" {
+  name        = "${var.prefix}-main-to-sagemaker-endpoints"
+  description = "${var.prefix}sagemaker-access-VPC-endpoints-in-main"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-sagemaker-endpoints-main"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "sagemaker_to_main_ingress" {
+  description = "endpoint-ingress-sagemaker-to-main-vpc"
+
+  security_group_id = aws_security_group.main_to_sagemaker.id
+  cidr_blocks       = [aws_vpc.sagemaker.cidr_block]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "sagemaker_to_main_egress" {
+  description = "endpoint-egress-sagemaker-to-main-vpc"
+
+  security_group_id = aws_security_group.main_to_sagemaker.id
+  cidr_blocks       = [aws_vpc.sagemaker.cidr_block]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+
+#### Used to allow access to VPC endpoints in Main
+
+resource "aws_security_group_rule" "main_ingress_sagemaker_endpoints" {
+  description = "endpoint-ingress-sagemaker-to-main-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints.id
+  cidr_blocks       = [aws_vpc.main.cidr_block]
+
+  type      = "ingress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "sagemaker_endpoints_egress_main" {
+  description = "endpoint-egress-notebooks-to-main-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints.id
+  cidr_blocks       = [aws_vpc.main.cidr_block]
 
   type      = "egress"
   from_port = "0"
