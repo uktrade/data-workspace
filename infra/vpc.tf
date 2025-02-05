@@ -537,11 +537,28 @@ data "aws_iam_policy_document" "datasets_s3_endpoint" {
       }
 
       actions = [
-        "s3:GetObject",
+        "s3:GetObject"
       ]
 
       resources = [
         "arn:aws:s3:::prod-${data.aws_region.aws_region.name}-starport-layer-bucket/*",
+      ]
+    }
+  }
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["*"]
+      }
+
+      actions = [
+        "s3:ListBucket",
+      ]
+
+      resources = [
+        "arn:aws:s3:::prod-${data.aws_region.aws_region.name}-starport-layer-bucket",
       ]
     }
   }
@@ -830,5 +847,88 @@ data "aws_iam_policy_document" "aws_datasets_endpoint_ecr" {
         "*",
       ]
     }
+  }
+}
+
+resource "aws_vpc_endpoint" "notebooks_sagemaker_runtime_endpoint" {
+  # source                                = "./modules/sagemaker_init/security"
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.notebooks_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "notebooks-sagemaker-runtime-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.sagemaker_notebooks_endpoint_policy.json
+}
+
+resource "aws_vpc_endpoint" "notebooks_sagemaker_api_endpoint" {
+  # source                                = "./modules/sagemaker_init/security"
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.notebooks_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "notebooks-sagemaker-api-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.sagemaker_notebooks_endpoint_policy.json
+}
+
+data "aws_iam_policy_document" "sagemaker_notebooks_endpoint_policy" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    actions = [
+      "sagemaker:DescribeEndpoint",
+      "sagemaker:DescribeEndpointConfig",
+      "sagemaker:DescribeModel",
+      "sagemaker:InvokeEndpointAsync",
+      "sagemaker:ListEndpoints",
+      "sagemaker:ListEndpointConfigs",
+      "sagemaker:ListModels",
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+
+resource "aws_vpc_endpoint" "sns_endpoint" {
+  vpc_id             = aws_vpc.main.id
+  service_name       = "com.amazonaws.eu-west-2.sns"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.private_with_egress.*.id
+  security_group_ids = [aws_security_group.notebooks_endpoints.id]
+  tags = {
+    Environment = var.prefix
+    Name        = "sns-endpoint"
+  }
+  private_dns_enabled = true
+  policy              = data.aws_iam_policy_document.sns_endpoint_policy.json
+}
+
+data "aws_iam_policy_document" "sns_endpoint_policy" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    actions = [
+      "SNS:Subscribe",
+      "SNS:Receive",
+      "SNS:Publish",
+    ]
+    resources = [
+      "*"
+    ]
   }
 }

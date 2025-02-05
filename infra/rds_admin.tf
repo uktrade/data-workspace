@@ -25,6 +25,8 @@ resource "aws_db_instance" "admin" {
 
   performance_insights_enabled = true
   storage_encrypted            = true
+  deletion_protection          = true
+  delete_automated_backups     = false
 
   lifecycle {
     ignore_changes = [
