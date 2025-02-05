@@ -1,5 +1,6 @@
 import json
 import os
+
 import urllib3
 
 http = urllib3.PoolManager()
@@ -7,6 +8,7 @@ http = urllib3.PoolManager()
 # Environment variable containing SNS -> webhook URL mapping
 SNS_TO_WEBHOOK_JSON = json.loads(os.environ["SNS_TO_WEBHOOK_JSON"])
 ADDRESS = os.environ["ADDRESS"]
+
 
 def lambda_handler(event, context):
     for record in event["Records"]:
@@ -20,23 +22,21 @@ def lambda_handler(event, context):
         # Determine the webhook URL for the SNS topic
         webhook_url = f"{SNS_TO_WEBHOOK_JSON.get(arn)}"
         if not webhook_url or webhook_url is None:
-            print(f"No webhook URL found for SNS topic: {topic_arn} with alert {alert_name} in as shown here with webhook_url of {webhook_url}")
             continue
 
         payload = {
             "text": f"*Alert:* {alert_name}\n*State:* {state}\n*Reason:* {reason}"
         }
-        print(f"Payload is: {payload}")
 
         # Send the alert to Slack
         response = http.request(
             "POST",
             f"https://hooks.slack.com/services/{webhook_url}",
             body=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         if response.status != 200:
-            print(f"Failed to send alert to Slack: {response.data.decode('utf-8')}")
+            pass
 
     return {"statusCode": 200, "body": "Alerts processed successfully"}

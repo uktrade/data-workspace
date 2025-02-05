@@ -6,7 +6,6 @@ locals {
     module.mistral_7b_deployment.model_name,
     module.gemma_2_27b_deployment.model_name,
     module.llama_3_70b_deployment.model_name,
-    #module.falcon_bf16_180b_deployment.model_name,
   ]
 }
 
@@ -21,7 +20,7 @@ module "gpt_neo_125m_deployment" {
   instance_type         = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 0
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -58,8 +57,8 @@ module "gpt_neo_125m_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -306,7 +305,7 @@ module "phi_2_3b_deployment" {
   instance_type         = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 0
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -342,8 +341,8 @@ module "phi_2_3b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -351,7 +350,7 @@ module "phi_2_3b_deployment" {
       ok_actions          = []
     },
     {
-      alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
+      alarm_name_prefix   = "backlog-composite-alarm"
       alarm_description   = "Detect if queries in backlog for extended time period"
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
@@ -591,7 +590,7 @@ module "mistral_7b_deployment" {
   instance_type         = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 0
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -628,8 +627,8 @@ module "mistral_7b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -863,7 +862,7 @@ module "gemma_2_27b_deployment" {
   instance_type         = "ml.g5.48xlarge" # 192 vCPU and 8 GPU and 768 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 0
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -899,8 +898,8 @@ module "gemma_2_27b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
@@ -1150,7 +1149,7 @@ module "llama_3_70b_deployment" {
   instance_type         = "ml.p4d.24xlarge" # 96 vCPU and 8 GPU and 1152 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 0
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     # TODO: This speculative draft feature allows for use of an e.g. 1b parameter model in conjunction with
@@ -1192,8 +1191,8 @@ module "llama_3_70b_deployment" {
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
       threshold           = 1
-      evaluation_periods  = 5
-      datapoints_to_alarm = 5
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
