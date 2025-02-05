@@ -1,14 +1,14 @@
-import boto3
+import base64
 import gzip
 import json
-import base64
-from io import BytesIO
 import os
 from datetime import datetime, timezone
+from io import BytesIO
+
+import boto3
 
 s3 = boto3.client("s3")
 bucket_name = os.environ["S3_BUCKET_NAME"]
-
 
 
 def lambda_handler(event, context):
@@ -26,10 +26,8 @@ def lambda_handler(event, context):
         log_group = log_events.get("logGroup", "unknown-group")
         log_stream = log_events.get("logStream", "unknown-stream")
         log_messages = [
-            {
-                "timestamp": event["timestamp"],
-                "message": event["message"]
-            } for event in log_events.get("logEvents", [])
+            {"timestamp": event["timestamp"], "message": event["message"]}
+            for event in log_events.get("logEvents", [])
         ]
 
         # Create a timestamped S3 key
@@ -41,23 +39,14 @@ def lambda_handler(event, context):
             Bucket=bucket_name,
             Key=s3_key,
             Body=json.dumps(log_messages),
-            ContentType="application/json"
+            ContentType="application/json",
         )
 
-        print(f"Logs successfully uploaded to S3: {s3_key}")
         return {
             "statusCode": 200,
-            "body": json.dumps("Logs successfully uploaded to S3.")
+            "body": json.dumps("Logs successfully uploaded to S3."),
         }
     except ValueError as ve:
-        print(f"Validation error: {str(ve)}")
-        return {
-            "statusCode": 400,
-            "body": json.dumps(f"Validation Error: {str(ve)}")
-        }
-    except Exception as e:
-        print(f"Error processing logs: {str(e)}")
-        return {
-            "statusCode": 500,
-            "body": json.dumps(f"Error: {str(e)}")
-        }
+        return {"statusCode": 400, "body": json.dumps(f"Validation Error: {ve!s}")}
+    except Exception as e:  # noqa: BLE001
+        return {"statusCode": 500, "body": json.dumps(f"Error: {e!s}")}

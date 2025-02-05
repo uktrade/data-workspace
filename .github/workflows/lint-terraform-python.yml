@@ -7,12 +7,13 @@ on:
     branches: [ "main", "feat/sagemaker-llms" ]
 
 jobs:
-  test:
+  lint:
     name: Lint Terraform
     runs-on: ubuntu-20.04
     steps:
       - name: "Checkout"
         uses: "actions/checkout@v4"
+
       - name: "Install Terraform"
         # From https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli,
         # but with the addition of programatically verifying the package signing key, which was
@@ -39,6 +40,20 @@ jobs:
             sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update
           sudo apt-get install terraform
-      - name: "Run linting"
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Run linting on terraform
         run: |
           terraform fmt -check -recursive -diff
+
+      - name: Run linting on Python code for lambda functions
+        run: |
+          cd infra/modules/
+          uv run ruff check .
