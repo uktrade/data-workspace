@@ -1120,6 +1120,7 @@ resource "aws_vpc_endpoint" "sagemaker_s3" {
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.sagemaker.id]
+  security_group_ids = [aws_security_group.sagemaker_endpoints.id]
 }
 
 resource "aws_vpc_endpoint" "sagemaker_ecr_api_endpoint" {

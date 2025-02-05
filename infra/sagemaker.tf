@@ -137,6 +137,18 @@ resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker_test" {
   protocol  = "tcp"
 }
 
+resource "aws_security_group_rule" "notebooks_endpoint_egress_sagemaker_test" {
+  description = "endpoint-egress-notebooks-to-sagemaker-vpc"
+
+  security_group_id = aws_security_group.sagemaker_endpoints.id
+  cidr_blocks       = ["0.0.0.0/0"]
+
+  type      = "egress"
+  from_port = "0"
+  to_port   = "65535"
+  protocol  = "tcp"
+}
+
 #  Get SNS endoints in main working
 
 resource "aws_security_group" "sagemaker_endpoints_in_main" {
