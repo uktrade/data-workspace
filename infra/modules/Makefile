@@ -21,6 +21,6 @@ format: # You must install terraform https://developer.hashicorp.com/terraform/t
 	@uv run ruff check --fix-only --unsafe-fixes .;
 
 .PHONY: quality
-quality: install
+quality:
 	@uv run ruff check .;
 	@terraform fmt -check -recursive -diff;
