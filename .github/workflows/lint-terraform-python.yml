@@ -55,4 +55,5 @@ jobs:
 
       - name: Run linting on Python code for lambda functions
         run: |
+          cd infra/modules/
           uv run ruff check .
