@@ -117,7 +117,7 @@ resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
     cooldown        = var.scale_up_cooldown
 
     step_adjustment {
-      scaling_adjustment          = 1 # means set =0 (NOT add or subtract)
+      scaling_adjustment          = 1 # means set =1 (NOT add or subtract)
       metric_interval_lower_bound = 0
       metric_interval_upper_bound = null
     }

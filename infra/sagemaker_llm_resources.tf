@@ -20,7 +20,7 @@ module "gpt_neo_125m_deployment" {
   instance_type         = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 300
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -306,7 +306,7 @@ module "phi_2_3b_deployment" {
   instance_type         = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 300
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -591,7 +591,7 @@ module "mistral_7b_deployment" {
   instance_type         = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 300
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -863,7 +863,7 @@ module "gemma_2_27b_deployment" {
   instance_type         = "ml.g5.48xlarge" # 192 vCPU and 8 GPU and 768 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 300
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -1150,7 +1150,7 @@ module "llama_3_70b_deployment" {
   instance_type         = "ml.p4d.24xlarge" # 96 vCPU and 8 GPU and 1152 GB-RAM
   max_capacity          = 2
   min_capacity          = 0
-  scale_up_cooldown     = 300
+  scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
     # TODO: This speculative draft feature allows for use of an e.g. 1b parameter model in conjunction with
