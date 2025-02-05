@@ -341,9 +341,9 @@ module "phi_2_3b_deployment" {
       metric_name         = "ApproximateBacklogSize"
       namespace           = "AWS/SageMaker"
       comparison_operator = "LessThanThreshold"
-      threshold           = 15
+      threshold           = 1
       evaluation_periods  = 15
-      datapoints_to_alarm = 1
+      datapoints_to_alarm = 15
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
