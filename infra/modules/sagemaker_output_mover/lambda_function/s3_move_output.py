@@ -35,6 +35,5 @@ def process_message(record):
         )
         s3.meta.client.copy(copy_source, input_file_bucket, s3_filepath_output)
 
-
     except Exception as e:
         raise e

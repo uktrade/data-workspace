@@ -4,6 +4,9 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = ["boto3"]  # strictly speaking boto3-stubs but this may not be installed in the lambda
 
+[tool.uv]
+dev-dependencies = ["bump-my-version", "ruff"]
+
 [tool.mypy]
 pretty = true
 strict = true
