@@ -76,7 +76,8 @@ data "aws_iam_policy_document" "notebooks" {
       test     = "StringEquals"
       variable = "aws:SourceVpce"
       values = [
-        aws_vpc_endpoint.s3.id
+        aws_vpc_endpoint.s3.id,
+        aws_vpc_endpoint.sagemaker_s3.id
       ]
     }
   }
