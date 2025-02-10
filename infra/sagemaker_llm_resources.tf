@@ -586,7 +586,7 @@ module "phi_2_3b_deployment" {
 ###############
 module "llama_3_3b_deployment" {
   model_name            = "llama-3-3b"
-  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-3b/artifacts/inference-prepack/v1.0.0/"
   model_uri_compression = "None"
   instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
@@ -595,13 +595,17 @@ module "llama_3_3b_deployment" {
   scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
-        "ENDPOINT_SERVER_TIMEOUT": "3600",
-        "HF_MODEL_ID": "/opt/ml/model",
-        "MODEL_CACHE_ROOT": "/opt/ml/model",
-        "OPTION_ENABLE_CHUNKED_PREFILL": "true",
-        "SAGEMAKER_ENV": "1",
-        "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-        "SAGEMAKER_PROGRAM": "inference.py",
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "OPTION_DRAFT_MODEL_TP_SIZE" : "1",
+    "OPTION_ENFORCE_EAGER" : "false",
+    "OPTION_GPU_MEMORY_UTILIZATION" : "0.95",
+    "OPTION_MAX_ROLLING_BATCH_SIZE" : "8",
+    "OPTION_TENSOR_PARALLEL_DEGREE" : "1",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
   }
 
   alarms = [
@@ -870,7 +874,7 @@ module "llama_3_3b_deployment" {
 ###############
 module "llama_3_3b_instruct_deployment" {
   model_name            = "llama-3-3b-instruct"
-  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-3b-instruct/artifacts/inference-prepack/v1.0.0/"
   model_uri_compression = "None"
   instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
@@ -879,13 +883,17 @@ module "llama_3_3b_instruct_deployment" {
   scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
-        "ENDPOINT_SERVER_TIMEOUT": "3600",
-        "HF_MODEL_ID": "/opt/ml/model",
-        "MODEL_CACHE_ROOT": "/opt/ml/model",
-        "OPTION_ENABLE_CHUNKED_PREFILL": "true",
-        "SAGEMAKER_ENV": "1",
-        "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-        "SAGEMAKER_PROGRAM": "inference.py",
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "OPTION_DRAFT_MODEL_TP_SIZE" : "1",
+    "OPTION_ENFORCE_EAGER" : "false",
+    "OPTION_GPU_MEMORY_UTILIZATION" : "0.95",
+    "OPTION_MAX_ROLLING_BATCH_SIZE" : "8",
+    "OPTION_TENSOR_PARALLEL_DEGREE" : "1",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
   }
 
   alarms = [
@@ -1171,7 +1179,6 @@ module "mistral_7b_deployment" {
     "SAGEMAKER_ENV" : "1",
     "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
     "SAGEMAKER_PROGRAM" : "inference.py",
-    "SM_NUM_GPUS": "4"
   }
 
   alarms = [
@@ -1444,7 +1451,6 @@ module "mistral_7b_instruct_deployment" {
     "SAGEMAKER_ENV" : "1",
     "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
     "SAGEMAKER_PROGRAM" : "inference.py",
-    "SM_NUM_GPUS": "4"
   }
 
   alarms = [
