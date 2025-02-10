@@ -3,9 +3,10 @@ locals {
   all_llm_names = [
     module.gpt_neo_125m_deployment.model_name,
     module.phi_2_3b_deployment.model_name,
+    module.llama_3_3b_deployment.model_name,
+    module.llama_3_3b_instruct_deployment.model_name,
     module.mistral_7b_deployment.model_name,
-    # module.gemma_2_27b_deployment.model_name,
-    # module.llama_3_70b_deployment.model_name,
+    module.mistral_7b_instruct_deployment.model_name,
   ]
 }
 
@@ -579,6 +580,574 @@ module "phi_2_3b_deployment" {
 }
 
 
+
+###############
+# Llama 3.2 3b
+###############
+module "llama_3_3b_deployment" {
+  model_name            = "llama-3-3b"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
+  model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-3b/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
+  max_capacity          = 2
+  min_capacity          = 0
+  scale_up_cooldown     = 900
+  scale_down_cooldown   = 0
+  environment_variables = {
+        "ENDPOINT_SERVER_TIMEOUT": "3600",
+        "HF_MODEL_ID": "/opt/ml/model",
+        "MODEL_CACHE_ROOT": "/opt/ml/model",
+        "OPTION_ENABLE_CHUNKED_PREFILL": "true",
+        "SAGEMAKER_ENV": "1",
+        "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
+        "SAGEMAKER_PROGRAM": "inference.py",
+  }
+
+  alarms = [
+    {
+      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale up based on existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_up_to_one_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale down based on non-existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "backlog-composite-alarm"
+      alarm_description   = "Detect if queries in backlog for extended time period"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 0
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-cpu"
+      alarm_description   = "Scale up when CPU usage is heavy"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80 * 4 # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-cpu"
+      alarm_description   = "Scale down when CPU usage is light"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20 * 4 # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-gpu"
+      alarm_description   = "Scale up when GPU usage is heavy"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-gpu"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-ram"
+      alarm_description   = "Scale up when RAM usage is heavy"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-ram"
+      alarm_description   = "Scale down when RAM usage is light"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-hard-disk"
+      alarm_description   = "Scale up when Hard Disk usage is heavy"
+      metric_name         = "DiskUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-hard-disk"
+      alarm_description   = "Scale down when Hard Disk usage is light"
+      metric_name         = "DiskUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.llama_3_3b_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "unauthorized-operations"
+      alarm_description   = "Unauthorized operations are detected in the CloudTrail Logs"
+      metric_name         = "UnauthorizedOperationsCount"
+      namespace           = "CloudTrailMetrics"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Sum"
+      slack_webhook_url   = var.slack_webhook_security_alerts
+      alarm_actions       = [] # SNS to give alert to developers
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "errors-4XX"
+      alarm_description   = "4XX errors are detected in the CloudTrail Logs"
+      metric_name         = "Invocation4XXErrors"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Sum"
+      slack_webhook_url   = var.slack_webhook_security_alerts
+      alarm_actions       = [] # SNS to give alert to developers
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "elevated-cpu-composite"
+      alarm_description   = "Detect CPU activity above idle for extended time period"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 4 # TODO: we must manually multiply by CPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-gpu-composite"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    }
+  ]
+
+  alarm_composites = [
+    {
+      alarm_name        = "ElevatedCPUUtilizationNoBackLog"
+      alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(elevated-cpu-composite-${module.phi_2_3b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails            = var.sagemaker_budget_emails
+    },
+    {
+      alarm_name        = "ElevatedGPUUtilizationNoBackLog"
+      alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(low-gpu-composite-${module.phi_2_3b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails            = var.sagemaker_budget_emails
+    }
+
+  ]
+
+  # These variables do not change between LLMs
+  source                = "./modules/sagemaker_deployment"
+  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
+  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn    = module.iam.inference_role
+}
+
+
+###############
+# Llama 3.2 3b-instruct
+###############
+module "llama_3_3b_instruct_deployment" {
+  model_name            = "llama-3-3b-instruct"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
+  model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-3b-instruct/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
+  max_capacity          = 2
+  min_capacity          = 0
+  scale_up_cooldown     = 900
+  scale_down_cooldown   = 0
+  environment_variables = {
+        "ENDPOINT_SERVER_TIMEOUT": "3600",
+        "HF_MODEL_ID": "/opt/ml/model",
+        "MODEL_CACHE_ROOT": "/opt/ml/model",
+        "OPTION_ENABLE_CHUNKED_PREFILL": "true",
+        "SAGEMAKER_ENV": "1",
+        "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
+        "SAGEMAKER_PROGRAM": "inference.py",
+  }
+
+  alarms = [
+    {
+      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale up based on existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_up_to_one_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale down based on non-existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "backlog-composite-alarm"
+      alarm_description   = "Detect if queries in backlog for extended time period"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 0
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-cpu"
+      alarm_description   = "Scale up when CPU usage is heavy"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80 * 4 # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-cpu"
+      alarm_description   = "Scale down when CPU usage is light"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20 * 4 # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-gpu"
+      alarm_description   = "Scale up when GPU usage is heavy"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-gpu"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-ram"
+      alarm_description   = "Scale up when RAM usage is heavy"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-ram"
+      alarm_description   = "Scale down when RAM usage is light"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-hard-disk"
+      alarm_description   = "Scale up when Hard Disk usage is heavy"
+      metric_name         = "DiskUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-hard-disk"
+      alarm_description   = "Scale down when Hard Disk usage is light"
+      metric_name         = "DiskUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.llama_3_3b_instruct_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "unauthorized-operations"
+      alarm_description   = "Unauthorized operations are detected in the CloudTrail Logs"
+      metric_name         = "UnauthorizedOperationsCount"
+      namespace           = "CloudTrailMetrics"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Sum"
+      slack_webhook_url   = var.slack_webhook_security_alerts
+      alarm_actions       = [] # SNS to give alert to developers
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "errors-4XX"
+      alarm_description   = "4XX errors are detected in the CloudTrail Logs"
+      metric_name         = "Invocation4XXErrors"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Sum"
+      slack_webhook_url   = var.slack_webhook_security_alerts
+      alarm_actions       = [] # SNS to give alert to developers
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "elevated-cpu-composite"
+      alarm_description   = "Detect CPU activity above idle for extended time period"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 4 # TODO: we must manually multiply by CPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-gpu-composite"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    }
+  ]
+
+  alarm_composites = [
+    {
+      alarm_name        = "ElevatedCPUUtilizationNoBackLog"
+      alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(elevated-cpu-composite-${module.phi_2_3b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails            = var.sagemaker_budget_emails
+    },
+    {
+      alarm_name        = "ElevatedGPUUtilizationNoBackLog"
+      alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(low-gpu-composite-${module.phi_2_3b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails            = var.sagemaker_budget_emails
+    }
+
+  ]
+
+  # These variables do not change between LLMs
+  source                = "./modules/sagemaker_deployment"
+  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
+  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn    = module.iam.inference_role
+}
+
 ###############
 # Mistral 7b
 ###############
@@ -601,7 +1170,8 @@ module "mistral_7b_deployment" {
     "MODEL_CACHE_ROOT" : "/opt/ml/model",
     "SAGEMAKER_ENV" : "1",
     "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
-    "SAGEMAKER_PROGRAM" : "inference.py"
+    "SAGEMAKER_PROGRAM" : "inference.py",
+    "SM_NUM_GPUS": "4"
   }
 
   alarms = [
@@ -852,577 +1422,273 @@ module "mistral_7b_deployment" {
 
 
 ###############
-# Gemma 2 27b
+# Mistral 7b-instruct
 ###############
-# module "gemma_2_27b_deployment" {
-#   model_name            = "gemma-2-27b"
-#   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.4.0-tgi2.3.1-gpu-py311-cu124-ubuntu22.04"
-#   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-gemma-2-27b/artifacts/inference-prepack/v1.0.0/"
-#   model_uri_compression = "None"
-#   instance_type         = "ml.g5.48xlarge" # 192 vCPU and 8 GPU and 768 GB-RAM
-#   max_capacity          = 2
-#   min_capacity          = 0
-#   scale_up_cooldown     = 900
-#   scale_down_cooldown   = 0
-#   environment_variables = {
-#     "ENDPOINT_SERVER_TIMEOUT" : "3600",
-#     "HF_MODEL_ID" : "/opt/ml/model",
-#     "MAX_BATCH_PREFILL_TOKENS" : "8191",
-#     "MAX_INPUT_LENGTH" : "8191",
-#     "MAX_TOTAL_TOKENS" : "8192",
-#     "MODEL_CACHE_ROOT" : "/opt/ml/model",
-#     "SAGEMAKER_PROGRAM" : "inference.py",
-#     "SM_NUM_GPUS" : "8"
-#   }
+module "mistral_7b_instruct_deployment" {
+  model_name            = "mistral-7b-instruct"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
+  model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-instruct-v3/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
+  max_capacity          = 2
+  min_capacity          = 0
+  scale_up_cooldown     = 900
+  scale_down_cooldown   = 0
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MAX_BATCH_PREFILL_TOKENS" : "8191",
+    "MAX_INPUT_LENGTH" : "8191",
+    "MAX_TOTAL_TOKENS" : "8192",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py",
+    "SM_NUM_GPUS": "4"
+  }
 
-#   alarms = [
-#     {
-#       alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
-#       alarm_description   = "Scale up based on existence of backlog"
-#       metric_name         = "ApproximateBacklogSize"
-#       namespace           = "AWS/SageMaker"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 1
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_backlog_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_one_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
-#       alarm_description   = "Scale down based on non-existence of backlog"
-#       metric_name         = "ApproximateBacklogSize"
-#       namespace           = "AWS/SageMaker"
-#       comparison_operator = "LessThanThreshold"
-#       threshold           = 1
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_backlog_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_zero_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
-#       alarm_description   = "Detect if queries in backlog for extended time period"
-#       metric_name         = "ApproximateBacklogSize"
-#       namespace           = "AWS/SageMaker"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 0
-#       evaluation_periods  = 3
-#       datapoints_to_alarm = 3
-#       period              = 3600
-#       statistic           = "Average"
-#       slack_webhook_url   = var.slack_webhook_backlog_alerts
-#       alarm_actions       = []
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "high-cpu"
-#       alarm_description   = "Scale up when CPU usage is heavy"
-#       metric_name         = "CPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 80 * 192 # TODO: we must manually multiply by vCPU count as Normalized metric not available
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_cpu_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-cpu"
-#       alarm_description   = "Scale down when CPU usage is light"
-#       metric_name         = "CPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 20 * 192 # TODO: we must manually multiply by vCPU count as Normalized metric not available
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_cpu_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "high-gpu"
-#       alarm_description   = "Scale up when GPU usage is heavy"
-#       metric_name         = "GPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 80 * 8 # TODO: we must manually multiply by GPU count as Normalized metric not available
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_gpu_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-gpu"
-#       alarm_description   = "Scale down when GPU usage is light"
-#       metric_name         = "GPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 20 * 8 # TODO: we must manually multiply by GPU count as Normalized metric not available
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_gpu_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "high-ram"
-#       alarm_description   = "Scale up when RAM usage is heavy"
-#       metric_name         = "MemoryUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 80
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_resource_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-ram"
-#       alarm_description   = "Scale down when RAM usage is light"
-#       metric_name         = "MemoryUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 20
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_resource_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "high-hard-disk"
-#       alarm_description   = "Scale up when Hard Disk usage is heavy"
-#       metric_name         = "DiskUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 80
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_resource_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_up_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-hard-disk"
-#       alarm_description   = "Scale down when Hard Disk usage is light"
-#       metric_name         = "DiskUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 20
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_resource_alerts
-#       alarm_actions       = [module.gemma_2_27b_deployment.scale_down_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "unauthorized-operations"
-#       alarm_description   = "Unauthorized operations are detected in the CloudTrail Logs"
-#       metric_name         = "UnauthorizedOperationsCount"
-#       namespace           = "CloudTrailMetrics"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 1
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Sum"
-#       slack_webhook_url   = var.slack_webhook_security_alerts
-#       alarm_actions       = [] # SNS to give alert to developers
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "errors-4XX"
-#       alarm_description   = "4XX errors are detected in the CloudTrail Logs"
-#       metric_name         = "Invocation4XXErrors"
-#       namespace           = "AWS/SageMaker"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 1
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Sum"
-#       slack_webhook_url   = var.slack_webhook_security_alerts
-#       alarm_actions       = [] # SNS to give alert to developers
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "elevated-cpu-composite"
-#       alarm_description   = "Detect CPU activity above idle for extended time period"
-#       metric_name         = "CPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 20 * 192 # TODO: we must manually multiply by CPU count as Normalized metric not available
-#       evaluation_periods  = 3
-#       datapoints_to_alarm = 3
-#       period              = 3600
-#       statistic           = "Average"
-#       slack_webhook_url   = var.slack_webhook_cpu_alerts
-#       alarm_actions       = []
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-gpu-composite"
-#       alarm_description   = "Scale down when GPU usage is light"
-#       metric_name         = "GPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 20 * 8 # TODO: we must manually multiply by GPU count as Normalized metric not available
-#       evaluation_periods  = 3
-#       datapoints_to_alarm = 3
-#       period              = 3600
-#       statistic           = "Average"
-#       slack_webhook_url   = var.slack_webhook_gpu_alerts
-#       alarm_actions       = []
-#       ok_actions          = []
-#     }
-#   ]
+  alarms = [
+    {
+      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale up based on existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_up_to_one_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
+      alarm_description   = "Scale down based on non-existence of backlog"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanThreshold"
+      threshold           = 1
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_down_to_zero_policy_arn]
+      ok_actions          = []
+    },
 
-#   alarm_composites = [
-#     # TODO continue altering alarm_rule then test
-#     {
-#       alarm_name        = "ElevatedCPUUtilizationNoBackLog"
-#       alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
-#       alarm_rule        = "ALARM(elevated-cpu-composite-${module.gemma_2_27b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.gemma_2_27b_deployment.model_name}-endpoint)"
-#       alarm_actions     = []
-#       ok_actions        = []
-#       slack_webhook_url = var.slack_webhook_backlog_alerts
-#       emails            = var.sagemaker_budget_emails
-#     },
-#     {
-#       alarm_name        = "ElevatedGPUUtilizationNoBackLog"
-#       alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
-#       alarm_rule        = "ALARM(low-gpu-composite-${module.gemma_2_27b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.gemma_2_27b_deployment.model_name}-endpoint)"
-#       alarm_actions     = []
-#       ok_actions        = []
-#       slack_webhook_url = var.slack_webhook_backlog_alerts
-#       emails            = var.sagemaker_budget_emails
-#     }
+    {
+      alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
+      alarm_description   = "Detect if queries in backlog for extended time period"
+      metric_name         = "ApproximateBacklogSize"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 0
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_backlog_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-cpu"
+      alarm_description   = "Scale down when CPU usage is light"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20 * 48 # TODO: we must manually multiply by vCPU count as Normalized metric not available
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-gpu"
+      alarm_description   = "Scale up when GPU usage is heavy"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80 * 4 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-gpu"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20 * 4 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-ram"
+      alarm_description   = "Scale up when RAM usage is heavy"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-ram"
+      alarm_description   = "Scale down when RAM usage is light"
+      metric_name         = "MemoryUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "high-hard-disk"
+      alarm_description   = "Scale up when Hard Disk usage is heavy"
+      metric_name         = "DiskUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 80
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_up_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-hard-disk"
+      alarm_description   = "Scale down when Hard Disk usage is light"
+      metric_name         = "DiskUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "LessThanOrEqualToThreshold"
+      threshold           = 20
+      evaluation_periods  = 15
+      datapoints_to_alarm = 15
+      period              = 60
+      statistic           = "Maximum"
+      slack_webhook_url   = var.slack_webhook_resource_alerts
+      alarm_actions       = [module.mistral_7b_instruct_deployment.scale_down_to_n_policy_arn]
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "unauthorized-operations"
+      alarm_description   = "Unauthorized operations are detected in the CloudTrail Logs"
+      metric_name         = "UnauthorizedOperationsCount"
+      namespace           = "CloudTrailMetrics"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Sum"
+      slack_webhook_url   = var.slack_webhook_security_alerts
+      alarm_actions       = [] # SNS to give alert to developers
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "errors-4XX"
+      alarm_description   = "4XX errors are detected in the CloudTrail Logs"
+      metric_name         = "Invocation4XXErrors"
+      namespace           = "AWS/SageMaker"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 1
+      evaluation_periods  = 1
+      datapoints_to_alarm = 1
+      period              = 60
+      statistic           = "Sum"
+      slack_webhook_url   = var.slack_webhook_security_alerts
+      alarm_actions       = [] # SNS to give alert to developers
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "elevated-cpu-composite"
+      alarm_description   = "Detect CPU activity above idle for extended time period"
+      metric_name         = "CPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 48 # TODO: we must manually multiply by CPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_cpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    },
+    {
+      alarm_name_prefix   = "low-gpu-composite"
+      alarm_description   = "Scale down when GPU usage is light"
+      metric_name         = "GPUUtilization"
+      namespace           = "/aws/sagemaker/Endpoints"
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      threshold           = 20 * 4 # TODO: we must manually multiply by GPU count as Normalized metric not available
+      evaluation_periods  = 3
+      datapoints_to_alarm = 3
+      period              = 3600
+      statistic           = "Average"
+      slack_webhook_url   = var.slack_webhook_gpu_alerts
+      alarm_actions       = []
+      ok_actions          = []
+    }
+  ]
 
-#   ]
+  alarm_composites = [
+    {
+      alarm_name        = "ElevatedCPUUtilizationNoBackLog"
+      alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(elevated-cpu-composite-${module.mistral_7b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.mistral_7b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails            = var.sagemaker_budget_emails
+    },
+    {
+      alarm_name        = "ElevatedGPUUtilizationNoBackLog"
+      alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
+      alarm_rule        = "ALARM(low-gpu-composite-${module.mistral_7b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.mistral_7b_deployment.model_name}-endpoint)"
+      alarm_actions     = []
+      ok_actions        = []
+      slack_webhook_url = var.slack_webhook_backlog_alerts
+      emails            = var.sagemaker_budget_emails
+    }
 
-#   # These variables do not change between LLMs
-#   source                = "./modules/sagemaker_deployment"
-#   security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
-#   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-#   s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
-#   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-#   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-#   execution_role_arn    = module.iam.inference_role
-# }
+  ]
 
-
-
-###############
-# Llama 3 70b
-###############
-# module "llama_3_70b_deployment" {
-#   model_name            = "llama-3-70b"
-#   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
-#   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-3-70b-instruct/artifacts/inference-prepack/v2.0.0/"
-#   model_uri_compression = "None"
-#   instance_type         = "ml.p4d.24xlarge" # 96 vCPU and 8 GPU and 1152 GB-RAM
-#   max_capacity          = 2
-#   min_capacity          = 0
-#   scale_up_cooldown     = 900
-#   scale_down_cooldown   = 0
-#   environment_variables = {
-#     # TODO: This speculative draft feature allows for use of an e.g. 1b parameter model in conjunction with
-#     # the main 70b model, but to implement it requires hosting the two models together on one instance
-#     # "OPTION_SPECULATIVE_DRAFT_MODEL": "/opt/ml/additional-model-data-sources/draft_model",
-#     "ENDPOINT_SERVER_TIMEOUT" : "3600",
-#     "HF_MODEL_ID" : "/opt/ml/model",
-#     "MODEL_CACHE_ROOT" : "/opt/ml/model",
-#     "OPTION_DRAFT_MODEL_TP_SIZE" : "8",
-#     "OPTION_ENFORCE_EAGER" : "false",
-#     "OPTION_GPU_MEMORY_UTILIZATION" : "0.95",
-#     "OPTION_MAX_ROLLING_BATCH_SIZE" : "64",
-#     "OPTION_TENSOR_PARALLEL_DEGREE" : "8",
-#     "SAGEMAKER_ENV" : "1",
-#     "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
-#     "SAGEMAKER_PROGRAM" : "inference.py"
-#   }
-
-#   alarms = [
-#     {
-#       alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
-#       alarm_description   = "Scale up based on existence of backlog"
-#       metric_name         = "ApproximateBacklogSize"
-#       namespace           = "AWS/SageMaker"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 1
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_backlog_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_one_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
-#       alarm_description   = "Scale down based on non-existence of backlog"
-#       metric_name         = "ApproximateBacklogSize"
-#       namespace           = "AWS/SageMaker"
-#       comparison_operator = "LessThanThreshold"
-#       threshold           = 1
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_backlog_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_zero_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "backlog-composite-alarm" # TODO: backlog is currently required to have index 0, which is brittle
-#       alarm_description   = "Detect if queries in backlog for extended time period"
-#       metric_name         = "ApproximateBacklogSize"
-#       namespace           = "AWS/SageMaker"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 0
-#       evaluation_periods  = 3
-#       datapoints_to_alarm = 3
-#       period              = 3600
-#       statistic           = "Average"
-#       slack_webhook_url   = var.slack_webhook_backlog_alerts
-#       alarm_actions       = []
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "high-cpu"
-#       alarm_description   = "Scale up when CPU usage is heavy"
-#       metric_name         = "CPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 80 * 96
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_cpu_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-cpu"
-#       alarm_description   = "Scale down when CPU usage is light"
-#       metric_name         = "CPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 20 * 96
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_cpu_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "high-gpu"
-#       alarm_description   = "Scale up when GPU usage is heavy"
-#       metric_name         = "GPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 80 * 8
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_gpu_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-gpu"
-#       alarm_description   = "Scale down when GPU usage is light"
-#       metric_name         = "GPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 20 * 8
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_gpu_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "high-ram"
-#       alarm_description   = "Scale up when RAM usage is heavy"
-#       metric_name         = "MemoryUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 80
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_resource_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-ram"
-#       alarm_description   = "Scale down when RAM usage is light"
-#       metric_name         = "MemoryUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 20
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_resource_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "high-hard-disk"
-#       alarm_description   = "Scale up when Hard Disk usage is heavy"
-#       metric_name         = "DiskUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 80
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_resource_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_up_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-hard-disk"
-#       alarm_description   = "Scale down when Hard Disk usage is light"
-#       metric_name         = "DiskUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "LessThanOrEqualToThreshold"
-#       threshold           = 20
-#       evaluation_periods  = 15
-#       datapoints_to_alarm = 15
-#       period              = 60
-#       statistic           = "Maximum"
-#       slack_webhook_url   = var.slack_webhook_resource_alerts
-#       alarm_actions       = [module.llama_3_70b_deployment.scale_down_to_n_policy_arn]
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "unauthorized-operations"
-#       alarm_description   = "Unauthorized operations are detected in the CloudTrail Logs"
-#       metric_name         = "UnauthorizedOperationsCount"
-#       namespace           = "CloudTrailMetrics"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 1
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Sum"
-#       slack_webhook_url   = var.slack_webhook_security_alerts
-#       alarm_actions       = [] # SNS to give alert to developers
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "errors-4XX"
-#       alarm_description   = "4XX errors are detected in the CloudTrail Logs"
-#       metric_name         = "Invocation4XXErrors"
-#       namespace           = "AWS/SageMaker"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 1
-#       evaluation_periods  = 1
-#       datapoints_to_alarm = 1
-#       period              = 60
-#       statistic           = "Sum"
-#       slack_webhook_url   = var.slack_webhook_security_alerts
-#       alarm_actions       = [] # SNS to give alert to developers
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "elevated-cpu-composite"
-#       alarm_description   = "Detect CPU activity above idle for extended time period"
-#       metric_name         = "CPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 20 * 96 # TODO: we must manually multiply by CPU count as Normalized metric not available
-#       evaluation_periods  = 3
-#       datapoints_to_alarm = 3
-#       period              = 3600
-#       statistic           = "Average"
-#       slack_webhook_url   = var.slack_webhook_cpu_alerts
-#       alarm_actions       = []
-#       ok_actions          = []
-#     },
-#     {
-#       alarm_name_prefix   = "low-gpu-composite"
-#       alarm_description   = "Scale down when GPU usage is light"
-#       metric_name         = "GPUUtilization"
-#       namespace           = "/aws/sagemaker/Endpoints"
-#       comparison_operator = "GreaterThanOrEqualToThreshold"
-#       threshold           = 20 * 8
-#       evaluation_periods  = 3
-#       datapoints_to_alarm = 3
-#       period              = 3600
-#       statistic           = "Average"
-#       slack_webhook_url   = var.slack_webhook_gpu_alerts
-#       alarm_actions       = []
-#       ok_actions          = []
-#     }
-#   ]
-
-#   alarm_composites = [
-#     {
-#       alarm_name        = "ElevatedCPUUtilizationNoBackLog"
-#       alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
-#       alarm_rule        = "ALARM(elevated-cpu-composite-${module.llama_3_70b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.llama_3_70b_deployment.model_name}-endpoint)"
-#       alarm_actions     = []
-#       ok_actions        = []
-#       slack_webhook_url = var.slack_webhook_backlog_alerts
-#       emails            = var.sagemaker_budget_emails
-#     },
-#     {
-#       alarm_name        = "ElevatedGPUUtilizationNoBackLog"
-#       alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
-#       alarm_rule        = "ALARM(low-gpu-composite-${module.llama_3_70b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.llama_3_70b_deployment.model_name}-endpoint)"
-#       alarm_actions     = []
-#       ok_actions        = []
-#       slack_webhook_url = var.slack_webhook_backlog_alerts
-#       emails            = var.sagemaker_budget_emails
-#     }
-#   ]
-
-#   # These variables do not change between LLMs
-#   source                = "./modules/sagemaker_deployment"
-#   security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
-#   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-#   s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
-#   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-#   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-#   execution_role_arn    = module.iam.inference_role
-# }
+  # These variables do not change between LLMs
+  source                = "./modules/sagemaker_deployment"
+  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
+  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
+  execution_role_arn    = module.iam.inference_role
+}
