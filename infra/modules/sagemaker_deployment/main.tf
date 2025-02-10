@@ -367,8 +367,8 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_okstate" {
 }
 data "archive_file" "lambda_payload" {
   type        = "zip"
-  source_file = "${path.module}/lambda_function.py"
-  output_path = "${path.module}/payload.zip"
+  source_file = "${path.module}/lambda_function/cloudwatch_alarms_to_slack_alerts.py"
+  output_path = "${path.module}/lambda_function/payload.zip"
 }
 
 
