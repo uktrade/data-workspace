@@ -1,7 +1,7 @@
 data "archive_file" "lambda_payload" {
   type        = "zip"
-  source_file = "${path.module}/lambda_function.py"
-  output_path = "${path.module}/payload.zip"
+  source_file = "${path.module}/lambda_function/cloudwatch_logs_to_s3.py"
+  output_path = "${path.module}/lambda_function/payload.zip"
 }
 
 resource "aws_lambda_function" "sagemaker_to_s3" {
