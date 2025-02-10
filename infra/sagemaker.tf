@@ -20,18 +20,9 @@ module "iam" {
 }
 
 module "s3" {
-  source = "./modules/s3"
+  source = "./modules/cloudwatch_logs/s3"
   prefix = "sagemaker-logs"
 }
-
-
-# Security Group for SageMaker Notebooks and Endpoints
-# module "security_groups" {
-#   source      = "./modules/sagemaker_init/security"
-#   vpc_id      = aws_vpc.main.id
-#   prefix      = var.prefix
-#   cidr_blocks = [aws_vpc.notebooks.cidr_block]
-# }
 
 resource "aws_security_group" "sagemaker_vpc_endpoints_main" {
   name        = "${var.prefix}-sagemaker-vpc-endpoints-main"
@@ -239,16 +230,8 @@ output "default_sagemaker_bucket" {
   value = module.iam.default_sagemaker_bucket
 }
 
-# # Security Group Output
-# output "security_group_id" {
-#   value       = module.security_groups.security_group_id
-#   description = "The ID of the security group for SageMaker endpoints"
-# }
-
-# Cost monitoring
-
 module "cost_monitoring_dashboard" {
-  source         = "./modules/cost_monitoring/sagemaker"
+  source         = "./modules/cost_monitoring/cloudwatch_dashboard"
   dashboard_name = "aws-cost-monitoring-dashboard"
   services_to_monitor = [
     "AmazonSageMaker",
@@ -258,7 +241,7 @@ module "cost_monitoring_dashboard" {
 }
 
 module "sns" {
-  source     = "./modules/sns"
+  source     = "./modules/cost_monitoring/sns"
   prefix     = "data-workspace-sagemaker"
   account_id = data.aws_caller_identity.aws_caller_identity.account_id
   #notification_email = var.sagemaker_budget_emails
@@ -272,7 +255,7 @@ module "sagemaker_output_mover" {
 }
 
 module "log_group" {
-  source              = "./modules/logs"
+  source              = "./modules/cloudwatch_logs/sagemaker"
   prefix              = "data-workspace-sagemaker"
   endpoint_names      = [for model_name in local.all_llm_names : "${model_name}-endpoint"]
   lambda_function_arn = module.lambda_logs.lambda_function_arn
@@ -288,7 +271,7 @@ output "all_log_group_arns" {
 
 
 module "lambda_logs" {
-  source                   = "./modules/lambda/cloudwatch"
+  source                   = "./modules/cloudwatch_logs/lambda_to_s3"
   s3_bucket_name           = "sagemaker-logs-centralized"
   log_delivery_role_arn    = module.iam.lambda_execution_role_arn
   sagemaker_log_group_arns = [for model_name in local.all_llm_names : "arn:aws:logs:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:/aws/sagemaker/Endpoints/${model_name}-endpoint:*"]

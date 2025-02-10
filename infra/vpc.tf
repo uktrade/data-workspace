@@ -1014,7 +1014,6 @@ data "aws_iam_policy_document" "vpc_sagemaker_flow_log_vpc_flow_logs_assume_role
 #########################################################
 
 resource "aws_vpc_endpoint" "sagemaker_runtime_endpoint_main" {
-  # source                                = "./modules/sagemaker_init/security"
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
   vpc_endpoint_type  = "Interface"
@@ -1029,7 +1028,6 @@ resource "aws_vpc_endpoint" "sagemaker_runtime_endpoint_main" {
 }
 
 resource "aws_vpc_endpoint" "sagemaker_api_endpoint_main" {
-  # source                                = "./modules/sagemaker_init/security"
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
   vpc_endpoint_type  = "Interface"
