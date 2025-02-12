@@ -1,5 +1,3 @@
-
-
 data "archive_file" "lambda_payload" {
   type        = "zip"
   source_file = "${path.module}/lambda_function/cloudwatch_alarms_to_slack_alerts.py"

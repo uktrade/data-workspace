@@ -23,10 +23,12 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.sns_topic_alarmstate, aws_sns_topic.sns_topic_okstate]
 }
 
+
 resource "null_resource" "wait_for_metric_alarms" {
   #  Aggregating metric alarms dependencies so we wait for them to be deleted/created before composite alarms are created or deleted. This prevents cyclic dependency issues.
   depends_on = [aws_cloudwatch_metric_alarm.cloudwatch_alarm]
 }
+
 
 resource "aws_cloudwatch_composite_alarm" "composite_alarm" {
   count = length(var.alarm_composites)
