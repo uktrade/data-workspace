@@ -41,6 +41,8 @@ variable "subnets_num_bits" {}
 variable "vpc_notebooks_cidr" {}
 variable "vpc_notebooks_subnets_num_bits" {}
 variable "vpc_datasets_cidr" {}
+variable "vpc_sagemaker_cidr" {}
+variable "vpc_sagemaker_subnets_num_bits" {}
 
 variable "aws_route53_zone" {}
 variable "admin_domain" {}
@@ -48,9 +50,7 @@ variable "appstream_domain" {}
 variable "support_domain" {}
 
 variable "admin_db_instance_class" {}
-variable "admin_db_instance_version" {
-  default = "10.15"
-}
+variable "admin_db_instance_version" {}
 variable "admin_db_instance_allocated_storage" {
   type    = number
   default = 200
@@ -273,6 +273,18 @@ variable "s3_prefixes_for_external_role_copy" {
   type    = list(string)
   default = ["import-data", "export-data"]
 }
+
+variable "sagemaker_example_inference_image" { default = "" }
+
+variable "sagemaker_models_folder" { default = "" }
+variable "hugging_face_model_image" { default = "" }
+variable "sagemaker_default_bucket" { default = "" }
+variable "sagemaker_budget_emails" { default = [""] }
+variable "slack_webhook_resource_alerts" { default = [""] }
+variable "slack_webhook_cpu_alerts" { default = [""] }
+variable "slack_webhook_gpu_alerts" { default = [""] }
+variable "slack_webhook_security_alerts" { default = [""] }
+variable "slack_webhook_backlog_alerts" { default = [""] }
 
 locals {
   admin_container_name   = "jupyterhub-admin"
