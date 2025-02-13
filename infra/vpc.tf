@@ -21,6 +21,7 @@ resource "aws_vpc" "notebooks" {
 
   enable_dns_support   = false
   enable_dns_hostnames = false
+  
   tags = {
     Name = "${var.prefix}-notebooks"
   }
@@ -549,23 +550,6 @@ data "aws_iam_policy_document" "datasets_s3_endpoint" {
 
       resources = [
         "arn:aws:s3:::prod-${data.aws_region.aws_region.name}-starport-layer-bucket/*",
-      ]
-    }
-  }
-  dynamic "statement" {
-    for_each = var.arango_on ? [0] : []
-    content {
-      principals {
-        type        = "AWS"
-        identifiers = ["*"]
-      }
-
-      actions = [
-        "s3:ListBucket",
-      ]
-
-      resources = [
-        "arn:aws:s3:::prod-${data.aws_region.aws_region.name}-starport-layer-bucket",
       ]
     }
   }

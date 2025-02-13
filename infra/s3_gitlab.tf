@@ -4,7 +4,6 @@
 resource "aws_s3_bucket" "gitlab" {
   count         = var.gitlab_on ? 1 : 0
   bucket        = var.gitlab_bucket
-  force_destroy = false
 
   server_side_encryption_configuration {
     rule {

@@ -1,12 +1,9 @@
 import ast
-
 import boto3
-
 
 def lambda_handler(event, context):
     for record in event["Records"]:
         process_message(record)
-
 
 def process_message(record):
     try:
