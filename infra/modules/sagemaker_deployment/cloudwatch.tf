@@ -14,9 +14,9 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.sns_topic_alarmstate[count.index].arn])
   ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.sns_topic_okstate[count.index].arn])
   dimensions = (count.index == 0 || count.index == 1 || count.index == 2) ? { # TODO: this logic is brittle as it assumes "backlog" has index [0,1,2]; it would be better to have a logic that rests on the specific name of that metric
-    EndpointName = aws_sagemaker_endpoint.main.name             # Only EndpointName is used in this case
+    EndpointName = aws_sagemaker_endpoint.main.name                           # Only EndpointName is used in this case
     } : {
-    EndpointName = aws_sagemaker_endpoint.main.name,                                          # Both EndpointName and VariantName are used in all other cases
+    EndpointName = aws_sagemaker_endpoint.main.name,                                             # Both EndpointName and VariantName are used in all other cases
     VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name # Note this logic would not work if there were ever more than one production variant deployed for an LLM
   }
 
