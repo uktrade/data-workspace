@@ -11,8 +11,8 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
   datapoints_to_alarm = var.alarms[count.index].datapoints_to_alarm
   period              = var.alarms[count.index].period
   statistic           = var.alarms[count.index].statistic
-  alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.sns_topic_alarmstate[count.index].arn])
-  ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.sns_topic_okstate[count.index].arn])
+  alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.alarmstate[count.index].arn])
+  ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.okstate[count.index].arn])
   dimensions = (count.index == 0 || count.index == 1 || count.index == 2) ? { # TODO: this logic is brittle as it assumes "backlog" has index [0,1,2]; it would be better to have a logic that rests on the specific name of that metric
     EndpointName = aws_sagemaker_endpoint.main.name                           # Only EndpointName is used in this case
     } : {
@@ -20,7 +20,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
     VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name # Note this logic would not work if there were ever more than one production variant deployed for an LLM
   }
 
-  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.sns_topic_alarmstate, aws_sns_topic.sns_topic_okstate]
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
 
 
@@ -36,9 +36,9 @@ resource "aws_cloudwatch_composite_alarm" "composite_alarm" {
   alarm_name        = "${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.main.name}"
   alarm_description = var.alarm_composites[count.index].alarm_description
   alarm_rule        = var.alarm_composites[count.index].alarm_rule
-  alarm_actions     = concat(var.alarm_composites[count.index].alarm_actions, [aws_sns_topic.alarm_composite_notifications[count.index].arn], [aws_sns_topic.sns_topic_composite[count.index].arn])
+  alarm_actions     = concat(var.alarm_composites[count.index].alarm_actions, [aws_sns_topic.alarm_composite_notifications[count.index].arn], [aws_sns_topic.composite_alarmstate[count.index].arn])
   ok_actions        = var.alarm_composites[count.index].ok_actions
 
-  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarm_composite_notifications, aws_sns_topic.sns_topic_composite, null_resource.wait_for_metric_alarms]
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarm_composite_notifications, aws_sns_topic.composite_alarmstate, null_resource.wait_for_metric_alarms]
 
 }

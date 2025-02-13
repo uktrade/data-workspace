@@ -30,7 +30,7 @@ resource "aws_lambda_permission" "allow_sns_composite" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.slack_alert_function.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.sns_topic_composite[count.index].arn
+  source_arn    = aws_sns_topic.composite_alarmstate[count.index].arn
 }
 
 
@@ -41,7 +41,7 @@ resource "aws_lambda_permission" "allow_sns_alarmstate" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.slack_alert_function.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.sns_topic_alarmstate[count.index].arn
+  source_arn    = aws_sns_topic.alarmstate[count.index].arn
 }
 
 
@@ -52,7 +52,7 @@ resource "aws_lambda_permission" "allow_sns_okstate" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.slack_alert_function.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.sns_topic_okstate[count.index].arn
+  source_arn    = aws_sns_topic.okstate[count.index].arn
 }
 
 

@@ -1,4 +1,4 @@
-resource "aws_sns_topic" "sns_topic_alarmstate" {
+resource "aws_sns_topic" "alarmstate" {
   count = length(var.alarms)
 
   name = "alarm-alarmstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.main.name}"
@@ -18,7 +18,7 @@ resource "aws_sns_topic" "sns_topic_alarmstate" {
 }
 
 
-resource "aws_sns_topic" "sns_topic_okstate" {
+resource "aws_sns_topic" "okstate" {
   count = length(var.alarms)
 
   name = "alarm-okstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.main.name}"
@@ -39,7 +39,7 @@ resource "aws_sns_topic" "sns_topic_okstate" {
 }
 
 
-resource "aws_sns_topic" "sns_topic_composite" {
+resource "aws_sns_topic" "composite_alarmstate" {
   count = length(var.alarm_composites)
 
   name = "alarm-alarm-composite-lambda-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.main.name}-topic"
@@ -100,7 +100,7 @@ resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
 resource "aws_sns_topic_subscription" "sns_lambda_subscription_okstate" {
   count = length(var.alarms)
 
-  topic_arn = aws_sns_topic.sns_topic_okstate[count.index].arn
+  topic_arn = aws_sns_topic.okstate[count.index].arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.slack_alert_function.arn
 }
@@ -109,7 +109,7 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_okstate" {
 resource "aws_sns_topic_subscription" "sns_lambda_subscription_alarmstate" {
   count = length(var.alarms)
 
-  topic_arn = aws_sns_topic.sns_topic_alarmstate[count.index].arn
+  topic_arn = aws_sns_topic.alarmstate[count.index].arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.slack_alert_function.arn
 }
@@ -117,7 +117,7 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_alarmstate" {
 resource "aws_sns_topic_subscription" "sns_lambda_subscription_composite" {
   count = length(var.alarm_composites)
 
-  topic_arn = aws_sns_topic.sns_topic_composite[count.index].arn
+  topic_arn = aws_sns_topic.composite_alarmstate[count.index].arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.slack_alert_function.arn
 }
