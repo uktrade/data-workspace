@@ -46,7 +46,7 @@ module "gpt_neo_125m_deployment" {
   harddisk_threshold_low   = 20
   evaluation_periods_high  = 1
   datapoints_to_alarm_high = 1
-  evaluation_periods_low   = 15
+  evaluation_periods_low   = 20
   datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs
@@ -94,7 +94,7 @@ module "phi_2_3b_deployment" {
   harddisk_threshold_low   = 20
   evaluation_periods_high  = 1
   datapoints_to_alarm_high = 1
-  evaluation_periods_low   = 15
+  evaluation_periods_low   = 20
   datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs
@@ -147,7 +147,7 @@ module "llama_3_3b_deployment" {
   harddisk_threshold_low   = 20
   evaluation_periods_high  = 1
   datapoints_to_alarm_high = 1
-  evaluation_periods_low   = 15
+  evaluation_periods_low   = 20
   datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs
@@ -199,7 +199,7 @@ module "llama_3_3b_instruct_deployment" {
   harddisk_threshold_low   = 20
   evaluation_periods_high  = 1
   datapoints_to_alarm_high = 1
-  evaluation_periods_low   = 15
+  evaluation_periods_low   = 20
   datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs
@@ -248,7 +248,7 @@ module "mistral_7b_deployment" {
   harddisk_threshold_low   = 20
   evaluation_periods_high  = 1
   datapoints_to_alarm_high = 1
-  evaluation_periods_low   = 15
+  evaluation_periods_low   = 20
   datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs

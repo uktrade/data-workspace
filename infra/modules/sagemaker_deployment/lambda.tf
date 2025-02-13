@@ -1,15 +1,3 @@
-locals {
-  alarm_names = [
-    aws_cloudwatch_metric_alarm.backlog_high.alarm_name,
-    aws_cloudwatch_metric_alarm.backlog_low.alarm_name,
-
-
-
-
-  ]
-}
-
-
 data "archive_file" "lambda_payload" {
   type        = "zip"
   source_file = "${path.module}/lambda_function/cloudwatch_alarms_to_slack_alerts.py"
@@ -26,33 +14,26 @@ resource "aws_lambda_function" "slack_alert_function" {
   runtime          = "python3.12"
   timeout          = 30
 
-  environment {
-    variables = {
-      SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping),
-      ADDRESS             = "arn:aws:sns:eu-west-2:${var.aws_account_id}:"
-    }
-  }
-}
-
-
-resource "aws_lambda_permission" "allow_sns_composite" {
-
-  statement_id  = "AllowSNS-alarm-${count.index}"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.slack_alert_function.function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.alarmstate[count.index].arn
 }
 
 
 resource "aws_lambda_permission" "allow_sns_okstate" {
-  count = length(var.alarms)
 
-  statement_id  = "AllowSNS-ok-${count.index}"
+  statement_id  = "AllowSNS-ok"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.slack_alert_function.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.okstate[count.index].arn
+  source_arn    = aws_sns_topic.okstate.arn
+}
+
+
+resource "aws_lambda_permission" "allow_sns_alarmstate" {
+
+  statement_id  = "AllowSNS-alarm"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.slack_alert_function.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.alarmstate.arn
 }
 
 
