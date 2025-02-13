@@ -1,4 +1,4 @@
-resource "aws_sagemaker_model" "sagemaker_model" {
+resource "aws_sagemaker_model" "main" {
   name               = var.model_name
   execution_role_arn = var.execution_role_arn
 
@@ -24,12 +24,13 @@ resource "aws_sagemaker_model" "sagemaker_model" {
   }
 }
 
-resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
-  name = "${aws_sagemaker_model.sagemaker_model.name}-endpoint-config"
+
+resource "aws_sagemaker_endpoint_configuration" "main" {
+  name = "${aws_sagemaker_model.main.name}-endpoint-config"
 
   production_variants {
     variant_name           = "AllTraffic"
-    model_name             = aws_sagemaker_model.sagemaker_model.name
+    model_name             = aws_sagemaker_model.main.name
     instance_type          = var.instance_type
     initial_instance_count = 1
   }
@@ -45,72 +46,77 @@ resource "aws_sagemaker_endpoint_configuration" "endpoint_config" {
   }
 }
 
-resource "aws_sagemaker_endpoint" "sagemaker_endpoint" {
-  name = "${aws_sagemaker_model.sagemaker_model.name}-endpoint"
 
-  endpoint_config_name = aws_sagemaker_endpoint_configuration.endpoint_config.name
-  depends_on           = [aws_sagemaker_endpoint_configuration.endpoint_config, var.sns_success_topic_arn]
+resource "aws_sagemaker_endpoint" "main" {
+  name = "${aws_sagemaker_model.main.name}-endpoint"
+
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.main.name
+  depends_on           = [aws_sagemaker_endpoint_configuration.main, var.sns_success_topic_arn]
 }
 
-resource "aws_appautoscaling_target" "autoscaling_target" {
+
+resource "aws_appautoscaling_target" "main" {
   max_capacity       = var.max_capacity
   min_capacity       = var.min_capacity
-  resource_id        = "endpoint/${aws_sagemaker_endpoint.sagemaker_endpoint.name}/variant/${aws_sagemaker_endpoint_configuration.endpoint_config.production_variants[0].variant_name}" # Note this logic would not work if there were ever more than one production variant deployed for an LLM
+  resource_id        = "endpoint/${aws_sagemaker_endpoint.main.name}/variant/${aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}" # Note this logic would not work if there were ever more than one production variant deployed for an LLM
   scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
   service_namespace  = "sagemaker"
-  depends_on         = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sagemaker_endpoint_configuration.endpoint_config]
+  depends_on         = [aws_sagemaker_endpoint.main, aws_sagemaker_endpoint_configuration.main]
 }
+
 
 resource "aws_appautoscaling_policy" "scale_up_to_n_policy" {
   name = "scale-up-to-n-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
-  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
-  depends_on         = [aws_appautoscaling_target.autoscaling_target]
+  resource_id        = aws_appautoscaling_target.main.resource_id
+  scalable_dimension = aws_appautoscaling_target.main.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.main.service_namespace
+  depends_on         = [aws_appautoscaling_target.main]
 
   step_scaling_policy_configuration {
     adjustment_type = "ChangeInCapacity"
     cooldown        = var.scale_up_cooldown
 
     step_adjustment {
-      scaling_adjustment          = 1
+      scaling_adjustment          = 1 # means add 1
       metric_interval_lower_bound = 0
       metric_interval_upper_bound = null
     }
   }
 }
 
+
 resource "aws_appautoscaling_policy" "scale_down_to_n_policy" {
   name = "scale-down-to-n-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
-  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
-  depends_on         = [aws_appautoscaling_target.autoscaling_target]
+  resource_id        = aws_appautoscaling_target.main.resource_id
+  scalable_dimension = aws_appautoscaling_target.main.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.main.service_namespace
+  depends_on         = [aws_appautoscaling_target.main]
 
   step_scaling_policy_configuration {
     adjustment_type = "ChangeInCapacity"
     cooldown        = var.scale_down_cooldown
 
     step_adjustment {
-      scaling_adjustment          = -1
+      scaling_adjustment          = -1 # mean subtract 1
       metric_interval_lower_bound = null
       metric_interval_upper_bound = 0
     }
   }
 }
 
+
 resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
   name = "scale-up-to-one-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
-  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
-  depends_on         = [aws_appautoscaling_target.autoscaling_target]
+  resource_id        = aws_appautoscaling_target.main.resource_id
+  scalable_dimension = aws_appautoscaling_target.main.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.main.service_namespace
+  depends_on         = [aws_appautoscaling_target.main]
 
   step_scaling_policy_configuration {
     adjustment_type = "ExactCapacity"
@@ -124,14 +130,15 @@ resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
   }
 }
 
+
 resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
   name = "scale-down-to-zero-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
-  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
-  depends_on         = [aws_appautoscaling_target.autoscaling_target]
+  resource_id        = aws_appautoscaling_target.main.resource_id
+  scalable_dimension = aws_appautoscaling_target.main.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.main.service_namespace
+  depends_on         = [aws_appautoscaling_target.main]
 
   step_scaling_policy_configuration {
     adjustment_type = "ExactCapacity"
@@ -145,300 +152,26 @@ resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
   }
 }
 
+
 # Mapping SNS topic ARNs to Slack webhook URLs
 locals {
   sns_to_webhook_mapping = merge({
     for idx, alarm in var.alarms :
-    replace(aws_sns_topic.sns_topic_alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
+    replace(aws_sns_topic.alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
     }, {
     for idx, alarm in var.alarms :
-    replace(aws_sns_topic.sns_topic_okstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
+    replace(aws_sns_topic.okstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
     }, {
     for idx, alarm_composite in var.alarm_composites :
-    replace(aws_sns_topic.sns_topic_composite[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm_composite.slack_webhook_url
+    replace(aws_sns_topic.composite_alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm_composite.slack_webhook_url
     }
   )
-}
-
-resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
-  count = length(var.alarms)
-
-  alarm_name          = "${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
-  alarm_description   = var.alarms[count.index].alarm_description
-  metric_name         = var.alarms[count.index].metric_name
-  namespace           = var.alarms[count.index].namespace
-  comparison_operator = var.alarms[count.index].comparison_operator
-  threshold           = var.alarms[count.index].threshold
-  evaluation_periods  = var.alarms[count.index].evaluation_periods
-  datapoints_to_alarm = var.alarms[count.index].datapoints_to_alarm
-  period              = var.alarms[count.index].period
-  statistic           = var.alarms[count.index].statistic
-  alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.sns_topic_alarmstate[count.index].arn])
-  ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.sns_topic_okstate[count.index].arn])
-  dimensions = (count.index == 0 || count.index == 1 || count.index == 2) ? { # TODO: this logic is brittle as it assumes "backlog" has index [0,1]; it would be better to have a logic that rests on the specific name of that metric
-    EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name             # Only EndpointName is used in this case
-    } : {
-    EndpointName = aws_sagemaker_endpoint.sagemaker_endpoint.name,                                          # Both EndpointName and VariantName are used in all other cases
-    VariantName  = aws_sagemaker_endpoint_configuration.endpoint_config.production_variants[0].variant_name # Note this logic would not work if there were ever more than one production variant deployed for an LLM
-  }
-
-  depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.sns_topic_alarmstate, aws_sns_topic.sns_topic_okstate]
-}
-
-resource "null_resource" "wait_for_metric_alarms" {
-  #  Aggregating metric alarms dependencies so we wait for them to be deleted/created before composite alarms are created or deleted. This prevents cyclic dependency issues.
-  depends_on = [aws_cloudwatch_metric_alarm.cloudwatch_alarm]
-}
-
-resource "aws_cloudwatch_composite_alarm" "composite_alarm" {
-  count = length(var.alarm_composites)
-
-  alarm_name        = "${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
-  alarm_description = var.alarm_composites[count.index].alarm_description
-  alarm_rule        = var.alarm_composites[count.index].alarm_rule
-  alarm_actions     = concat(var.alarm_composites[count.index].alarm_actions, [aws_sns_topic.alarm_composite_notifications[count.index].arn], [aws_sns_topic.sns_topic_composite[count.index].arn])
-  ok_actions        = var.alarm_composites[count.index].ok_actions
-
-  depends_on = [aws_sagemaker_endpoint.sagemaker_endpoint, aws_sns_topic.alarm_composite_notifications, aws_sns_topic.sns_topic_composite, null_resource.wait_for_metric_alarms]
-
-}
-
-resource "aws_sns_topic" "sns_topic_composite" {
-  count = length(var.alarm_composites)
-
-  name = "alarm-alarm-composite-lambda-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-topic"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "cloudwatch.amazonaws.com"
-        },
-        Action   = "sns:Publish",
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_lambda_permission" "allow_sns_composite" {
-  count = length(var.alarm_composites)
-
-  statement_id  = "AllowSNS-composite-${count.index}"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.slack_alert_function.function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.sns_topic_composite[count.index].arn
-}
-
-resource "aws_sns_topic_subscription" "sns_lambda_subscription_composite" {
-  count = length(var.alarm_composites)
-
-  topic_arn = aws_sns_topic.sns_topic_composite[count.index].arn
-  protocol  = "lambda"
-  endpoint  = aws_lambda_function.slack_alert_function.arn
-}
-
-resource "aws_sns_topic" "alarm_composite_notifications" {
-  count = length(var.alarm_composites)
-  name  = "alarm-composite-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-sns-topic"
-
-}
-
-resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
-  count = length(var.alarm_composites)
-
-  arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid    = "AllowPublishFromCloudWatch"
-        Effect = "Allow",
-        Principal = {
-          Service = "cloudwatch.amazonaws.com"
-        },
-        Action   = "SNS:Publish",
-        Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
-      },
-      {
-        Sid       = "AllowSubscriptionActions"
-        Effect    = "Allow",
-        Principal = "*",
-        Action = [
-          "sns:Subscribe",
-          "sns:Receive"
-        ],
-        Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
-      }
-    ]
-  })
-
-}
-
-resource "aws_sns_topic_subscription" "email_subscription" {
-  count     = length(var.alarm_composites)
-  topic_arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
-  protocol  = "email"
-  endpoint = flatten([
-    for variables in var.alarm_composites :
-    [
-      for email in variables.emails :
-      email
-    ]
-  ])[count.index]
-}
-
-resource "aws_sns_topic" "sns_topic_alarmstate" {
-  count = length(var.alarms)
-
-  name = "alarm-alarmstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "cloudwatch.amazonaws.com"
-        },
-        Action   = "sns:Publish",
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_lambda_permission" "allow_sns_alarmstate" {
-  count = length(var.alarms)
-
-  statement_id  = "AllowSNS-alarm-${count.index}"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.slack_alert_function.function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.sns_topic_alarmstate[count.index].arn
-}
-
-resource "aws_sns_topic_subscription" "sns_lambda_subscription_alarmstate" {
-  count = length(var.alarms)
-
-  topic_arn = aws_sns_topic.sns_topic_alarmstate[count.index].arn
-  protocol  = "lambda"
-  endpoint  = aws_lambda_function.slack_alert_function.arn
-}
-
-resource "aws_sns_topic" "sns_topic_okstate" {
-  count = length(var.alarms)
-
-  name = "alarm-okstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "cloudwatch.amazonaws.com"
-        },
-        Action   = "sns:Publish",
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_lambda_permission" "allow_sns_okstate" {
-  count = length(var.alarms)
-
-  statement_id  = "AllowSNS-ok-${count.index}"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.slack_alert_function.function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.sns_topic_okstate[count.index].arn
-}
-
-resource "aws_sns_topic_subscription" "sns_lambda_subscription_okstate" {
-  count = length(var.alarms)
-
-  topic_arn = aws_sns_topic.sns_topic_okstate[count.index].arn
-  protocol  = "lambda"
-  endpoint  = aws_lambda_function.slack_alert_function.arn
-}
-data "archive_file" "lambda_payload" {
-  type        = "zip"
-  source_file = "${path.module}/lambda_function/cloudwatch_alarms_to_slack_alerts.py"
-  output_path = "${path.module}/lambda_function/payload.zip"
-}
-
-
-resource "aws_lambda_function" "slack_alert_function" {
-  filename         = data.archive_file.lambda_payload.output_path
-  source_code_hash = data.archive_file.lambda_payload.output_base64sha256
-  function_name    = "${var.model_name}-slack-alert-lambda"
-  role             = aws_iam_role.slack_lambda_role.arn
-  handler          = "lambda_function.lambda_handler"
-  runtime          = "python3.12"
-  timeout          = 30
-
-  environment {
-    variables = {
-      SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping),
-      ADDRESS             = "arn:aws:sns:eu-west-2:${var.aws_account_id}:"
-    }
-  }
-}
-
-resource "aws_iam_role" "slack_lambda_role" {
-  name = "${var.model_name}-slack-alert-lambda-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        },
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_policy" "slack_lambda_policy" {
-  name = "${var.model_name}-slack-alert-lambda-policy"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ],
-        Resource = "arn:aws:logs:*:*:*"
-      },
-      {
-        Effect   = "Allow",
-        Action   = "sns:Publish",
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "slack_lambda_policy_attachment" {
-  role       = aws_iam_role.slack_lambda_role.name
-  policy_arn = aws_iam_policy.slack_lambda_policy.arn
 }
 
 
 resource "aws_cloudwatch_log_metric_filter" "unauthorized_operations" {
   name           = "unauthorized-operations-filter"
-  log_group_name = "/aws/sagemaker/Endpoints/${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
+  log_group_name = "/aws/sagemaker/Endpoints/${aws_sagemaker_endpoint.main.name}"
   pattern        = "{ $.errorCode = \"UnauthorizedOperation\" || $.errorCode = \"AccessDenied\" }"
 
   metric_transformation {
