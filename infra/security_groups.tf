@@ -1,5 +1,3 @@
-
-
 resource "aws_security_group" "dns_rewrite_proxy" {
   name        = "${var.prefix}-dns-rewrite-proxy"
   description = "${var.prefix}-dns-rewrite-proxy"
@@ -732,8 +730,6 @@ resource "aws_security_group" "ecr_api" {
     create_before_destroy = true
   }
 }
-
-
 
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_dns_rewrite_proxy" {
   description = "ingress-https-from-dns-rewrite-proxy"

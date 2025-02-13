@@ -8,8 +8,6 @@ resource "aws_s3_bucket" "centralized_logs" {
   }
 }
 
-
-
 resource "aws_s3_bucket_lifecycle_configuration" "lifecycle" {
 
   bucket = aws_s3_bucket.centralized_logs.id
