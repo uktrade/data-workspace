@@ -87,38 +87,87 @@ variable "scale_down_cooldown" {
   description = "Cooldown period for scale down"
 }
 
-
-variable "alarms" {
-  type = list(object({
-    alarm_name_prefix   = string
-    alarm_description   = string
-    metric_name         = string
-    namespace           = string
-    comparison_operator = string
-    threshold           = number
-    evaluation_periods  = number
-    datapoints_to_alarm = number
-    period              = number
-    statistic           = string
-    slack_webhook_url   = string
-    alarm_actions       = list(string)
-    ok_actions          = list(string)
-  }))
-  description = "List of CloudWatch alarms to be created"
+variable "backlog_threshold_high" {
+  type        = number
+  description = "Threshold for high backlog alarm"
 }
 
 
-variable "alarm_composites" {
-  type = list(object({
-    alarm_name        = string
-    alarm_description = string
-    alarm_rule        = string
-    alarm_actions     = list(string)
-    ok_actions        = list(string)
-    slack_webhook_url = string
-    emails            = list(string)
-  }))
-  description = "List of CloudWatch composite alarms to be created utilizing pre-existing alarms"
+variable "backlog_threshold_low" {
+  type        = number
+  description = "Threshold for low backlog alarm"
+}
+
+
+variable "cpu_threshold_high" {
+  type        = number
+  description = "Threshold for high CPU alarm (NOTE this varies based on number of vCPU)"
+}
+
+
+variable "cpu_threshold_low" {
+  type        = number
+  description = "Threshold for low CPU alarm (NOTE this varies based on number of vCPU)"
+}
+
+
+variable "gpu_threshold_high" {
+  type        = number
+  description = "Threshold for high GPU alarm (NOTE this varies based on number of GPU)"
+}
+
+
+variable "gpu_threshold_low" {
+  type        = number
+  description = "Threshold for low GPU alarm (NOTE this varies based on number of GPU)"
+}
+
+
+variable "ram_threshold_high" {
+  type        = number
+  description = "Threshold for high RAM alarm"
+}
+
+
+variable "ram_threshold_low" {
+  type        = number
+  description = "Threshold for low RAM alarm"
+}
+
+
+variable "harddisk_threshold_high" {
+  type        = number
+  description = "Threshold for high HardDisk alarm"
+}
+
+
+variable "harddisk_threshold_low" {
+  type        = number
+  description = "Threshold for low HardDisk alarm"
+}
+
+
+variable "evaluation_periods_high" {
+  type        = number
+  description = "Number of evaluation periods to consider for high alarm states"
+}
+
+
+variable "datapoints_to_alarm_high" {
+  type        = number
+  description = "Number of datapoints within an evaluation period to require for low alarm states"
+}
+
+
+variable "evaluation_periods_low" {
+  type        = number
+  description = "Number of evaluation periods to consider for low alarm states"
+}
+
+
+variable "datapoints_to_alarm_low" {
+  type        = number
+  description = "Number of datapoints within an evaluation period to require for low alarm states"
 }
 
 
