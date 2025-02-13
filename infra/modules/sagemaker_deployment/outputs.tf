@@ -1,10 +1,10 @@
 output "model_name" {
-  value = aws_sagemaker_model.sagemaker_model.name
+  value = aws_sagemaker_model.main.name
 }
 
 
 output "endpoint_name" {
-  value = aws_sagemaker_endpoint.sagemaker_endpoint.name
+  value = aws_sagemaker_endpoint.main.name
 }
 
 

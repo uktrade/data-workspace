@@ -1,7 +1,7 @@
 resource "aws_sns_topic" "sns_topic_alarmstate" {
   count = length(var.alarms)
 
-  name = "alarm-alarmstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
+  name = "alarm-alarmstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.main.name}"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -21,7 +21,7 @@ resource "aws_sns_topic" "sns_topic_alarmstate" {
 resource "aws_sns_topic" "sns_topic_okstate" {
   count = length(var.alarms)
 
-  name = "alarm-okstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}"
+  name = "alarm-okstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.main.name}"
 
   policy = jsonencode({
     Version = "2012-10-17",
@@ -42,7 +42,7 @@ resource "aws_sns_topic" "sns_topic_okstate" {
 resource "aws_sns_topic" "sns_topic_composite" {
   count = length(var.alarm_composites)
 
-  name = "alarm-alarm-composite-lambda-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-topic"
+  name = "alarm-alarm-composite-lambda-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.main.name}-topic"
 
   policy = jsonencode({
     Version = "2012-10-17",
@@ -62,7 +62,7 @@ resource "aws_sns_topic" "sns_topic_composite" {
 
 resource "aws_sns_topic" "alarm_composite_notifications" {
   count = length(var.alarm_composites)
-  name  = "alarm-composite-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.sagemaker_endpoint.name}-sns-topic"
+  name  = "alarm-composite-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.main.name}-sns-topic"
 }
 
 
