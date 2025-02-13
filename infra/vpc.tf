@@ -21,7 +21,7 @@ resource "aws_vpc" "notebooks" {
 
   enable_dns_support   = false
   enable_dns_hostnames = false
-  
+
   tags = {
     Name = "${var.prefix}-notebooks"
   }
