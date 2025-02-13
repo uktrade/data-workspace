@@ -12,7 +12,7 @@ resource "aws_cloudwatch_metric_alarm" "backlog_high" {
   statistic           = "Maximum"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name}
+  dimensions          = { EndpointName = aws_sagemaker_endpoint.main.name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -32,7 +32,7 @@ resource "aws_cloudwatch_metric_alarm" "backlog_low" {
   statistic           = "Maximum"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name}
+  dimensions          = { EndpointName = aws_sagemaker_endpoint.main.name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -52,8 +52,8 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -73,8 +73,8 @@ resource "aws_cloudwatch_metric_alarm" "cpu_low" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -94,8 +94,8 @@ resource "aws_cloudwatch_metric_alarm" "gpu_high" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -115,8 +115,8 @@ resource "aws_cloudwatch_metric_alarm" "gpu_low" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -136,8 +136,8 @@ resource "aws_cloudwatch_metric_alarm" "ram_high" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -157,8 +157,8 @@ resource "aws_cloudwatch_metric_alarm" "ram_low" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -178,8 +178,8 @@ resource "aws_cloudwatch_metric_alarm" "harddisk_high" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -199,8 +199,8 @@ resource "aws_cloudwatch_metric_alarm" "harddisk_low" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -220,8 +220,8 @@ resource "aws_cloudwatch_metric_alarm" "unauthorized_operations" {
   statistic           = "Maximum"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
@@ -241,8 +241,8 @@ resource "aws_cloudwatch_metric_alarm" "4XX-errors" {
   statistic           = "Average"
   alarm_actions       = [aws_sns_topic.alarmstate.arn]
   ok_actions          = [aws_sns_topic.okstate.arn]
-  dimensions = {EndpointName = aws_sagemaker_endpoint.main.name,
-                VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}
+  dimensions = { EndpointName = aws_sagemaker_endpoint.main.name,
+  VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name }
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }

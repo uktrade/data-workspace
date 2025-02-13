@@ -4,7 +4,7 @@ locals {
     aws_cloudwatch_metric_alarm.backlog_low.alarm_name,
 
 
-    
+
 
   ]
 }
@@ -35,9 +35,7 @@ resource "aws_lambda_function" "slack_alert_function" {
 }
 
 
-
-resource "aws_lambda_permission" "allow_sns_alarmstate" {
-  count = length(var.alarms)
+resource "aws_lambda_permission" "allow_sns_composite" {
 
   statement_id  = "AllowSNS-alarm-${count.index}"
   action        = "lambda:InvokeFunction"
