@@ -1,12 +1,4 @@
-resource "aws_cloudwatch_composite_alarm" "scale_up_from_n_to_np1" {
-  alarm_name        = "scale_up_from_n_to_np1"
-  alarm_description = "Where there exists a high backlog and a high state of any of CPU, GPU, RAM, HardDisk (i.e. live instances are insufficient for the tasks being performed)"
 
-  alarm_actions = [aws_appautoscaling_policy.scale_up_from_n_to_np1.arn]
-  ok_actions    = []
-
-  alarm_rule = "ALARM(${aws_cloudwatch_metric_alarm.backlog_high.alarm_name}) AND (ALARM(${aws_cloudwatch_metric_alarm.cpu_high.alarm_name}) OR ALARM(${aws_cloudwatch_metric_alarm.gpu_high.alarm_name}) OR ALARM(${aws_cloudwatch_metric_alarm.ram_high.alarm_name}) OR ALARM(${aws_cloudwatch_metric_alarm.harddisk_high.alarm_name}))"
-}
 
 resource "aws_cloudwatch_composite_alarm" "scale_up_from_0_to_1" {
   alarm_name        = "scale_up_from_0_to_1"
@@ -41,6 +33,120 @@ resource "aws_cloudwatch_composite_alarm" "scale_down_from_n_to_0" {
 }
 
 
+resource "aws_cloudwatch_composite_alarm" "scale_up_from_n_to_np1" {
+  alarm_name        = "scale_up_from_n_to_np1"
+  alarm_description = "Where there exists a high backlog and a high state of any of CPU, GPU, RAM, HardDisk (i.e. live instances are insufficient for the tasks being performed)"
+
+  alarm_actions = [aws_appautoscaling_policy.scale_up_from_n_to_np1.arn]
+  ok_actions    = []
+
+  alarm_rule = "ALARM(${aws_cloudwatch_metric_alarm.backlog_high.alarm_name}) AND (ALARM(${aws_cloudwatch_metric_alarm.cpu_high.alarm_name}) OR ALARM(${aws_cloudwatch_metric_alarm.gpu_high.alarm_name}) OR ALARM(${aws_cloudwatch_metric_alarm.ram_high.alarm_name}) OR ALARM(${aws_cloudwatch_metric_alarm.harddisk_high.alarm_name}))"
+}
+
+resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
+
+  alarm_name          = "${aws_sagemaker_endpoint.main.name}-scale_up_from_n_to_np1"
+  alarm_description   = "Where there exists a high backlog and a high state of any of CPU, GPU, RAM, HardDisk (i.e. live instances are insufficient for the tasks being performed)"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = var.backlog_threshold_high
+  evaluation_periods  = var.evaluation_periods_high
+  datapoints_to_alarm = var.datapoints_to_alarm_high
+  period              = 60
+
+  metric_query {
+    id          = "result"
+    expression  = "backlog_high AND (cpu_high OR gpu_high OR ram_high OR harddisk_high)"
+    return_data = "true"
+    period      = 60
+
+  }
+
+  metric_query {
+    id = "backlog_high"
+
+    metric {
+      metric_name = "ApproximateBacklogSize"
+      namespace   = "AWS/SageMaker"
+      period      = 60
+      stat        = "Maximum"
+      unit        = "Count"
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name
+        }
+    }
+  }
+
+  metric_query {
+    id = "cpu_high"
+
+    metric {
+      metric_name = "CPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "GreaterThanOrEqualToThreshold"
+      unit        = "Percent"  # NOTE: 100% for each vCPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+        }
+    }
+  }
+  metric_query {
+    id = "gpu_high"
+
+    metric {
+      metric_name = "GPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "GreaterThanOrEqualToThreshold"
+      unit        = "Percent"  # NOTE: 100% for each GPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+        }
+    }
+  }
+  metric_query {
+    id = "ram_high"
+
+    metric {
+      metric_name = "MemoryUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "GreaterThanOrEqualToThreshold"
+      unit        = "Percent"  # NOTE: 100% is total in this case
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+        }
+    }
+  }
+  metric_query {
+    id = "harddisk_high"
+
+    metric {
+      metric_name = "DiskUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "GreaterThanOrEqualToThreshold"
+      unit        = "Percent"  # NOTE: 100% is total in this case
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+        }
+    }
+  }
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
+}
+
+
+
+
 resource "aws_cloudwatch_metric_alarm" "backlog_high" {
 
   alarm_name          = "${aws_sagemaker_endpoint.main.name}-backlog-high"
@@ -57,7 +163,6 @@ resource "aws_cloudwatch_metric_alarm" "backlog_high" {
 
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
 }
-
 
 resource "aws_cloudwatch_metric_alarm" "backlog_low" {
 
