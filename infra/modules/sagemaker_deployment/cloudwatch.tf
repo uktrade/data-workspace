@@ -47,22 +47,20 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
 
   alarm_name          = "${aws_sagemaker_endpoint.main.name}-scale_up_from_n_to_np1"
   alarm_description   = "Where there exists a high backlog and a high state of any of CPU, GPU, RAM, HardDisk (i.e. live instances are insufficient for the tasks being performed)"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  threshold           = var.backlog_threshold_high
   evaluation_periods  = var.evaluation_periods_high
   datapoints_to_alarm = var.datapoints_to_alarm_high
   period              = 60
 
   metric_query {
     id          = "result"
-    expression  = "backlog_high AND (cpu_high OR gpu_high OR ram_high OR harddisk_high)"
+    expression  = "backlog>=${var.backlog_threshold_high} AND (cpu_high OR gpu_high OR ram_high OR harddisk_high)"
     return_data = "true"
     period      = 60
 
   }
 
   metric_query {
-    id = "backlog_high"
+    id = "backlog"
 
     metric {
       metric_name = "ApproximateBacklogSize"
@@ -78,7 +76,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
   }
 
   metric_query {
-    id = "cpu_high"
+    id = "cpu"
 
     metric {
       metric_name = "CPUUtilization"
@@ -94,7 +92,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
     }
   }
   metric_query {
-    id = "gpu_high"
+    id = "gpu"
 
     metric {
       metric_name = "GPUUtilization"
@@ -110,7 +108,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
     }
   }
   metric_query {
-    id = "ram_high"
+    id = "ram"
 
     metric {
       metric_name = "MemoryUtilization"
@@ -126,7 +124,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
     }
   }
   metric_query {
-    id = "harddisk_high"
+    id = "harddisk"
 
     metric {
       metric_name = "DiskUtilization"
