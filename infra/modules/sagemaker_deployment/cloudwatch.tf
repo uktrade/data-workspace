@@ -6,7 +6,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_0_to_1" {
   evaluation_periods  = var.evaluation_periods_high
   datapoints_to_alarm = var.datapoints_to_alarm_high
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  threshold           = 0.5  # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
+  threshold           = 0.5 # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
   alarm_actions       = [aws_appautoscaling_policy.scale_up_from_0_to_1.arn, aws_sns_topic.scale_up_from_0_to_1.arn]
   ok_actions          = [aws_sns_topic.scale_up_from_0_to_1.arn]
 
@@ -30,7 +30,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_0_to_1" {
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name
-        }
+      }
     }
   }
 
@@ -42,12 +42,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_0_to_1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% for each vCPU available
+      unit        = "Percent" # NOTE: 100% for each vCPU available
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   metric_query {
@@ -58,12 +58,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_0_to_1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% for each GPU available
+      unit        = "Percent" # NOTE: 100% for each GPU available
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   metric_query {
@@ -74,12 +74,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_0_to_1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% is total in this case
+      unit        = "Percent" # NOTE: 100% is total in this case
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
 
@@ -94,7 +94,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_nm1" {
   evaluation_periods  = var.evaluation_periods_low
   datapoints_to_alarm = var.datapoints_to_alarm_low
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  threshold           = 0.5  # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
+  threshold           = 0.5 # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
   alarm_actions       = [aws_appautoscaling_policy.scale_down_from_n_to_nm1.arn, aws_sns_topic.scale_down_from_n_to_nm1.arn]
   ok_actions          = [aws_sns_topic.scale_down_from_n_to_nm1.arn]
 
@@ -118,7 +118,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_nm1" {
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name
-        }
+      }
     }
   }
 
@@ -130,12 +130,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_nm1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% for each vCPU available
+      unit        = "Percent" # NOTE: 100% for each vCPU available
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   metric_query {
@@ -146,12 +146,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_nm1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% for each GPU available
+      unit        = "Percent" # NOTE: 100% for each GPU available
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   metric_query {
@@ -162,12 +162,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_nm1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% is total in this case
+      unit        = "Percent" # NOTE: 100% is total in this case
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
 
@@ -183,7 +183,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_0" {
   evaluation_periods  = var.evaluation_periods_low
   datapoints_to_alarm = var.datapoints_to_alarm_low
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  threshold           = 0.5  # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
+  threshold           = 0.5 # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
   alarm_actions       = [aws_appautoscaling_policy.scale_down_from_n_to_0.arn, aws_sns_topic.scale_down_from_n_to_0.arn]
   ok_actions          = [aws_sns_topic.scale_down_from_n_to_0.arn]
 
@@ -207,7 +207,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_0" {
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name
-        }
+      }
     }
   }
 
@@ -219,12 +219,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_0" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% for each vCPU available
+      unit        = "Percent" # NOTE: 100% for each vCPU available
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   metric_query {
@@ -235,12 +235,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_0" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% for each GPU available
+      unit        = "Percent" # NOTE: 100% for each GPU available
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   metric_query {
@@ -251,12 +251,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_0" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% is total in this case
+      unit        = "Percent" # NOTE: 100% is total in this case
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_down_from_n_to_0]
@@ -271,7 +271,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
   evaluation_periods  = var.evaluation_periods_high
   datapoints_to_alarm = var.datapoints_to_alarm_high
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  threshold           = 0.5  # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
+  threshold           = 0.5 # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
   alarm_actions       = [aws_appautoscaling_policy.scale_up_from_n_to_np1.arn, aws_sns_topic.scale_up_from_n_to_np1.arn]
   ok_actions          = [aws_sns_topic.scale_up_from_n_to_np1.arn]
 
@@ -295,7 +295,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name
-        }
+      }
     }
   }
 
@@ -307,12 +307,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% for each vCPU available
+      unit        = "Percent" # NOTE: 100% for each vCPU available
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   metric_query {
@@ -323,12 +323,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% for each GPU available
+      unit        = "Percent" # NOTE: 100% for each GPU available
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
   metric_query {
@@ -339,12 +339,12 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
       namespace   = "/aws/sagemaker/Endpoints"
       period      = 60
       stat        = "Average"
-      unit        = "Percent"  # NOTE: 100% is total in this case
+      unit        = "Percent" # NOTE: 100% is total in this case
 
       dimensions = {
         EndpointName = aws_sagemaker_endpoint.main.name,
-        VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-        }
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
     }
   }
 
@@ -365,9 +365,9 @@ resource "aws_cloudwatch_metric_alarm" "unauthorized_operations" {
   period              = 60
   statistic           = "Maximum"
   dimensions = {
-      EndpointName = aws_sagemaker_endpoint.main.name,
-      VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-      }
+    EndpointName = aws_sagemaker_endpoint.main.name,
+    VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+  }
 
   depends_on = [aws_sagemaker_endpoint.main]
 }
@@ -386,9 +386,9 @@ resource "aws_cloudwatch_metric_alarm" "errors_4xx" {
   period              = 60
   statistic           = "Average"
   dimensions = {
-      EndpointName = aws_sagemaker_endpoint.main.name,
-      VariantName = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
-      }
+    EndpointName = aws_sagemaker_endpoint.main.name,
+    VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+  }
 
   depends_on = [aws_sagemaker_endpoint.main]
 }
