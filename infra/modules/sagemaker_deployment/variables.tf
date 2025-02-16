@@ -135,18 +135,6 @@ variable "ram_threshold_low" {
 }
 
 
-variable "harddisk_threshold_high" {
-  type        = number
-  description = "Threshold for high HardDisk alarm"
-}
-
-
-variable "harddisk_threshold_low" {
-  type        = number
-  description = "Threshold for low HardDisk alarm"
-}
-
-
 variable "evaluation_periods_high" {
   type        = number
   description = "Number of evaluation periods to consider for high alarm states"
