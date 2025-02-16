@@ -5,7 +5,6 @@ locals {
     module.phi_2_3b_deployment.model_name,
     module.llama_3_3b_deployment.model_name,
     module.llama_3_3b_instruct_deployment.model_name,
-    module.mistral_7b_deployment.model_name,
     module.mistral_7b_instruct_deployment.model_name,
   ]
 }
@@ -193,55 +192,6 @@ module "llama_3_3b_instruct_deployment" {
   cpu_threshold_low        = 20 * 4 # 4 vCPUs
   gpu_threshold_high       = 80 * 1 # 1 GPU
   gpu_threshold_low        = 20 * 1 # 1 GPU
-  ram_threshold_high       = 80
-  ram_threshold_low        = 20
-  harddisk_threshold_high  = 80
-  harddisk_threshold_low   = 20
-  evaluation_periods_high  = 1
-  datapoints_to_alarm_high = 1
-  evaluation_periods_low   = 20
-  datapoints_to_alarm_low  = 15
-
-  # These variables do not change between LLMs
-  source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
-  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
-  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
-}
-
-###############
-# Mistral 7b
-###############
-module "mistral_7b_deployment" {
-  model_name            = "mistral-7b"
-  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
-  model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-v3/artifacts/inference-prepack/v1.0.0/"
-  model_uri_compression = "None"
-  instance_type         = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
-  max_capacity          = 2
-  min_capacity          = 0
-  scale_up_cooldown     = 900
-  scale_down_cooldown   = 0
-  environment_variables = {
-    "ENDPOINT_SERVER_TIMEOUT" : "3600",
-    "HF_MODEL_ID" : "/opt/ml/model",
-    "MAX_BATCH_PREFILL_TOKENS" : "8191",
-    "MAX_INPUT_LENGTH" : "8191",
-    "MAX_TOTAL_TOKENS" : "8192",
-    "MODEL_CACHE_ROOT" : "/opt/ml/model",
-    "SAGEMAKER_ENV" : "1",
-    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
-    "SAGEMAKER_PROGRAM" : "inference.py",
-  }
-  backlog_threshold_high   = 1
-  backlog_threshold_low    = 1
-  cpu_threshold_high       = 80 * 48 # 48 vCPUs
-  cpu_threshold_low        = 20 * 48 # 48 vCPUs
-  gpu_threshold_high       = 80 * 4  # 4 GPUs
-  gpu_threshold_low        = 20 * 4  # 4 GPUs
   ram_threshold_high       = 80
   ram_threshold_low        = 20
   harddisk_threshold_high  = 80
