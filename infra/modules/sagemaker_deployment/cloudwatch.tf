@@ -7,8 +7,8 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_0_to_1" {
   datapoints_to_alarm = var.datapoints_to_alarm_high
   comparison_operator = "GreaterThanOrEqualToThreshold"
   threshold           = 0.5  # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
-  alarm_actions       = [aws_appautoscaling_policy.scale_up_from_0_to_1.arn, aws_sns_topic.scale_up_from_0_to_1_alarmstate.arn]
-  ok_actions          = [aws_sns_topic.scale_up_from_0_to_1_okstate.arn]
+  alarm_actions       = [aws_appautoscaling_policy.scale_up_from_0_to_1.arn, aws_sns_topic.scale_up_from_0_to_1.arn]
+  ok_actions          = [aws_sns_topic.scale_up_from_0_to_1.arn]
 
   metric_query {
     id          = "result"
@@ -83,7 +83,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_0_to_1" {
     }
   }
 
-  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_up_from_0_to_1_alarmstate, aws_sns_topic.scale_up_from_0_to_1_okstate]
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_up_from_0_to_1]
 }
 
 
@@ -95,8 +95,8 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_nm1" {
   datapoints_to_alarm = var.datapoints_to_alarm_low
   comparison_operator = "GreaterThanOrEqualToThreshold"
   threshold           = 0.5  # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
-  alarm_actions       = [aws_appautoscaling_policy.scale_down_from_n_to_nm1.arn]
-  ok_actions          = []
+  alarm_actions       = [aws_appautoscaling_policy.scale_down_from_n_to_nm1.arn, aws_sns_topic.scale_down_from_n_to_nm1.arn]
+  ok_actions          = [aws_sns_topic.scale_down_from_n_to_nm1.arn]
 
   metric_query {
     id          = "result"
@@ -171,7 +171,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_nm1" {
     }
   }
 
-  depends_on = [aws_sagemaker_endpoint.main]
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_down_from_n_to_nm1]
 }
 
 
@@ -184,8 +184,8 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_0" {
   datapoints_to_alarm = var.datapoints_to_alarm_low
   comparison_operator = "GreaterThanOrEqualToThreshold"
   threshold           = 0.5  # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
-  alarm_actions       = [aws_appautoscaling_policy.scale_down_from_n_to_0.arn, aws_sns_topic.scale_down_from_n_to_0_alarmstate.arn]
-  ok_actions          = [aws_sns_topic.scale_down_from_n_to_0_okstate.arn]
+  alarm_actions       = [aws_appautoscaling_policy.scale_down_from_n_to_0.arn, aws_sns_topic.scale_down_from_n_to_0.arn]
+  ok_actions          = [aws_sns_topic.scale_down_from_n_to_0.arn]
 
   metric_query {
     id          = "result"
@@ -259,7 +259,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_0" {
         }
     }
   }
-  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_down_from_n_to_0_alarmstate, aws_sns_topic.scale_down_from_n_to_0_okstate]
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_down_from_n_to_0]
 }
 
 
@@ -272,8 +272,8 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
   datapoints_to_alarm = var.datapoints_to_alarm_high
   comparison_operator = "GreaterThanOrEqualToThreshold"
   threshold           = 0.5  # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
-  alarm_actions       = [aws_appautoscaling_policy.scale_up_from_n_to_np1.arn]
-  ok_actions          = []
+  alarm_actions       = [aws_appautoscaling_policy.scale_up_from_n_to_np1.arn, aws_sns_topic.scale_up_from_n_to_np1.arn]
+  ok_actions          = [aws_sns_topic.scale_up_from_n_to_np1.arn]
 
   metric_query {
     id          = "result"
@@ -348,7 +348,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
     }
   }
 
-  depends_on = [aws_sagemaker_endpoint.main]
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_up_from_n_to_np1]
 }
 
 

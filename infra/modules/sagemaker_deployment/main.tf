@@ -102,8 +102,8 @@ resource "aws_appautoscaling_policy" "scale_down_from_n_to_nm1" {
 
     step_adjustment {
       scaling_adjustment          = -1 # mean subtract 1
-      metric_interval_lower_bound = null
-      metric_interval_upper_bound = 0
+      metric_interval_lower_bound = 0
+      metric_interval_upper_bound = null
     }
   }
 }
@@ -146,8 +146,8 @@ resource "aws_appautoscaling_policy" "scale_down_from_n_to_0" {
 
     step_adjustment {
       scaling_adjustment          = 0 # means set =0 (NOT add or subtract)
-      metric_interval_lower_bound = null
-      metric_interval_upper_bound = 0
+      metric_interval_lower_bound = 0
+      metric_interval_upper_bound = null
     }
   }
 }
