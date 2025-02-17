@@ -17,14 +17,31 @@ resource "aws_lambda_function" "slack_alert_function" {
 }
 
 
-resource "aws_lambda_permission" "allow_sns" {
+resource "aws_lambda_permission" "allow_sns_scale_up_from_0_to_1" {
 
-  statement_id  = "AllowSNS-ok"
+  statement_id  = "AllowSNS-scale-up-from-0-to-1"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.slack_alert_function.function_name
   principal     = "sns.amazonaws.com"
   source_arn    = aws_sns_topic.scale_up_from_0_to_1.arn
 }
+
+
+
+resource "aws_lambda_permission" "allow_sns_scale_down_from_n_to_nm1" {
+
+  statement_id  = "AllowSNS-scale-down-from-n-to-nm1"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.slack_alert_function.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.scale_down_from_n_to_nm1.arn
+
+}
+
+
+
+
+
 
 
 resource "aws_iam_role" "slack_lambda_role" {
