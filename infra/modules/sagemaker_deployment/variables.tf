@@ -162,3 +162,8 @@ variable "datapoints_to_alarm_low" {
 variable "aws_account_id" {
   type = string
 }
+
+
+variable "teams_webhook_url" {
+  type = string
+}

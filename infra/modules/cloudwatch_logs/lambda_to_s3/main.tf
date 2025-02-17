@@ -9,7 +9,7 @@ resource "aws_lambda_function" "sagemaker_to_s3" {
   source_code_hash = data.archive_file.lambda_payload.output_base64sha256
   function_name    = "sagemaker-logs-to-s3"
   role             = var.log_delivery_role_arn
-  handler          = "lambda_function.lambda_handler"
+  handler          = "cloudwatch_logs_to_s3.lambda_handler"
   runtime          = "python3.12"
 
   environment {

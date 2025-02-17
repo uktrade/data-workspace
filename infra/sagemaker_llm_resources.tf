@@ -54,6 +54,7 @@ module "gpt_neo_125m_deployment" {
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn    = module.iam.inference_role
+  teams_webhook_url     = var.teams_webhook_url
 }
 
 ###############
@@ -100,6 +101,8 @@ module "phi_2_3b_deployment" {
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn    = module.iam.inference_role
+  teams_webhook_url     = var.teams_webhook_url
+
 }
 
 
@@ -151,6 +154,8 @@ module "llama_3_3b_deployment" {
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn    = module.iam.inference_role
+  teams_webhook_url     = var.teams_webhook_url
+
 }
 
 
@@ -201,6 +206,8 @@ module "llama_3_3b_instruct_deployment" {
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn    = module.iam.inference_role
+  teams_webhook_url     = var.teams_webhook_url
+
 }
 
 ###############
@@ -248,4 +255,6 @@ module "mistral_7b_instruct_deployment" {
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn    = module.iam.inference_role
+  teams_webhook_url     = var.teams_webhook_url
+
 }
