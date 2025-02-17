@@ -45,7 +45,7 @@ resource "aws_lambda_function" "teams_alert" {
   handler          = "sns_to_microsoft_teams.lambda_handler"
   runtime          = "python3.12"
   timeout          = 30
-  environment{
+  environment {
     variables = {
       TEAMS_WEBHOOK_URL = var.teams_webhook_url
     }
