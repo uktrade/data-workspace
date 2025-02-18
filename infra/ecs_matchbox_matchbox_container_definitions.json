@@ -1,0 +1,74 @@
+[
+  {
+    "environment": [
+      {
+        "name": "DATABASE_URI",
+        "value": "${database_uri}"
+      },
+      {
+        "name": "AWS_DEFAULT_REGION",
+        "value": "eu-west-2"
+      },
+      {
+        "name": "MB__DATASTORE__CACHE_BUCKET_NAME",
+        "value": "${matchbox_s3_cache}"
+      },
+      {
+        "name": "MB__CLIENT__API_ROOT",
+        "value": ""
+      },
+      {
+        "name": "MB__BACKEND_TYPE",
+        "value": "postgres"
+      },
+      {
+        "name": "MB__DATASETS_CONFIG",
+        "value": "datasets.toml"
+      },
+      {
+        "name": "MB__POSTGRES__HOST",
+        "value": "${mb__postgres__host}"
+      },
+      {
+        "name": "MB__POSTGRES__PORT",
+        "value": "5432"
+      },
+      {
+        "name": "MB__POSTGRES__USER",
+        "value": "${mb__postgres__user}"
+      },
+      {
+        "name": "MB__POSTGRES__PASSWORD",
+        "value": "${mb__postgres__password}"
+      },
+      {
+        "name": "MB__POSTGRES__DATABASE",
+        "value": "${mb__postgres__database}"
+      },
+      {
+        "name": "MB__POSTGRES__DB_SCHEMA",
+        "value": "mb"
+      }
+    ],
+    "essential": true,
+    "image": "${container_image}",
+    "networkMode": "awsvpc",
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${log_group}",
+        "awslogs-region": "${log_region}",
+        "awslogs-stream-prefix": "${container_name}"
+      }
+    },
+    "memoryReservation": ${memory},
+    "cpu": ${cpu},
+    "mountPoints": [],
+    "name": "${container_name}",
+    "portMappings": [{
+      "containerPort": 8000,
+      "hostPort": 8000,
+      "protocol": "tcp"
+  }]
+  }
+]
