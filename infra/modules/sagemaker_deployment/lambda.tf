@@ -14,45 +14,16 @@ resource "aws_lambda_function" "slack_alert_function" {
   runtime          = "python3.12"
   timeout          = 30
 
-  environment {
-    variables = {
-      SNS_TO_WEBHOOK_JSON = jsonencode(local.sns_to_webhook_mapping),
-      ADDRESS             = "arn:aws:sns:eu-west-2:${var.aws_account_id}:"
-    }
-  }
 }
 
 
-resource "aws_lambda_permission" "allow_sns_composite" {
-  count = length(var.alarm_composites)
+resource "aws_lambda_permission" "allow_sns" {
 
-  statement_id  = "AllowSNS-composite-${count.index}"
+  statement_id  = "AllowSNS-ok"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.slack_alert_function.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.composite_alarmstate[count.index].arn
-}
-
-
-resource "aws_lambda_permission" "allow_sns_alarmstate" {
-  count = length(var.alarms)
-
-  statement_id  = "AllowSNS-alarm-${count.index}"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.slack_alert_function.function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.alarmstate[count.index].arn
-}
-
-
-resource "aws_lambda_permission" "allow_sns_okstate" {
-  count = length(var.alarms)
-
-  statement_id  = "AllowSNS-ok-${count.index}"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.slack_alert_function.function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.okstate[count.index].arn
+  source_arn    = aws_sns_topic.scale_up_from_0_to_1.arn
 }
 
 

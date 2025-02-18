@@ -1,44 +1,394 @@
-resource "aws_cloudwatch_metric_alarm" "cloudwatch_alarm" {
-  count = length(var.alarms)
 
-  alarm_name          = "${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.main.name}"
-  alarm_description   = var.alarms[count.index].alarm_description
-  metric_name         = var.alarms[count.index].metric_name
-  namespace           = var.alarms[count.index].namespace
-  comparison_operator = var.alarms[count.index].comparison_operator
-  threshold           = var.alarms[count.index].threshold
-  evaluation_periods  = var.alarms[count.index].evaluation_periods
-  datapoints_to_alarm = var.alarms[count.index].datapoints_to_alarm
-  period              = var.alarms[count.index].period
-  statistic           = var.alarms[count.index].statistic
-  alarm_actions       = concat(var.alarms[count.index].alarm_actions, [aws_sns_topic.alarmstate[count.index].arn])
-  ok_actions          = concat(var.alarms[count.index].ok_actions, [aws_sns_topic.okstate[count.index].arn])
-  dimensions = (count.index == 0 || count.index == 1 || count.index == 2) ? { # TODO: this logic is brittle as it assumes "backlog" has index [0,1,2]; it would be better to have a logic that rests on the specific name of that metric
-    EndpointName = aws_sagemaker_endpoint.main.name                           # Only EndpointName is used in this case
-    } : {
-    EndpointName = aws_sagemaker_endpoint.main.name,                                             # Both EndpointName and VariantName are used in all other cases
-    VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name # Note this logic would not work if there were ever more than one production variant deployed for an LLM
+resource "aws_cloudwatch_metric_alarm" "scale_up_from_0_to_1" {
+
+  alarm_name          = "${aws_sagemaker_endpoint.main.name}-scale-up-from-0-to-1"
+  alarm_description   = "Where there exists a high backlog and there exists a state of insufficient data for any of CPU, GPU, RAM (i.e. there are tasks to do but no instance is live to perform it)"
+  evaluation_periods  = var.evaluation_periods_high
+  datapoints_to_alarm = var.datapoints_to_alarm_high
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = 0.5 # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
+  alarm_actions       = [aws_appautoscaling_policy.scale_up_from_0_to_1.arn, aws_sns_topic.scale_up_from_0_to_1.arn]
+  ok_actions          = [aws_sns_topic.scale_up_from_0_to_1.arn]
+
+  metric_query {
+    id          = "result"
+    expression  = "ABS(backlog>=${var.backlog_threshold_high}) AND (FILL(cpu, 0)==0 OR FILL(gpu,0)==0 OR FILL(ram,0)==0)"
+    return_data = "true"
+    period      = 60
+
   }
 
-  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarmstate, aws_sns_topic.okstate]
+  metric_query {
+    id = "backlog"
+
+    metric {
+      metric_name = "ApproximateBacklogSize"
+      namespace   = "AWS/SageMaker"
+      period      = 60
+      stat        = "Maximum"
+      unit        = "Count"
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name
+      }
+    }
+  }
+
+  metric_query {
+    id = "cpu"
+
+    metric {
+      metric_name = "CPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% for each vCPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  metric_query {
+    id = "gpu"
+
+    metric {
+      metric_name = "GPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% for each GPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  metric_query {
+    id = "ram"
+
+    metric {
+      metric_name = "MemoryUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% is total in this case
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_up_from_0_to_1]
 }
 
 
-resource "null_resource" "wait_for_metric_alarms" {
-  #  Aggregating metric alarms dependencies so we wait for them to be deleted/created before composite alarms are created or deleted. This prevents cyclic dependency issues.
-  depends_on = [aws_cloudwatch_metric_alarm.cloudwatch_alarm]
+resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_nm1" {
+
+  alarm_name          = "${aws_sagemaker_endpoint.main.name}-scale-down-from-n-to-nm1"
+  alarm_description   = "Where there exists a high backlog and a low state of any of CPU, GPU, RAM (i.e. live instances are excessive for the current tasks)"
+  evaluation_periods  = var.evaluation_periods_low
+  datapoints_to_alarm = var.datapoints_to_alarm_low
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = 0.5 # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
+  alarm_actions       = [aws_appautoscaling_policy.scale_down_from_n_to_nm1.arn, aws_sns_topic.scale_down_from_n_to_nm1.arn]
+  ok_actions          = [aws_sns_topic.scale_down_from_n_to_nm1.arn]
+
+  metric_query {
+    id          = "result"
+    expression  = "ABS(backlog>=${var.backlog_threshold_high} AND (cpu<=${var.cpu_threshold_low} OR gpu<=${var.gpu_threshold_low} OR ram<=${var.ram_threshold_low}))"
+    return_data = "true"
+    period      = 60
+
+  }
+
+  metric_query {
+    id = "backlog"
+
+    metric {
+      metric_name = "ApproximateBacklogSize"
+      namespace   = "AWS/SageMaker"
+      period      = 60
+      stat        = "Maximum"
+      unit        = "Count"
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name
+      }
+    }
+  }
+
+  metric_query {
+    id = "cpu"
+
+    metric {
+      metric_name = "CPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% for each vCPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  metric_query {
+    id = "gpu"
+
+    metric {
+      metric_name = "GPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% for each GPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  metric_query {
+    id = "ram"
+
+    metric {
+      metric_name = "MemoryUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% is total in this case
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_down_from_n_to_nm1]
 }
 
 
-resource "aws_cloudwatch_composite_alarm" "composite_alarm" {
-  count = length(var.alarm_composites)
 
-  alarm_name        = "${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.main.name}"
-  alarm_description = var.alarm_composites[count.index].alarm_description
-  alarm_rule        = var.alarm_composites[count.index].alarm_rule
-  alarm_actions     = concat(var.alarm_composites[count.index].alarm_actions, [aws_sns_topic.alarm_composite_notifications[count.index].arn], [aws_sns_topic.composite_alarmstate[count.index].arn])
-  ok_actions        = var.alarm_composites[count.index].ok_actions
+resource "aws_cloudwatch_metric_alarm" "scale_down_from_n_to_0" {
 
-  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.alarm_composite_notifications, aws_sns_topic.composite_alarmstate, null_resource.wait_for_metric_alarms]
+  alarm_name          = "${aws_sagemaker_endpoint.main.name}-scale-down-from-n-to-0"
+  alarm_description   = "Where there exists a low backlog and a low state of any of CPU, GPU, RAM (i.e. there is no task to come and live instances are excessive for any tasks currently in process)"
+  evaluation_periods  = var.evaluation_periods_low
+  datapoints_to_alarm = var.datapoints_to_alarm_low
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = 0.5 # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
+  alarm_actions       = [aws_appautoscaling_policy.scale_down_from_n_to_0.arn, aws_sns_topic.scale_down_from_n_to_0.arn]
+  ok_actions          = [aws_sns_topic.scale_down_from_n_to_0.arn]
 
+  metric_query {
+    id          = "result"
+    expression  = "ABS(backlog<${var.backlog_threshold_low} AND (cpu<=${var.cpu_threshold_low} OR gpu<=${var.gpu_threshold_low} OR ram<=${var.ram_threshold_low}))"
+    return_data = "true"
+    period      = 60
+
+  }
+
+  metric_query {
+    id = "backlog"
+
+    metric {
+      metric_name = "ApproximateBacklogSize"
+      namespace   = "AWS/SageMaker"
+      period      = 60
+      stat        = "Maximum"
+      unit        = "Count"
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name
+      }
+    }
+  }
+
+  metric_query {
+    id = "cpu"
+
+    metric {
+      metric_name = "CPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% for each vCPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  metric_query {
+    id = "gpu"
+
+    metric {
+      metric_name = "GPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% for each GPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  metric_query {
+    id = "ram"
+
+    metric {
+      metric_name = "MemoryUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% is total in this case
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_down_from_n_to_0]
+}
+
+
+
+resource "aws_cloudwatch_metric_alarm" "scale_up_from_n_to_np1" {
+
+  alarm_name          = "${aws_sagemaker_endpoint.main.name}-scale-up-from-n-to-np1"
+  alarm_description   = "Where there exists a high backlog and a high state of any of CPU, GPU, RAM (i.e. live instances are insufficient for the tasks being performed)"
+  evaluation_periods  = var.evaluation_periods_high
+  datapoints_to_alarm = var.datapoints_to_alarm_high
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = 0.5 # boolean comparison operator does not exist so this uses TRUE=1 and FALSE=0 instead
+  alarm_actions       = [aws_appautoscaling_policy.scale_up_from_n_to_np1.arn, aws_sns_topic.scale_up_from_n_to_np1.arn]
+  ok_actions          = [aws_sns_topic.scale_up_from_n_to_np1.arn]
+
+  metric_query {
+    id          = "result"
+    expression  = "ABS(backlog>=${var.backlog_threshold_high} AND (cpu>=${var.cpu_threshold_high} OR gpu>=${var.gpu_threshold_high} OR ram>=${var.ram_threshold_high}))"
+    return_data = "true"
+    period      = 60
+
+  }
+
+  metric_query {
+    id = "backlog"
+
+    metric {
+      metric_name = "ApproximateBacklogSize"
+      namespace   = "AWS/SageMaker"
+      period      = 60
+      stat        = "Maximum"
+      unit        = "Count"
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name
+      }
+    }
+  }
+
+  metric_query {
+    id = "cpu"
+
+    metric {
+      metric_name = "CPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% for each vCPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  metric_query {
+    id = "gpu"
+
+    metric {
+      metric_name = "GPUUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% for each GPU available
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+  metric_query {
+    id = "ram"
+
+    metric {
+      metric_name = "MemoryUtilization"
+      namespace   = "/aws/sagemaker/Endpoints"
+      period      = 60
+      stat        = "Average"
+      unit        = "Percent" # NOTE: 100% is total in this case
+
+      dimensions = {
+        EndpointName = aws_sagemaker_endpoint.main.name,
+        VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+      }
+    }
+  }
+
+  depends_on = [aws_sagemaker_endpoint.main, aws_sns_topic.scale_up_from_n_to_np1]
+}
+
+
+resource "aws_cloudwatch_metric_alarm" "unauthorized_operations" {
+
+  alarm_name          = "${aws_sagemaker_endpoint.main.name}-unauthorized-operations"
+  alarm_description   = "Alarm when unauthorized operations are detected in the CloudTrail Logs"
+  metric_name         = "UnauthorizedOperationsCount"
+  namespace           = "CloudTrailMetrics"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = 1
+  evaluation_periods  = 1
+  datapoints_to_alarm = 1
+  period              = 60
+  statistic           = "Maximum"
+  dimensions = {
+    EndpointName = aws_sagemaker_endpoint.main.name,
+    VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+  }
+
+  depends_on = [aws_sagemaker_endpoint.main]
+}
+
+
+resource "aws_cloudwatch_metric_alarm" "errors_4xx" {
+
+  alarm_name          = "${aws_sagemaker_endpoint.main.name}-errors-4XX"
+  alarm_description   = "4XX errors are detected in the CloudTrail Logs"
+  metric_name         = "Invocation4XXErrors"
+  namespace           = "AWS/SageMaker"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = 1
+  evaluation_periods  = 1
+  datapoints_to_alarm = 1
+  period              = 60
+  statistic           = "Average"
+  dimensions = {
+    EndpointName = aws_sagemaker_endpoint.main.name,
+    VariantName  = aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name
+  }
+
+  depends_on = [aws_sagemaker_endpoint.main]
 }

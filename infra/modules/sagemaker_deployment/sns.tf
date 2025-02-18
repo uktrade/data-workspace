@@ -1,7 +1,6 @@
-resource "aws_sns_topic" "alarmstate" {
-  count = length(var.alarms)
+resource "aws_sns_topic" "scale_up_from_0_to_1" {
 
-  name = "alarm-alarmstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.main.name}"
+  name = "${aws_sagemaker_endpoint.main.name}-scale-up-from-0-to-1"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -18,11 +17,9 @@ resource "aws_sns_topic" "alarmstate" {
 }
 
 
-resource "aws_sns_topic" "okstate" {
-  count = length(var.alarms)
+resource "aws_sns_topic" "scale_down_from_n_to_0" {
 
-  name = "alarm-okstate-${var.alarms[count.index].alarm_name_prefix}-${aws_sagemaker_endpoint.main.name}"
-
+  name = "${aws_sagemaker_endpoint.main.name}-scale-down-from-n-to-0"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -39,11 +36,9 @@ resource "aws_sns_topic" "okstate" {
 }
 
 
-resource "aws_sns_topic" "composite_alarmstate" {
-  count = length(var.alarm_composites)
+resource "aws_sns_topic" "scale_down_from_n_to_nm1" {
 
-  name = "alarm-alarm-composite-lambda-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.main.name}-topic"
-
+  name = "${aws_sagemaker_endpoint.main.name}-scale-down-from-n-to-nm1"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -60,78 +55,30 @@ resource "aws_sns_topic" "composite_alarmstate" {
 }
 
 
-resource "aws_sns_topic" "alarm_composite_notifications" {
-  count = length(var.alarm_composites)
-  name  = "alarm-composite-${var.alarm_composites[count.index].alarm_name}-${aws_sagemaker_endpoint.main.name}-sns-topic"
-}
+resource "aws_sns_topic" "scale_up_from_n_to_np1" {
 
-
-resource "aws_sns_topic_policy" "composite_sns_topic_policy" {
-  count = length(var.alarm_composites)
-
-  arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
+  name = "${aws_sagemaker_endpoint.main.name}-scale-up-from-n-to-np1"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Sid    = "AllowPublishFromCloudWatch"
         Effect = "Allow",
         Principal = {
           Service = "cloudwatch.amazonaws.com"
         },
-        Action   = "SNS:Publish",
-        Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
-      },
-      {
-        Sid       = "AllowSubscriptionActions"
-        Effect    = "Allow",
-        Principal = "*",
-        Action = [
-          "sns:Subscribe",
-          "sns:Receive"
-        ],
-        Resource = aws_sns_topic.alarm_composite_notifications[count.index].arn
+        Action   = "sns:Publish",
+        Resource = "*"
       }
     ]
   })
 }
 
 
-resource "aws_sns_topic_subscription" "sns_lambda_subscription_okstate" {
-  count = length(var.alarms)
 
-  topic_arn = aws_sns_topic.okstate[count.index].arn
+
+resource "aws_sns_topic_subscription" "sns_lambda_subscription_scale_up_from_0_to_1" {
+
+  topic_arn = aws_sns_topic.scale_up_from_0_to_1.arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.slack_alert_function.arn
-}
-
-
-resource "aws_sns_topic_subscription" "sns_lambda_subscription_alarmstate" {
-  count = length(var.alarms)
-
-  topic_arn = aws_sns_topic.alarmstate[count.index].arn
-  protocol  = "lambda"
-  endpoint  = aws_lambda_function.slack_alert_function.arn
-}
-
-resource "aws_sns_topic_subscription" "sns_lambda_subscription_composite" {
-  count = length(var.alarm_composites)
-
-  topic_arn = aws_sns_topic.composite_alarmstate[count.index].arn
-  protocol  = "lambda"
-  endpoint  = aws_lambda_function.slack_alert_function.arn
-}
-
-
-resource "aws_sns_topic_subscription" "email_subscription" {
-  count     = length(var.alarm_composites)
-  topic_arn = aws_sns_topic.alarm_composite_notifications[count.index].arn
-  protocol  = "email"
-  endpoint = flatten([
-    for variables in var.alarm_composites :
-    [
-      for email in variables.emails :
-      email
-    ]
-  ])[count.index]
 }
