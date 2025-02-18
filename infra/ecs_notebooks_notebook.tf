@@ -111,6 +111,7 @@ resource "aws_iam_policy" "notebook_task_execution" {
 }
 
 data "aws_iam_policy_document" "notebook_task_execution" {
+
   statement {
     actions = [
       "logs:CreateLogStream",
@@ -122,8 +123,12 @@ data "aws_iam_policy_document" "notebook_task_execution" {
     ]
   }
 
-  statement {
-    actions = [
+  dynamic "statement" {
+
+    for_each = var.sagemaker_on == 1 ? [1] : []
+
+    content {
+      actions = [
       "sagemaker:DescribeEndpoint",
       "sagemaker:DescribeEndpointConfig",
       "sagemaker:DescribeModel",
@@ -136,15 +141,21 @@ data "aws_iam_policy_document" "notebook_task_execution" {
     resources = [
       "*",
     ]
+    }
   }
 
-  statement {
-    actions = [
-      "ec2:*VpcEndpoint*"
+  dynamic "statement" {
+
+    for_each = var.sagemaker_on == 1 ? [1] : []
+    
+    content {
+      actions = [
+        "ec2:*VpcEndpoint*"
     ]
     resources = [
       "*",
     ]
+    }
   }
 
   statement {
@@ -260,9 +271,12 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     ]
   }
 
-  # Temporary: Allow SageMaker access for all DW tools users
-  statement {
-    actions = [
+  dynamic "statement" {
+
+    for_each = var.sagemaker_on == 1 ? [1] : []
+
+    content {
+      actions = [
       "sagemaker:DescribeEndpoint",
       "sagemaker:DescribeEndpointConfig",
       "sagemaker:DescribeModel",
@@ -275,16 +289,21 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     resources = [
       "*",
     ]
+    }
   }
 
-  # Temporary: Allow all VPC endpoint permissions for all DW tools users
-  statement {
-    actions = [
-      "ec2:*VpcEndpoint*"
-    ]
+  dynamic "statement" {
+
+    for_each = var.sagemaker_on == 1 ? [1] : []
+    
+    content {
+      actions = [
+        "ec2:*VpcEndpoint*"
+        ]
     resources = [
       "*",
-    ]
+      ]
+    }
   }
 }
 
@@ -398,24 +417,27 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
     ]
   }
 
-  statement {
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    actions = [
-      "s3:ListBucket",
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject",
-      "s3:GetBucketLocation",
+  dynamic "statement" {
+
+    for_each = var.sagemaker_on == 1 ? [1] : []
+
+    content {
+      
+      actions = [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:GetBucketLocation",
     ]
+    
     resources = [
-      "arn:aws:s3:::jumpstart-cache-prod-eu-west-2/*",
-      "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2/*",
-      "arn:aws:s3:::jumpstart-cache-prod-eu-west-2",
-      "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
+        "arn:aws:s3:::jumpstart-cache-prod-eu-west-2/*",
+        "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2/*",
+        "arn:aws:s3:::jumpstart-cache-prod-eu-west-2",
+        "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
     ]
+    }  
   }
 }
 
@@ -448,20 +470,25 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
   }
 
   # Allow all tools users to access SageMaker endpoints
-  statement {
-    actions = [
-      "sagemaker:DescribeEndpoint",
-      "sagemaker:DescribeEndpointConfig",
-      "sagemaker:DescribeModel",
-      "sagemaker:InvokeEndpointAsync",
-      "sagemaker:ListEndpoints",
-      "sagemaker:ListEndpointConfigs",
-      "sagemaker:ListModels",
-    ]
+  dynamic "statement" {
 
-    resources = [
-      "*",
-    ]
+    for_each = var.sagemaker_on == 1 ? [1] : []
+
+    content {
+      actions = [
+            "sagemaker:DescribeEndpoint",
+            "sagemaker:DescribeEndpointConfig",
+            "sagemaker:DescribeModel",
+            "sagemaker:InvokeEndpointAsync",
+            "sagemaker:ListEndpoints",
+            "sagemaker:ListEndpointConfigs",
+            "sagemaker:ListModels",
+          ]
+      
+      resources = [
+            "*",
+          ]
+        }
   }
 
   statement {

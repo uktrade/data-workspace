@@ -1,7 +1,7 @@
 # TODO: better if this is not required to be stated explicitly as it is brittle
 locals {
   all_llm_names = [
-    module.phi_2_3b_deployment.model_name,
+    module.phi_2_3b_deployment[0].model_name,
   ]
 }
 
@@ -9,6 +9,9 @@ locals {
 # Phi 2 3b
 ###############
 module "phi_2_3b_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_phi_2_3b) ? 1 : 0
+
   model_name            = "phi-2-3b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.2-gpu-py310-cu121-ubuntu22.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-phi-2/artifacts/inference-prepack/v1.0.0/"
@@ -42,7 +45,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_one_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_one_policy_arn]
       ok_actions          = []
     },
     {
@@ -57,7 +60,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_zero_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_zero_policy_arn]
       ok_actions          = []
     },
     {
@@ -87,7 +90,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_cpu_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -102,7 +105,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_cpu_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -117,7 +120,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_gpu_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -132,7 +135,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_gpu_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -147,7 +150,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -162,7 +165,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -177,7 +180,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_up_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -192,7 +195,7 @@ module "phi_2_3b_deployment" {
       period              = 60
       statistic           = "Maximum"
       slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [module.phi_2_3b_deployment.scale_down_to_n_policy_arn]
+      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_n_policy_arn]
       ok_actions          = []
     },
     {
@@ -261,7 +264,7 @@ module "phi_2_3b_deployment" {
     {
       alarm_name        = "ElevatedCPUUtilizationNoBackLog"
       alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
-      alarm_rule        = "ALARM(elevated-cpu-composite-${module.phi_2_3b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment.model_name}-endpoint)"
+      alarm_rule        = "ALARM(elevated-cpu-composite-${module.phi_2_3b_deployment[0].model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment[0].model_name}-endpoint)"
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
@@ -270,7 +273,7 @@ module "phi_2_3b_deployment" {
     {
       alarm_name        = "ElevatedGPUUtilizationNoBackLog"
       alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
-      alarm_rule        = "ALARM(low-gpu-composite-${module.phi_2_3b_deployment.model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment.model_name}-endpoint)"
+      alarm_rule        = "ALARM(low-gpu-composite-${module.phi_2_3b_deployment[0].model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment[0].model_name}-endpoint)"
       alarm_actions     = []
       ok_actions        = []
       slack_webhook_url = var.slack_webhook_backlog_alerts
@@ -281,10 +284,10 @@ module "phi_2_3b_deployment" {
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
 }
