@@ -104,6 +104,6 @@ data "aws_iam_policy_document" "notebooks" {
           aws_vpc_endpoint.sagemaker_s3.id,
         ]
       }
-    }    
+    }
   }
 }

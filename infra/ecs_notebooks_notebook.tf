@@ -129,32 +129,32 @@ data "aws_iam_policy_document" "notebook_task_execution" {
 
     content {
       actions = [
-      "sagemaker:DescribeEndpoint",
-      "sagemaker:DescribeEndpointConfig",
-      "sagemaker:DescribeModel",
-      "sagemaker:InvokeEndpointAsync",
-      "sagemaker:ListEndpoints",
-      "sagemaker:ListEndpointConfigs",
-      "sagemaker:ListModels",
-    ]
+        "sagemaker:DescribeEndpoint",
+        "sagemaker:DescribeEndpointConfig",
+        "sagemaker:DescribeModel",
+        "sagemaker:InvokeEndpointAsync",
+        "sagemaker:ListEndpoints",
+        "sagemaker:ListEndpointConfigs",
+        "sagemaker:ListModels",
+      ]
 
-    resources = [
-      "*",
-    ]
+      resources = [
+        "*",
+      ]
     }
   }
 
   dynamic "statement" {
 
     for_each = var.sagemaker_on == 1 ? [1] : []
-    
+
     content {
       actions = [
         "ec2:*VpcEndpoint*"
-    ]
-    resources = [
-      "*",
-    ]
+      ]
+      resources = [
+        "*",
+      ]
     }
   }
 
@@ -277,31 +277,31 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
 
     content {
       actions = [
-      "sagemaker:DescribeEndpoint",
-      "sagemaker:DescribeEndpointConfig",
-      "sagemaker:DescribeModel",
-      "sagemaker:InvokeEndpointAsync",
-      "sagemaker:ListEndpoints",
-      "sagemaker:ListEndpointConfigs",
-      "sagemaker:ListModels",
-    ]
+        "sagemaker:DescribeEndpoint",
+        "sagemaker:DescribeEndpointConfig",
+        "sagemaker:DescribeModel",
+        "sagemaker:InvokeEndpointAsync",
+        "sagemaker:ListEndpoints",
+        "sagemaker:ListEndpointConfigs",
+        "sagemaker:ListModels",
+      ]
 
-    resources = [
-      "*",
-    ]
+      resources = [
+        "*",
+      ]
     }
   }
 
   dynamic "statement" {
 
     for_each = var.sagemaker_on == 1 ? [1] : []
-    
+
     content {
       actions = [
         "ec2:*VpcEndpoint*"
-        ]
-    resources = [
-      "*",
+      ]
+      resources = [
+        "*",
       ]
     }
   }
@@ -422,22 +422,22 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
     for_each = var.sagemaker_on == 1 ? [1] : []
 
     content {
-      
+
       actions = [
         "s3:ListBucket",
         "s3:GetObject",
         "s3:PutObject",
         "s3:DeleteObject",
         "s3:GetBucketLocation",
-    ]
-    
-    resources = [
+      ]
+
+      resources = [
         "arn:aws:s3:::jumpstart-cache-prod-eu-west-2/*",
         "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2/*",
         "arn:aws:s3:::jumpstart-cache-prod-eu-west-2",
         "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
-    ]
-    }  
+      ]
+    }
   }
 }
 
@@ -476,19 +476,19 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
 
     content {
       actions = [
-            "sagemaker:DescribeEndpoint",
-            "sagemaker:DescribeEndpointConfig",
-            "sagemaker:DescribeModel",
-            "sagemaker:InvokeEndpointAsync",
-            "sagemaker:ListEndpoints",
-            "sagemaker:ListEndpointConfigs",
-            "sagemaker:ListModels",
-          ]
-      
+        "sagemaker:DescribeEndpoint",
+        "sagemaker:DescribeEndpointConfig",
+        "sagemaker:DescribeModel",
+        "sagemaker:InvokeEndpointAsync",
+        "sagemaker:ListEndpoints",
+        "sagemaker:ListEndpointConfigs",
+        "sagemaker:ListModels",
+      ]
+
       resources = [
-            "*",
-          ]
-        }
+        "*",
+      ]
+    }
   }
 
   statement {

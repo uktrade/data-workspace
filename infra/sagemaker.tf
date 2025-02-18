@@ -282,7 +282,7 @@ output "default_sagemaker_bucket" {
 }
 
 module "cost_monitoring_dashboard" {
-  
+
   count = var.sagemaker_on ? 1 : 0
 
   source         = "./modules/cost_monitoring/cloudwatch_dashboard"

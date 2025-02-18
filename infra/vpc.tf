@@ -865,7 +865,7 @@ resource "aws_vpc" "sagemaker" {
 }
 
 resource "aws_subnet" "sagemaker_private_without_egress" {
-  count = var.sagemaker_on ? length(var.aws_availability_zones) : 0
+  count      = var.sagemaker_on ? length(var.aws_availability_zones) : 0
   vpc_id     = aws_vpc.sagemaker[0].id
   cidr_block = cidrsubnet(aws_vpc.sagemaker[0].cidr_block, var.vpc_sagemaker_subnets_num_bits, count.index)
 
@@ -938,13 +938,13 @@ resource "aws_route_table" "sagemaker" {
 }
 
 resource "aws_main_route_table_association" "sagemaker" {
-  count = var.sagemaker_on ? 1 : 0
+  count          = var.sagemaker_on ? 1 : 0
   vpc_id         = aws_vpc.sagemaker[0].id
   route_table_id = aws_route_table.sagemaker[0].id
 }
 
 resource "aws_route_table_association" "private_without_egress_sagemaker" {
-  count = var.sagemaker_on ? length(var.aws_availability_zones) : 0
+  count          = var.sagemaker_on ? length(var.aws_availability_zones) : 0
   subnet_id      = aws_subnet.sagemaker_private_without_egress.*.id[count.index]
   route_table_id = aws_route_table.sagemaker[0].id
 }
@@ -966,14 +966,14 @@ resource "aws_route" "sagemaker_to_main_private_with_egress" {
 }
 
 resource "aws_route" "pcx_sagemaker_to_notebooks" {
-  count = var.sagemaker_on ? 1 : 0
+  count                     = var.sagemaker_on ? 1 : 0
   route_table_id            = aws_route_table.sagemaker[0].id
   destination_cidr_block    = aws_vpc.notebooks.cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.sagemaker_to_notebooks[0].id
 }
 
 resource "aws_vpc_endpoint_route_table_association" "s3_sagemaker" {
-  count = var.sagemaker_on ? 1 : 0
+  count           = var.sagemaker_on ? 1 : 0
   vpc_endpoint_id = aws_vpc_endpoint.sagemaker_s3[0].id
   route_table_id  = aws_route_table.sagemaker[0].id
 }
@@ -983,7 +983,7 @@ resource "aws_vpc_endpoint_route_table_association" "s3_sagemaker" {
 #############################################
 
 resource "aws_flow_log" "sagemaker" {
-  count = var.sagemaker_on ? 1 : 0
+  count           = var.sagemaker_on ? 1 : 0
   log_destination = aws_cloudwatch_log_group.vpc_sagemaker_flow_log[0].arn
   iam_role_arn    = aws_iam_role.vpc_sagemaker_flow_log[0].arn
   vpc_id          = aws_vpc.sagemaker[0].id
@@ -991,13 +991,13 @@ resource "aws_flow_log" "sagemaker" {
 }
 
 resource "aws_cloudwatch_log_group" "vpc_sagemaker_flow_log" {
-  count = var.sagemaker_on ? 1 : 0
+  count             = var.sagemaker_on ? 1 : 0
   name              = "${var.prefix}-vpc-sagemaker-flow-log"
   retention_in_days = "3653"
 }
 
 resource "aws_iam_role" "vpc_sagemaker_flow_log" {
-  count = var.sagemaker_on ? 1 : 0
+  count              = var.sagemaker_on ? 1 : 0
   name               = "${var.prefix}-vpc-sagemaker-flow-log"
   assume_role_policy = data.aws_iam_policy_document.vpc_sagemaker_flow_log_vpc_flow_logs_assume_role[0].json
 }
@@ -1018,7 +1018,7 @@ data "aws_iam_policy_document" "vpc_sagemaker_flow_log_vpc_flow_logs_assume_role
 #########################################################
 
 resource "aws_vpc_endpoint" "sagemaker_runtime_endpoint_main" {
-  count = var.sagemaker_on ? 1 : 0
+  count              = var.sagemaker_on ? 1 : 0
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
   vpc_endpoint_type  = "Interface"
@@ -1033,7 +1033,7 @@ resource "aws_vpc_endpoint" "sagemaker_runtime_endpoint_main" {
 }
 
 resource "aws_vpc_endpoint" "sagemaker_api_endpoint_main" {
-  count = var.sagemaker_on ? 1 : 0
+  count              = var.sagemaker_on ? 1 : 0
   vpc_id             = aws_vpc.main.id
   service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
   vpc_endpoint_type  = "Interface"
@@ -1074,7 +1074,7 @@ data "aws_iam_policy_document" "sagemaker_vpc_endpoint_policy" {
 ###################################################
 
 resource "aws_vpc_endpoint" "sagemaker_s3" {
-  count = var.sagemaker_on ? 1 : 0
+  count             = var.sagemaker_on ? 1 : 0
   vpc_id            = aws_vpc.sagemaker[0].id
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.s3"
   vpc_endpoint_type = "Gateway"
@@ -1082,7 +1082,7 @@ resource "aws_vpc_endpoint" "sagemaker_s3" {
 }
 
 resource "aws_vpc_endpoint" "sagemaker_ecr_api_endpoint" {
-  count = var.sagemaker_on ? 1 : 0
+  count              = var.sagemaker_on ? 1 : 0
   vpc_id             = aws_vpc.sagemaker[0].id
   service_name       = "com.amazonaws.eu-west-2.ecr.api"
   vpc_endpoint_type  = "Interface"
@@ -1097,7 +1097,7 @@ resource "aws_vpc_endpoint" "sagemaker_ecr_api_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "sagemaker_ecr_dkr_endpoint" {
-  count = var.sagemaker_on ? 1 : 0
+  count              = var.sagemaker_on ? 1 : 0
   vpc_id             = aws_vpc.sagemaker[0].id
   service_name       = "com.amazonaws.eu-west-2.ecr.dkr"
   vpc_endpoint_type  = "Interface"
@@ -1135,7 +1135,7 @@ data "aws_iam_policy_document" "aws_sagemaker_endpoint_ecr" {
 }
 
 resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
-  count = var.sagemaker_on ? 1 : 0
+  count              = var.sagemaker_on ? 1 : 0
   vpc_id             = aws_vpc.sagemaker[0].id
   service_name       = "com.amazonaws.eu-west-2.sns"
   vpc_endpoint_type  = "Interface"
