@@ -72,6 +72,3 @@ resource "aws_sns_topic" "scale_up_from_n_to_np1" {
     ]
   })
 }
-
-
-
