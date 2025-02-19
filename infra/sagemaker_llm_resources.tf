@@ -7,8 +7,6 @@ locals {
     module.llama_3_3b_deployment.model_name,
     module.llama_3_3b_instruct_deployment.model_name,
     module.mistral_7b_instruct_deployment.model_name,
-    #module.llama_3_8b_deployment.model_name,
-    #module.llama_3_8b_instruct_deployment.model_name
   ]
 }
 
