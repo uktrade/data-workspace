@@ -105,6 +105,7 @@ module "flan_t5_780m_deployment" {
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
   execution_role_arn    = module.iam.inference_role
+  teams_webhook_url     = var.teams_webhook_url
 }
 
 
