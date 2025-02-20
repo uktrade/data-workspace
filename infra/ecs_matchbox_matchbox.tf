@@ -1,6 +1,6 @@
 
 locals {
-  matchbox_container_vars = [for i, v in var.matchbox_instances : {
+  matchbox_container_vars = var.matchbox_on ? [for i, v in var.matchbox_instances : {
     container_image        = "${aws_ecr_repository.matchbox[0].repository_url}:master"
     container_name         = "matchbox"
     cpu                    = "${local.matchbox_container_cpu}"
@@ -13,7 +13,7 @@ locals {
     mb__postgres__user     = "${aws_rds_cluster.matchbox[i].master_username}"
     mb__postgres__password = "${random_string.aws_db_instance_matchbox_password[i].result}"
     mb__postgres__database = "${aws_rds_cluster.matchbox[i].database_name}"
-  }]
+  }] : []
 }
 
 resource "aws_ecs_service" "matchbox" {
@@ -39,7 +39,7 @@ resource "aws_ecs_service" "matchbox" {
 
 resource "aws_service_discovery_service" "matchbox" {
   count = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name  = "matchbox"
+  name  = "${var.prefix}-matchbox"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.jupyterhub.id
@@ -55,8 +55,8 @@ resource "aws_service_discovery_service" "matchbox" {
 }
 
 resource "aws_ecs_task_definition" "matchbox_service" {
-  count  = var.matchbox_on ? length(var.matchbox_instances) : 0
-  family = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  count  = var.matchbox_on ? 1 : 0
+  family = "${var.prefix}-matchbox"
   container_definitions = templatefile(
     "${path.module}/ecs_matchbox_matchbox_container_definitions.json",
     local.matchbox_container_vars[count.index]
@@ -309,7 +309,6 @@ resource "aws_s3_bucket" "matchbox_dev" {
 }
 
 resource "aws_s3_bucket" "matchbox_s3_cache" {
-  # count  = length(var.matchbox_instances)
   count  = var.matchbox_on ? 1 : 0
   bucket = "${var.matchbox_s3_cache}-${var.matchbox_instances[count.index]}"
 
@@ -330,7 +329,7 @@ resource "aws_s3_bucket_policy" "matchbox" {
 }
 
 data "aws_iam_policy_document" "matchbox" {
-  count = length(var.matchbox_instances)
+  count = var.matchbox_on ? length(var.matchbox_instances) : 0
   statement {
     effect = "Deny"
     principals {
