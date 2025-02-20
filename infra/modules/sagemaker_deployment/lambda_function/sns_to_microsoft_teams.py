@@ -27,9 +27,9 @@ def lambda_handler(event, context):
     timestamp_dt = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
     readable_date_str = str(timestamp_dt.date())
     readable_time_str = str(timestamp_dt.strftime("%H:%M:%S"))
-    region = json.loads(message_str)["Region"]
+    region = "eu-west-2"  # it was easier to hard-code this (apologies for inelegance)
 
-    alarm_url = f"https://console.aws.amazon.com/cloudwatch/home?region={region}#s=Alarms&alarm={alarm_name}"
+    alarm_url = f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#alarmsV2:alarm/{alarm_name}"
 
     if new_state == "ALARM":
         colour = "FF0000"
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
         "themeColor": colour,
-        "title": f"Transition to {new_state} on {endpoint_name} on {alarm_name}",
+        "title": f"Transition to {new_state} on {endpoint_name} for the alarm named {alarm_name}",
         "text": f"Triggered at {readable_time_str} on {readable_date_str}",
         "potentialAction": [
             {
