@@ -17,8 +17,8 @@ locals {
 }
 
 resource "aws_ecs_service" "matchbox" {
-  count                             = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name                              = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  count                             = var.matchbox_on ? 1 : 0
+  name                              = "${var.prefix}-matchbox"
   cluster                           = aws_ecs_cluster.main_cluster.id
   task_definition                   = aws_ecs_task_definition.matchbox_service[count.index].arn
   desired_count                     = 1
@@ -38,7 +38,7 @@ resource "aws_ecs_service" "matchbox" {
 }
 
 resource "aws_service_discovery_service" "matchbox" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
   name  = "${var.prefix}-matchbox"
 
   dns_config {
