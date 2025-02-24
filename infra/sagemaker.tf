@@ -20,8 +20,8 @@ module "iam" {
   sagemaker_default_bucket_name = var.sagemaker_default_bucket
   aws_s3_bucket_notebook        = aws_s3_bucket.notebooks
   account_id                    = data.aws_caller_identity.aws_caller_identity.account_id
-
 }
+
 
 resource "aws_security_group" "sagemaker_vpc_endpoints_main" {
 

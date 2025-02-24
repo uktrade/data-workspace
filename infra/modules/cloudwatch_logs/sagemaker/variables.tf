@@ -13,4 +13,3 @@ variable "retention_in_days" {
 variable "endpoint_names" {
   type = list(string)
 }
-
