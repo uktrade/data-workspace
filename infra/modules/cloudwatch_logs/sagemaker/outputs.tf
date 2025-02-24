@@ -1,11 +1,3 @@
-output "subscription_filter_names" {
-  value = {
-    for key, filter in aws_cloudwatch_log_subscription_filter.sagemaker_logs :
-    key => filter.name
-  }
-  description = "Map of subscription filter names by endpoint"
-}
-
 
 output "sagemaker_log_group_arns" {
   value = {

@@ -13,7 +13,3 @@ variable "retention_in_days" {
 variable "endpoint_names" {
   type = list(string)
 }
-
-variable "lambda_function_arn" {
-  type = string
-}
