@@ -322,6 +322,7 @@ variable "sagemaker_mistral_7b_instruct" {
   default = false
 }
 
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"

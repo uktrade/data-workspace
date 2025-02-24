@@ -22,6 +22,7 @@ module "iam" {
   account_id                    = data.aws_caller_identity.aws_caller_identity.account_id
 }
 
+
 resource "aws_security_group" "sagemaker_vpc_endpoints_main" {
 
   count = var.sagemaker_on ? 1 : 0
