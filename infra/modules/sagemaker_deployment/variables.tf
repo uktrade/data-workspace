@@ -16,6 +16,19 @@ variable "s3_output_path" {
 }
 
 
+variable "prefix" {
+  type        = string
+  description = "prefix for the cloudwatch log group"
+  default     = ""
+}
+
+variable "retention_in_days" {
+  type        = number
+  default     = 90
+  description = "number of days to retain cloudwatch logs"
+}
+
+
 variable "execution_role_arn" {
   type        = string
   description = "Execution role ARN for SageMaker"
