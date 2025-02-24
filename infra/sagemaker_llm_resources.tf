@@ -2,6 +2,9 @@
 # GPT Neo 125m
 ###############
 module "gpt_neo_125m_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_gpt_neo_125m) ? 1 : 0
+
   model_name            = "gpt-neo-125m"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-textgeneration1/huggingface-textgeneration1-gpt-neo-125m/artifacts/inference-prepack/v2.0.0/"
@@ -37,12 +40,12 @@ module "gpt_neo_125m_deployment" {
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
 }
 
 
@@ -50,6 +53,9 @@ module "gpt_neo_125m_deployment" {
 # Flan T5 780m (Large)
 ###############
 module "flan_t5_780m_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_flan_t5_780m) ? 1 : 0
+
   model_name            = "flan-t5-780m"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-text2text/huggingface-text2text-flan-t5-large/artifacts/inference-prepack/v2.0.0/"
@@ -85,12 +91,12 @@ module "flan_t5_780m_deployment" {
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
 }
 
 
@@ -98,6 +104,9 @@ module "flan_t5_780m_deployment" {
 # Phi 2 3b
 ###############
 module "phi_2_3b_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_phi_2_3b) ? 1 : 0
+
   model_name            = "phi-2-3b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.2-gpu-py310-cu121-ubuntu22.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-phi-2/artifacts/inference-prepack/v1.0.0/"
@@ -132,12 +141,12 @@ module "phi_2_3b_deployment" {
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
 }
 
 
@@ -145,6 +154,9 @@ module "phi_2_3b_deployment" {
 # Llama 3.2 3b
 ###############
 module "llama_3_3b_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_llama_3_3b) ? 1 : 0
+
   model_name            = "llama-3-3b"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-3b/artifacts/inference-prepack/v1.0.0/"
@@ -181,12 +193,12 @@ module "llama_3_3b_deployment" {
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
 }
 
 
@@ -194,6 +206,9 @@ module "llama_3_3b_deployment" {
 # Llama 3.2 3b-instruct
 ###############
 module "llama_3_3b_instruct_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_llama_3_3b_instruct) ? 1 : 0
+
   model_name            = "llama-3-3b-instruct"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
   model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-3b-instruct/artifacts/inference-prepack/v1.0.0/"
@@ -230,12 +245,12 @@ module "llama_3_3b_instruct_deployment" {
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
 }
 
 
@@ -243,6 +258,9 @@ module "llama_3_3b_instruct_deployment" {
 # Mistral 7b-instruct
 ###############
 module "mistral_7b_instruct_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_mistral_7b_instruct) ? 1 : 0
+
   model_name            = "mistral-7b-instruct"
   container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
   model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-instruct-v3/artifacts/inference-prepack/v1.0.0/"
@@ -278,10 +296,10 @@ module "mistral_7b_instruct_deployment" {
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker.id, aws_security_group.sagemaker_endpoints.id]
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover.sns_success_topic_arn
-  execution_role_arn    = module.iam.inference_role
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
 }
