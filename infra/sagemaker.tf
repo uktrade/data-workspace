@@ -20,10 +20,9 @@ module "iam" {
   sagemaker_default_bucket_name = var.sagemaker_default_bucket
   aws_s3_bucket_notebook        = aws_s3_bucket.notebooks
   account_id                    = data.aws_caller_identity.aws_caller_identity.account_id
-  s3_bucket_arn                 = module.s3[0].s3_bucket_arn
-  lambda_function_arn           = module.lambda_logs[0].lambda_function_arn
 
 }
+
 
 resource "aws_security_group" "sagemaker_vpc_endpoints_main" {
 
@@ -304,36 +303,6 @@ module "sagemaker_output_mover" {
   account_id              = data.aws_caller_identity.aws_caller_identity.account_id
   aws_region              = data.aws_region.aws_region.name
   s3_bucket_notebooks_arn = aws_s3_bucket.notebooks.arn
-}
-
-module "log_group" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  source              = "./modules/cloudwatch_logs/sagemaker"
-  prefix              = "data-workspace-sagemaker"
-  endpoint_names      = [for model_name in local.all_llm_names : "${model_name}-endpoint"]
-  lambda_function_arn = module.lambda_logs[0].lambda_function_arn
-}
-
-output "all_subscription_filter_names" {
-  value = module.log_group[*].subscription_filter_names
-}
-
-output "all_log_group_arns" {
-  value = module.log_group[*].sagemaker_log_group_arns
-}
-
-
-module "lambda_logs" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  source                   = "./modules/cloudwatch_logs/lambda_to_s3"
-  s3_bucket_name           = "sagemaker-logs-centralized"
-  log_delivery_role_arn    = module.iam[0].lambda_execution_role_arn
-  sagemaker_log_group_arns = [for model_name in local.all_llm_names : "arn:aws:logs:eu-west-2:${data.aws_caller_identity.aws_caller_identity.account_id}:log-group:/aws/sagemaker/Endpoints/${model_name}-endpoint:*"]
-  account_id               = data.aws_caller_identity.aws_caller_identity.account_id
 }
 
 module "budgets" {
