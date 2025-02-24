@@ -423,6 +423,11 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
     content {
 
+      principals {
+        type        = "AWS"
+        identifiers = ["*"]
+      }
+
       actions = [
         "s3:ListBucket",
         "s3:GetObject",
