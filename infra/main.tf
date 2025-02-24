@@ -292,7 +292,32 @@ variable "sagemaker_on" {
   default = false
 }
 
+variable "sagemaker_gpt_neo_125m" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_flan_t5_780m" {
+  type    = bool
+  default = false
+}
+
 variable "sagemaker_phi_2_3b" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_llama_3_3b" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_llama_3_3b_instruct" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_mistral_7b_instruct" {
   type    = bool
   default = false
 }

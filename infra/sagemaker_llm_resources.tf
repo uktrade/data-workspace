@@ -55,7 +55,7 @@ module "gpt_neo_125m_deployment" {
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
   execution_role_arn    = module.iam[0].inference_role
@@ -107,7 +107,7 @@ module "flan_t5_780m_deployment" {
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
   execution_role_arn    = module.iam[0].inference_role
@@ -211,7 +211,7 @@ module "llama_3_3b_deployment" {
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
   execution_role_arn    = module.iam[0].inference_role
@@ -264,7 +264,7 @@ module "llama_3_3b_instruct_deployment" {
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
   execution_role_arn    = module.iam[0].inference_role
@@ -316,7 +316,7 @@ module "mistral_7b_instruct_deployment" {
   source                = "./modules/sagemaker_deployment"
   security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
   subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam.default_sagemaker_bucket.bucket_regional_domain_name}"
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
   execution_role_arn    = module.iam[0].inference_role
