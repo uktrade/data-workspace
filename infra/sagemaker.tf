@@ -247,18 +247,6 @@ module "sagemaker_output_mover" {
   s3_bucket_notebooks_arn = aws_s3_bucket.notebooks.arn
 }
 
-module "log_group" {
-  source              = "./modules/cloudwatch_logs/sagemaker"
-  prefix              = "data-workspace-sagemaker"
-  endpoint_names      = [for model_name in local.all_llm_names : "${model_name}-endpoint"]
-}
-
-
-output "all_log_group_arns" {
-  value = module.log_group.sagemaker_log_group_arns
-}
-
-
 module "budgets" {
   source              = "./modules/cost_monitoring/budgets"
   budget_limit        = "1000"

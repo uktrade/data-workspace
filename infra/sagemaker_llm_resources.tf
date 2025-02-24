@@ -1,16 +1,3 @@
-# TODO: better if this is not required to be stated explicitly as it is brittle
-locals {
-  all_llm_names = [
-    module.gpt_neo_125m_deployment.model_name,
-    module.flan_t5_780m_deployment.model_name,
-    module.phi_2_3b_deployment.model_name,
-    module.llama_3_3b_deployment.model_name,
-    module.llama_3_3b_instruct_deployment.model_name,
-    module.mistral_7b_instruct_deployment.model_name,
-  ]
-}
-
-
 ################
 # GPT Neo 125m
 ###############
