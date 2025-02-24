@@ -72,13 +72,3 @@ resource "aws_sns_topic" "scale_up_from_n_to_np1" {
     ]
   })
 }
-
-
-
-
-resource "aws_sns_topic_subscription" "sns_lambda_subscription_scale_up_from_0_to_1" {
-
-  topic_arn = aws_sns_topic.scale_up_from_0_to_1.arn
-  protocol  = "lambda"
-  endpoint  = aws_lambda_function.slack_alert_function.arn
-}
