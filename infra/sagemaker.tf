@@ -25,14 +25,6 @@ module "iam" {
 
 }
 
-module "s3" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  source = "./modules/cloudwatch_logs/s3"
-  prefix = "sagemaker-logs"
-}
-
 resource "aws_security_group" "sagemaker_vpc_endpoints_main" {
 
   count = var.sagemaker_on ? 1 : 0
