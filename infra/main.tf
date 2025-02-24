@@ -287,6 +287,16 @@ variable "slack_webhook_gpu_alerts" { default = [""] }
 variable "slack_webhook_security_alerts" { default = [""] }
 variable "slack_webhook_backlog_alerts" { default = [""] }
 
+variable "sagemaker_on" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_phi_2_3b" {
+  type    = bool
+  default = false
+}
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"
