@@ -125,7 +125,7 @@ data "aws_iam_policy_document" "notebook_task_execution" {
 
   dynamic "statement" {
 
-    for_each = var.sagemaker_on == 1 ? [1] : []
+    for_each = var.sagemaker_on == true ? [1] : []
 
     content {
       actions = [
@@ -146,7 +146,7 @@ data "aws_iam_policy_document" "notebook_task_execution" {
 
   dynamic "statement" {
 
-    for_each = var.sagemaker_on == 1 ? [1] : []
+    for_each = var.sagemaker_on == true ? [1] : []
 
     content {
       actions = [
@@ -273,7 +273,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
 
   dynamic "statement" {
 
-    for_each = var.sagemaker_on == 1 ? [1] : []
+    for_each = var.sagemaker_on == true ? [1] : []
 
     content {
       actions = [
@@ -294,7 +294,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
 
   dynamic "statement" {
 
-    for_each = var.sagemaker_on == 1 ? [1] : []
+    for_each = var.sagemaker_on == true ? [1] : []
 
     content {
       actions = [
@@ -419,7 +419,7 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
 
   dynamic "statement" {
 
-    for_each = var.sagemaker_on == 1 ? [1] : []
+    for_each = var.sagemaker_on == true ? [1] : []
 
     content {
 
@@ -472,7 +472,7 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
   # Allow all tools users to access SageMaker endpoints
   dynamic "statement" {
 
-    for_each = var.sagemaker_on == 1 ? [1] : []
+    for_each = var.sagemaker_on == true ? [1] : []
 
     content {
       actions = [

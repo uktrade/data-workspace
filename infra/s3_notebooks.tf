@@ -83,7 +83,7 @@ data "aws_iam_policy_document" "notebooks" {
 
   dynamic "statement" {
 
-    for_each = var.sagemaker_on == 1 ? [1] : []
+    for_each = var.sagemaker_on == true ? [1] : []
 
     content {
       effect = "Allow"
