@@ -304,7 +304,6 @@ module "sagemaker_output_mover" {
   s3_bucket_notebooks_arn = aws_s3_bucket.notebooks.arn
 }
 
-
 module "budgets" {
 
   count = var.sagemaker_on ? 1 : 0
