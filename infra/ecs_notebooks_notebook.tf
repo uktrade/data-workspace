@@ -112,6 +112,7 @@ resource "aws_iam_policy" "notebook_task_execution" {
 
 data "aws_iam_policy_document" "notebook_task_execution" {
 
+
   statement {
     actions = [
       "logs:CreateLogStream",

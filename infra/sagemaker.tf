@@ -1,4 +1,3 @@
-
 module "sagemaker_domain" {
 
   count = var.sagemaker_on ? 1 : 0
@@ -21,7 +20,6 @@ module "iam" {
   aws_s3_bucket_notebook        = aws_s3_bucket.notebooks
   account_id                    = data.aws_caller_identity.aws_caller_identity.account_id
 }
-
 
 resource "aws_security_group" "sagemaker_vpc_endpoints_main" {
 

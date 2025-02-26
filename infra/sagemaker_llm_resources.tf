@@ -49,7 +49,6 @@ module "gpt_neo_125m_deployment" {
   teams_webhook_url     = var.teams_webhook_url
 }
 
-
 ################
 # Flan T5 780m (Large)
 ###############
