@@ -20,8 +20,6 @@ def lambda_handler(event, context):
     endpoint_name = next(
         x["value"] for x in dimensions_list if x["name"] == "EndpointName"
     )
-    # alarm_description = json.loads(message_str)["AlarmDescription"]
-    # old_state = json.loads(message_str)["OldStateValue"]
     new_state = json.loads(message_str)["NewStateValue"]
     timestamp_str = json.loads(message_str)["StateChangeTime"]
     timestamp_dt = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
@@ -42,7 +40,8 @@ def lambda_handler(event, context):
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
         "themeColor": colour,
-        "title": f"Transition to {new_state} on {endpoint_name} for the alarm named {alarm_name}",
+        "title": f"Transition to {new_state} on {endpoint_name} for the 
+                    alarm named {alarm_name}",
         "text": f"Triggered at {readable_time_str} on {readable_date_str}",
         "potentialAction": [
             {
@@ -61,5 +60,6 @@ def lambda_handler(event, context):
         headers=headers,
     )
     logger.info(
-        f"Completed with response code {response.status} and full response data {response.data}"
+        f"Completed with response code {response.status} and 
+            full response data {response.data}"
     )
