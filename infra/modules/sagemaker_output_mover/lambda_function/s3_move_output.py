@@ -37,8 +37,7 @@ def process_message(record):
         )
         s3.meta.client.copy(copy_source, input_file_bucket, s3_filepath_output)
         logger.info(
-            f"Output from endpoint {endpoint_name} with user_id {federated_user_id} 
-                moved to user's theia workspace"
+            f"Output from endpoint:{endpoint_name} with user_id:{federated_user_id} moved to user's workspace"
         )
     except Exception as e:
         logger.error(e)
