@@ -1,11 +1,9 @@
 import ast
 import logging
+import boto3
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
-
-import boto3
-
 
 def lambda_handler(event, context):
     for record in event["Records"]:
@@ -39,7 +37,8 @@ def process_message(record):
         )
         s3.meta.client.copy(copy_source, input_file_bucket, s3_filepath_output)
         logger.info(
-            f"Output from endpoint {endpoint_name} with user_id {federated_user_id} moved to user's theia workspace"
+            f"Output from endpoint {endpoint_name} with user_id {federated_user_id} 
+                moved to user's theia workspace"
         )
     except Exception as e:
         logger.error(e)
