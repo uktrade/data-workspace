@@ -1,9 +1,11 @@
 import ast
 import logging
+
 import boto3
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
+
 
 def lambda_handler(event, context):
     for record in event["Records"]:
