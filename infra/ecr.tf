@@ -249,6 +249,11 @@ data "aws_ecr_lifecycle_policy_document" "expire_untagged_after_one_day" {
   }
 }
 
+resource "aws_ecr_repository" "sagemaker" {
+  count = var.sagemaker_on ? 1 : 0
+  name  = "${var.prefix}-sagemaker"
+}
+
 data "aws_ecr_lifecycle_policy_document" "expire_preview_and_untagged_after_one_day" {
   # Match *--prod images, but expire them in 1000 years...
   rule {
