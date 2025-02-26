@@ -65,7 +65,7 @@ resource "aws_appautoscaling_target" "main" {
 }
 
 
-resource "aws_appautoscaling_policy" "scale_up_to_n_policy" {
+resource "aws_appautoscaling_policy" "scale_up_from_n_to_np1" {
   name = "scale-up-to-n-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
@@ -87,7 +87,7 @@ resource "aws_appautoscaling_policy" "scale_up_to_n_policy" {
 }
 
 
-resource "aws_appautoscaling_policy" "scale_down_to_n_policy" {
+resource "aws_appautoscaling_policy" "scale_down_from_n_to_nm1" {
   name = "scale-down-to-n-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
@@ -102,14 +102,14 @@ resource "aws_appautoscaling_policy" "scale_down_to_n_policy" {
 
     step_adjustment {
       scaling_adjustment          = -1 # mean subtract 1
-      metric_interval_lower_bound = null
-      metric_interval_upper_bound = 0
+      metric_interval_lower_bound = 0
+      metric_interval_upper_bound = null
     }
   }
 }
 
 
-resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
+resource "aws_appautoscaling_policy" "scale_up_from_0_to_1" {
   name = "scale-up-to-one-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
@@ -131,7 +131,7 @@ resource "aws_appautoscaling_policy" "scale_up_to_one_policy" {
 }
 
 
-resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
+resource "aws_appautoscaling_policy" "scale_down_from_n_to_0" {
   name = "scale-down-to-zero-policy-${var.model_name}"
 
   policy_type        = "StepScaling"
@@ -146,26 +146,10 @@ resource "aws_appautoscaling_policy" "scale_down_to_zero_policy" {
 
     step_adjustment {
       scaling_adjustment          = 0 # means set =0 (NOT add or subtract)
-      metric_interval_lower_bound = null
-      metric_interval_upper_bound = 0
+      metric_interval_lower_bound = 0
+      metric_interval_upper_bound = null
     }
   }
-}
-
-
-# Mapping SNS topic ARNs to Slack webhook URLs
-locals {
-  sns_to_webhook_mapping = merge({
-    for idx, alarm in var.alarms :
-    replace(aws_sns_topic.alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
-    }, {
-    for idx, alarm in var.alarms :
-    replace(aws_sns_topic.okstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm.slack_webhook_url
-    }, {
-    for idx, alarm_composite in var.alarm_composites :
-    replace(aws_sns_topic.composite_alarmstate[idx].arn, "arn:aws:sns:eu-west-2:${var.aws_account_id}:", "") => alarm_composite.slack_webhook_url
-    }
-  )
 }
 
 

@@ -1,9 +1,105 @@
-# TODO: better if this is not required to be stated explicitly as it is brittle
-locals {
-  all_llm_names = [
-    module.phi_2_3b_deployment[0].model_name,
-  ]
+################
+# GPT Neo 125m
+###############
+module "gpt_neo_125m_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_gpt_neo_125m) ? 1 : 0
+
+  model_name            = "gpt-neo-125m"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
+  model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-textgeneration1/huggingface-textgeneration1-gpt-neo-125m/artifacts/inference-prepack/v2.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
+  max_capacity          = 2
+  min_capacity          = 0
+  scale_up_cooldown     = 900
+  scale_down_cooldown   = 0
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MAX_INPUT_LENGTH" : "1024",
+    "MAX_TOTAL_TOKENS" : "2048",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py",
+    "SM_NUM_GPUS" : "1"
+  }
+  backlog_threshold_high   = 1
+  backlog_threshold_low    = 1
+  cpu_threshold_high       = 80 * 8 # 8 vCPUs
+  cpu_threshold_low        = 20 * 8 # 8 vCPUs
+  gpu_threshold_high       = 80 * 1 # 1 GPU
+  gpu_threshold_low        = 20 * 1 # 1 GPU
+  ram_threshold_high       = 80
+  ram_threshold_low        = 20
+  evaluation_periods_high  = 1
+  datapoints_to_alarm_high = 1
+  evaluation_periods_low   = 15
+  datapoints_to_alarm_low  = 15
+
+  # These variables do not change between LLMs
+  source                = "./modules/sagemaker_deployment"
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
+  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
+  teams_webhook_url     = var.teams_webhook_url
 }
+
+################
+# Flan T5 780m (Large)
+###############
+module "flan_t5_780m_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_flan_t5_780m) ? 1 : 0
+
+  model_name            = "flan-t5-780m"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.1.1-tgi1.4.0-gpu-py310-cu121-ubuntu20.04"
+  model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-text2text/huggingface-text2text-flan-t5-large/artifacts/inference-prepack/v2.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
+  max_capacity          = 2
+  min_capacity          = 0
+  scale_up_cooldown     = 900
+  scale_down_cooldown   = 0
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MAX_INPUT_LENGTH" : "1024",
+    "MAX_TOTAL_TOKENS" : "2048",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py",
+    "SM_NUM_GPUS" : "1"
+  }
+  backlog_threshold_high   = 1
+  backlog_threshold_low    = 1
+  cpu_threshold_high       = 80 * 8 # 8 vCPUs
+  cpu_threshold_low        = 20 * 8 # 8 vCPUs
+  gpu_threshold_high       = 80 * 1 # 1 GPU
+  gpu_threshold_low        = 20 * 1 # 1 GPU
+  ram_threshold_high       = 80
+  ram_threshold_low        = 20
+  evaluation_periods_high  = 1
+  datapoints_to_alarm_high = 1
+  evaluation_periods_low   = 15
+  datapoints_to_alarm_low  = 15
+
+  # These variables do not change between LLMs
+  source                = "./modules/sagemaker_deployment"
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
+  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
+  teams_webhook_url     = var.teams_webhook_url
+}
+
 
 ###############
 # Phi 2 3b
@@ -31,256 +127,18 @@ module "phi_2_3b_deployment" {
     "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
     "SAGEMAKER_PROGRAM" : "inference.py"
   }
-
-  alarms = [
-    {
-      alarm_name_prefix   = "nonzero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
-      alarm_description   = "Scale up based on existence of backlog"
-      metric_name         = "ApproximateBacklogSize"
-      namespace           = "AWS/SageMaker"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_one_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "zero-backlog" # TODO: backlog is currently required to have index [0,1] which is brittle
-      alarm_description   = "Scale down based on non-existence of backlog"
-      metric_name         = "ApproximateBacklogSize"
-      namespace           = "AWS/SageMaker"
-      comparison_operator = "LessThanThreshold"
-      threshold           = 1
-      evaluation_periods  = 15
-      datapoints_to_alarm = 15
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_zero_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "backlog-composite-alarm"
-      alarm_description   = "Detect if queries in backlog for extended time period"
-      metric_name         = "ApproximateBacklogSize"
-      namespace           = "AWS/SageMaker"
-      comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 0
-      evaluation_periods  = 3
-      datapoints_to_alarm = 3
-      period              = 3600
-      statistic           = "Average"
-      slack_webhook_url   = var.slack_webhook_backlog_alerts
-      alarm_actions       = []
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "high-cpu"
-      alarm_description   = "Scale up when CPU usage is heavy"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 4 # TODO: we must manually multiply by vCPU count as Normalized metric not available
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_n_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "low-cpu"
-      alarm_description   = "Scale down when CPU usage is light"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 4 # TODO: we must manually multiply by vCPU count as Normalized metric not available
-      evaluation_periods  = 15
-      datapoints_to_alarm = 15
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_n_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "high-gpu"
-      alarm_description   = "Scale up when GPU usage is heavy"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_n_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "low-gpu"
-      alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
-      evaluation_periods  = 15
-      datapoints_to_alarm = 15
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_n_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "high-ram"
-      alarm_description   = "Scale up when RAM usage is heavy"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_n_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "low-ram"
-      alarm_description   = "Scale down when RAM usage is light"
-      metric_name         = "MemoryUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
-      evaluation_periods  = 15
-      datapoints_to_alarm = 15
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_n_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "high-hard-disk"
-      alarm_description   = "Scale up when Hard Disk usage is heavy"
-      metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 80
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_up_to_n_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "low-hard-disk"
-      alarm_description   = "Scale down when Hard Disk usage is light"
-      metric_name         = "DiskUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "LessThanOrEqualToThreshold"
-      threshold           = 20
-      evaluation_periods  = 15
-      datapoints_to_alarm = 15
-      period              = 60
-      statistic           = "Maximum"
-      slack_webhook_url   = var.slack_webhook_resource_alerts
-      alarm_actions       = [module.phi_2_3b_deployment[0].scale_down_to_n_policy_arn]
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "unauthorized-operations"
-      alarm_description   = "Unauthorized operations are detected in the CloudTrail Logs"
-      metric_name         = "UnauthorizedOperationsCount"
-      namespace           = "CloudTrailMetrics"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Sum"
-      slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [] # SNS to give alert to developers
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "errors-4XX"
-      alarm_description   = "4XX errors are detected in the CloudTrail Logs"
-      metric_name         = "Invocation4XXErrors"
-      namespace           = "AWS/SageMaker"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 1
-      evaluation_periods  = 1
-      datapoints_to_alarm = 1
-      period              = 60
-      statistic           = "Sum"
-      slack_webhook_url   = var.slack_webhook_security_alerts
-      alarm_actions       = [] # SNS to give alert to developers
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "elevated-cpu-composite"
-      alarm_description   = "Detect CPU activity above idle for extended time period"
-      metric_name         = "CPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 20 * 4 # TODO: we must manually multiply by CPU count as Normalized metric not available
-      evaluation_periods  = 3
-      datapoints_to_alarm = 3
-      period              = 3600
-      statistic           = "Average"
-      slack_webhook_url   = var.slack_webhook_cpu_alerts
-      alarm_actions       = []
-      ok_actions          = []
-    },
-    {
-      alarm_name_prefix   = "low-gpu-composite"
-      alarm_description   = "Scale down when GPU usage is light"
-      metric_name         = "GPUUtilization"
-      namespace           = "/aws/sagemaker/Endpoints"
-      comparison_operator = "GreaterThanOrEqualToThreshold"
-      threshold           = 20 * 1 # TODO: we must manually multiply by GPU count as Normalized metric not available
-      evaluation_periods  = 3
-      datapoints_to_alarm = 3
-      period              = 3600
-      statistic           = "Average"
-      slack_webhook_url   = var.slack_webhook_gpu_alerts
-      alarm_actions       = []
-      ok_actions          = []
-    }
-  ]
-
-  alarm_composites = [
-    {
-      alarm_name        = "ElevatedCPUUtilizationNoBackLog"
-      alarm_description = "Triggered when CPU util is above idle and no backlog query exists for an extended time"
-      alarm_rule        = "ALARM(elevated-cpu-composite-${module.phi_2_3b_deployment[0].model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment[0].model_name}-endpoint)"
-      alarm_actions     = []
-      ok_actions        = []
-      slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails            = var.sagemaker_budget_emails
-    },
-    {
-      alarm_name        = "ElevatedGPUUtilizationNoBackLog"
-      alarm_description = "Triggered when GPU util is above idle and no backlog query exists for an extended time"
-      alarm_rule        = "ALARM(low-gpu-composite-${module.phi_2_3b_deployment[0].model_name}-endpoint) AND ALARM(backlog-composite-alarm-${module.phi_2_3b_deployment[0].model_name}-endpoint)"
-      alarm_actions     = []
-      ok_actions        = []
-      slack_webhook_url = var.slack_webhook_backlog_alerts
-      emails            = var.sagemaker_budget_emails
-    }
-
-  ]
+  backlog_threshold_high   = 1
+  backlog_threshold_low    = 1
+  cpu_threshold_high       = 80 * 4 # 4 vCPUs
+  cpu_threshold_low        = 20 * 4 # 4 vCPUs
+  gpu_threshold_high       = 80 * 1 # 1 GPU
+  gpu_threshold_low        = 20 * 1 # 1 GPU
+  ram_threshold_high       = 80
+  ram_threshold_low        = 20
+  evaluation_periods_high  = 1
+  datapoints_to_alarm_high = 1
+  evaluation_periods_low   = 15
+  datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs
   source                = "./modules/sagemaker_deployment"
@@ -290,4 +148,163 @@ module "phi_2_3b_deployment" {
   aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
   execution_role_arn    = module.iam[0].inference_role
+  teams_webhook_url     = var.teams_webhook_url
+}
+
+
+###############
+# Llama 3.2 3b
+###############
+module "llama_3_3b_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_llama_3_3b) ? 1 : 0
+
+  model_name            = "llama-3-3b"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
+  model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-3b/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
+  max_capacity          = 2
+  min_capacity          = 0
+  scale_up_cooldown     = 900 * 4
+  scale_down_cooldown   = 0
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "OPTION_ENFORCE_EAGER" : "false",
+    "OPTION_GPU_MEMORY_UTILIZATION" : "0.95",
+    "OPTION_MAX_ROLLING_BATCH_SIZE" : "8",
+    "OPTION_TENSOR_PARALLEL_DEGREE" : "1",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
+  }
+  backlog_threshold_high   = 1
+  backlog_threshold_low    = 1
+  cpu_threshold_high       = 80 * 4 # 4 vCPUs
+  cpu_threshold_low        = 20 * 4 # 4 vCPUs
+  gpu_threshold_high       = 80 * 1 # 1 GPU
+  gpu_threshold_low        = 20 * 1 # 1 GPU
+  ram_threshold_high       = 80
+  ram_threshold_low        = 20
+  evaluation_periods_high  = 1
+  datapoints_to_alarm_high = 1
+  evaluation_periods_low   = 15 * 4
+  datapoints_to_alarm_low  = 15 * 4
+
+  # These variables do not change between LLMs
+  source                = "./modules/sagemaker_deployment"
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
+  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
+  teams_webhook_url     = var.teams_webhook_url
+}
+
+
+###############
+# Llama 3.2 3b-instruct
+###############
+module "llama_3_3b_instruct_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_llama_3_3b_instruct) ? 1 : 0
+
+  model_name            = "llama-3-3b-instruct"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124"
+  model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-3b-instruct/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
+  max_capacity          = 2
+  min_capacity          = 0
+  scale_up_cooldown     = 900 * 4
+  scale_down_cooldown   = 0
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "OPTION_ENFORCE_EAGER" : "false",
+    "OPTION_GPU_MEMORY_UTILIZATION" : "0.95",
+    "OPTION_MAX_ROLLING_BATCH_SIZE" : "8",
+    "OPTION_TENSOR_PARALLEL_DEGREE" : "1",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
+  }
+  backlog_threshold_high   = 1
+  backlog_threshold_low    = 1
+  cpu_threshold_high       = 80 * 4 # 4 vCPUs
+  cpu_threshold_low        = 20 * 4 # 4 vCPUs
+  gpu_threshold_high       = 80 * 1 # 1 GPU
+  gpu_threshold_low        = 20 * 1 # 1 GPU
+  ram_threshold_high       = 80
+  ram_threshold_low        = 20
+  evaluation_periods_high  = 1
+  datapoints_to_alarm_high = 1
+  evaluation_periods_low   = 15 * 4
+  datapoints_to_alarm_low  = 15 * 4
+
+  # These variables do not change between LLMs
+  source                = "./modules/sagemaker_deployment"
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
+  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
+  teams_webhook_url     = var.teams_webhook_url
+}
+
+
+###############
+# Mistral 7b-instruct
+###############
+module "mistral_7b_instruct_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_mistral_7b_instruct) ? 1 : 0
+
+  model_name            = "mistral-7b-instruct"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04"
+  model_uri             = "s3://jumpstart-cache-prod-eu-west-2/huggingface-llm/huggingface-llm-mistral-7b-instruct-v3/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
+  max_capacity          = 2
+  min_capacity          = 0
+  scale_up_cooldown     = 900 * 4
+  scale_down_cooldown   = 0
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MAX_BATCH_PREFILL_TOKENS" : "8191",
+    "MAX_INPUT_LENGTH" : "8191",
+    "MAX_TOTAL_TOKENS" : "8192",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py",
+  }
+  backlog_threshold_high   = 1
+  backlog_threshold_low    = 1
+  cpu_threshold_high       = 80 * 48 # 48 vCPUs
+  cpu_threshold_low        = 20 * 48 # 48 vCPUs
+  gpu_threshold_high       = 80 * 4  # 4 GPUs
+  gpu_threshold_low        = 20 * 4  # 4 GPUs
+  ram_threshold_high       = 80
+  ram_threshold_low        = 20
+  evaluation_periods_high  = 1
+  datapoints_to_alarm_high = 1
+  evaluation_periods_low   = 15 * 4
+  datapoints_to_alarm_low  = 15 * 4
+
+  # These variables do not change between LLMs
+  source                = "./modules/sagemaker_deployment"
+  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
+  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
+  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn    = module.iam[0].inference_role
+  teams_webhook_url     = var.teams_webhook_url
 }

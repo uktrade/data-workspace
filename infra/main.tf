@@ -279,6 +279,7 @@ variable "sagemaker_example_inference_image" { default = "" }
 variable "sagemaker_models_folder" { default = "" }
 variable "hugging_face_model_image" { default = "" }
 variable "sagemaker_default_bucket" { default = "" }
+variable "teams_webhook_url" { default = "" }
 variable "sagemaker_budget_emails" { default = [""] }
 variable "slack_webhook_resource_alerts" { default = [""] }
 variable "slack_webhook_cpu_alerts" { default = [""] }
@@ -291,10 +292,36 @@ variable "sagemaker_on" {
   default = false
 }
 
+variable "sagemaker_gpt_neo_125m" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_flan_t5_780m" {
+  type    = bool
+  default = false
+}
+
 variable "sagemaker_phi_2_3b" {
   type    = bool
   default = false
 }
+
+variable "sagemaker_llama_3_3b" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_llama_3_3b_instruct" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_mistral_7b_instruct" {
+  type    = bool
+  default = false
+}
+
 
 locals {
   admin_container_name   = "jupyterhub-admin"

@@ -1,6 +1,10 @@
 import ast
+import logging
 
 import boto3
+
+logger = logging.getLogger()
+logger.setLevel("INFO")
 
 
 def lambda_handler(event, context):
@@ -14,7 +18,7 @@ def process_message(record):
         s3 = boto3.resource("s3")
         message_dict = ast.literal_eval(message_str)
 
-        message_dict["requestParameters"]["endpointName"]
+        endpoint_name = message_dict["requestParameters"]["endpointName"]
         input_file_uri = message_dict["requestParameters"]["inputLocation"]
         input_file_bucket = input_file_uri.split("/user/federated/")[0].split("s3://")[
             1
@@ -34,6 +38,9 @@ def process_message(record):
             f"user/federated/{federated_user_id}/sagemaker/outputs/{output_file_key}"
         )
         s3.meta.client.copy(copy_source, input_file_bucket, s3_filepath_output)
-
+        logger.info(
+            f"Output frm {endpoint_name} with id:{federated_user_id} mvd to usr's files"
+        )
     except Exception as e:
+        logger.error(e)
         raise e
