@@ -1037,6 +1037,7 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
 
     resources = [
       "${aws_ecr_repository.theia.arn}",
+      "${aws_ecr_repository.visualisation_base.arn}"
     ]
   }
 
