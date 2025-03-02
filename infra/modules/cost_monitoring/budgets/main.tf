@@ -1,6 +1,6 @@
 
 resource "aws_budgets_budget" "monthly_cost_budget" {
-  name         = "${var.budget_name}-monthly-cost-budget"
+  name         = "${var.budget_name_prefix}-monthly"
   budget_type  = "COST"
   limit_amount = var.budget_limit
   limit_unit   = "USD"
@@ -31,6 +31,3 @@ resource "aws_budgets_budget" "monthly_cost_budget" {
     subscriber_sns_topic_arns  = [var.sns_topic_arn]
   }
 }
-
-
-

@@ -1,15 +1,24 @@
-# Use the data source to get the bucket ARN from the bucket name
-data "aws_s3_bucket" "sagemaker_default_bucket" {
-  bucket = var.sagemaker_default_bucket_name
+resource "aws_s3_bucket" "sagemaker_default_bucket" {
+  bucket = "${var.prefix}-eu-west-2-${var.account_id}"
 }
 
 
-# Assume Role Policy for SageMaker Execution Role
+resource "aws_s3_bucket_cors_configuration" "sagemaker_default_bucket" {
+  bucket                = aws_s3_bucket.sagemaker_default_bucket.id
+  expected_bucket_owner = var.account_id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["POST", "PUT", "GET", "HEAD", "DELETE"]
+    allowed_origins = ["https://*.sagemaker.aws"]
+    expose_headers  = ["ETag", "x-amz-delete-marker", "x-amz-id-2", "x-amz-request-id", "x-amz-server-side-encryption", "x-amz-version-id"]
+  }
+}
+
+
 data "aws_iam_policy_document" "sagemaker_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
-
-
     principals {
       type        = "Service"
       identifiers = ["sagemaker.amazonaws.com"]
@@ -18,15 +27,13 @@ data "aws_iam_policy_document" "sagemaker_assume_role" {
 }
 
 
-# SageMaker Execution Role
 resource "aws_iam_role" "sagemaker" {
-  name               = "${var.prefix}-sagemaker"
+  name               = "${var.prefix}-sagemaker-iam-role"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.sagemaker_assume_role.json
 }
 
 
-# Assume Role Policy for SageMaker Inference Role
 data "aws_iam_policy_document" "assume_inference_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -40,38 +47,43 @@ data "aws_iam_policy_document" "assume_inference_role" {
 }
 
 
-# SageMaker Inference Role
 resource "aws_iam_role" "inference_role" {
-  name               = "${var.prefix}-sagemaker-inference-role"
+  name               = "${var.prefix}-sagemaker-iam-inference-role"
   assume_role_policy = data.aws_iam_policy_document.assume_inference_role.json
 }
 
 
-# Policy Document for SageMaker Permissions
 data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
   statement {
     actions = [
       "s3:ListBucket",
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject",
       "s3:GetBucketLocation",
     ]
     resources = [
-      "arn:aws:s3:::*sagemaker*",
-      "${var.aws_s3_bucket_notebook.arn}/*",
-      "arn:aws:s3:::jumpstart-cache-prod-eu-west-2/*",
-      "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2/*",
+      aws_s3_bucket.sagemaker_default_bucket.arn,
+      var.aws_s3_bucket_notebook.arn,
       "arn:aws:s3:::jumpstart-cache-prod-eu-west-2",
       "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
     ]
   }
-
+  statement {
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+    resources = [
+      "${aws_s3_bucket.sagemaker_default_bucket.arn}/*",
+      "${var.aws_s3_bucket_notebook.arn}/*",
+      "arn:aws:s3:::jumpstart-cache-prod-${var.aws_region}/*",
+      "arn:aws:s3:::jumpstart-private-cache-prod-${var.aws_region}/*",
+    ]
+  }
   statement {
     actions = [
       "sns:Publish",
     ]
-    resources = ["arn:aws:sns:eu-west-2:${var.account_id}:async-sagemaker-success-topic"]
+    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:${var.prefix}-async-sagemaker-success-topic"]
   }
 
   statement {
@@ -150,23 +162,19 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
 }
 
 
-# Create IAM Policy for SageMaker Permissions
 resource "aws_iam_policy" "sagemaker_access_policy" {
-  name   = "${var.prefix}-sagemaker-domain"
+  name   = "${var.prefix}-sagemaker-iam-access-policy"
   policy = data.aws_iam_policy_document.sagemaker_inference_policy_document.json
 }
 
 
-# Attach Policy to SageMaker Role
 resource "aws_iam_role_policy_attachment" "sagemaker_managed_policy" {
   role       = aws_iam_role.sagemaker.name
   policy_arn = aws_iam_policy.sagemaker_access_policy.arn
 }
 
 
-# Attach Policy to Inference Role
 resource "aws_iam_role_policy_attachment" "sagemaker_inference_role_policy" {
   role       = aws_iam_role.inference_role.name
   policy_arn = aws_iam_policy.sagemaker_access_policy.arn
 }
-

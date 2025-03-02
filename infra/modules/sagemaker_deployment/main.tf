@@ -1,5 +1,6 @@
 resource "aws_sagemaker_model" "main" {
-  name               = var.model_name
+  name = "${var.environment_name_prefix}-${var.model_name}"
+
   execution_role_arn = var.execution_role_arn
 
   primary_container {
@@ -26,7 +27,7 @@ resource "aws_sagemaker_model" "main" {
 
 
 resource "aws_sagemaker_endpoint_configuration" "main" {
-  name = "${aws_sagemaker_model.main.name}-endpoint-config"
+  name = "${aws_sagemaker_model.main.name}-endpoint-configuration"
 
   production_variants {
     variant_name           = "AllTraffic"
@@ -37,7 +38,7 @@ resource "aws_sagemaker_endpoint_configuration" "main" {
 
   async_inference_config {
     output_config {
-      s3_output_path = var.s3_output_path
+      s3_output_path = "https://${var.s3_output_path}"
       notification_config {
         include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC"]
         success_topic                 = var.sns_success_topic_arn
@@ -57,7 +58,7 @@ resource "aws_sagemaker_endpoint" "main" {
 
 resource "aws_appautoscaling_target" "main" {
   max_capacity       = var.max_capacity
-  min_capacity       = var.min_capacity
+  min_capacity       = 0
   resource_id        = "endpoint/${aws_sagemaker_endpoint.main.name}/variant/${aws_sagemaker_endpoint_configuration.main.production_variants[0].variant_name}" # Note this logic would not work if there were ever more than one production variant deployed for an LLM
   scalable_dimension = "sagemaker:variant:DesiredInstanceCount"
   service_namespace  = "sagemaker"
@@ -66,7 +67,7 @@ resource "aws_appautoscaling_target" "main" {
 
 
 resource "aws_appautoscaling_policy" "scale_up_from_n_to_np1" {
-  name = "scale-up-to-n-policy-${var.model_name}"
+  name = "scale-up-to-n-policy-${aws_sagemaker_model.main.name}"
 
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.main.resource_id
@@ -88,7 +89,7 @@ resource "aws_appautoscaling_policy" "scale_up_from_n_to_np1" {
 
 
 resource "aws_appautoscaling_policy" "scale_down_from_n_to_nm1" {
-  name = "scale-down-to-n-policy-${var.model_name}"
+  name = "scale-down-to-n-policy-${aws_sagemaker_model.main.name}"
 
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.main.resource_id
@@ -110,7 +111,7 @@ resource "aws_appautoscaling_policy" "scale_down_from_n_to_nm1" {
 
 
 resource "aws_appautoscaling_policy" "scale_up_from_0_to_1" {
-  name = "scale-up-to-one-policy-${var.model_name}"
+  name = "scale-up-to-one-policy-${aws_sagemaker_model.main.name}"
 
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.main.resource_id
@@ -132,7 +133,7 @@ resource "aws_appautoscaling_policy" "scale_up_from_0_to_1" {
 
 
 resource "aws_appautoscaling_policy" "scale_down_from_n_to_0" {
-  name = "scale-down-to-zero-policy-${var.model_name}"
+  name = "scale-down-to-zero-policy-${aws_sagemaker_model.main.name}"
 
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.main.resource_id
@@ -154,7 +155,7 @@ resource "aws_appautoscaling_policy" "scale_down_from_n_to_0" {
 
 
 resource "aws_cloudwatch_log_metric_filter" "unauthorized_operations" {
-  name           = "unauthorized-operations-filter"
+  name           = "unauthorized-operations-filter-${aws_sagemaker_model.main.name}"
   log_group_name = "/aws/sagemaker/Endpoints/${aws_sagemaker_endpoint.main.name}"
   pattern        = "{ $.errorCode = \"UnauthorizedOperation\" || $.errorCode = \"AccessDenied\" }"
 

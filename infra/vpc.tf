@@ -1097,7 +1097,7 @@ resource "aws_vpc_endpoint" "sagemaker_ecr_api_endpoint" {
   security_group_ids = [aws_security_group.sagemaker_endpoints[0].id]
   tags = {
     Environment = var.prefix
-    Name        = " sagemaker-ecr-api-endpoint"
+    Name        = "sagemaker-ecr-api-endpoint"
   }
   private_dns_enabled = true
   policy              = data.aws_iam_policy_document.aws_sagemaker_endpoint_ecr[0].json

@@ -1,6 +1,6 @@
 
 resource "aws_iam_role" "iam_for_lambda_s3_move" {
-  name = "iam_for_lambda_s3_move"
+  name = "${var.prefix}-iam-for-lambda-s3-move"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -14,7 +14,7 @@ resource "aws_iam_role" "iam_for_lambda_s3_move" {
 }
 
 resource "aws_iam_role_policy" "policy_for_lambda_s3_move" {
-  name = "policy_for_lambda_s3_move"
+  name = "${var.prefix}-policy-for-lambda-s3-move"
   role = aws_iam_role.iam_for_lambda_s3_move.id
 
   policy = jsonencode({
@@ -23,17 +23,17 @@ resource "aws_iam_role_policy" "policy_for_lambda_s3_move" {
       {
         Action   = ["SNS:Receive", "SNS:Subscribe"]
         Effect   = "Allow"
-        Resource = aws_sns_topic.async-sagemaker-success-topic.arn
+        Resource = aws_sns_topic.async_sagemaker_success_topic.arn
       },
       {
         Action   = ["s3:GetObject"]
         Effect   = "Allow"
-        Resource = "arn:aws:s3:::*sagemaker*"
+        Resource = "${var.default_sagemaker_bucket_arn}/*",
       },
       {
         Action   = ["s3:PutObject"]
         Effect   = "Allow"
-        Resource = "${var.s3_bucket_notebooks_arn}*"
+        Resource = "${var.s3_bucket_notebooks_arn}/*"
       },
       {
         Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
@@ -44,6 +44,7 @@ resource "aws_iam_role_policy" "policy_for_lambda_s3_move" {
   })
 }
 
+
 data "archive_file" "lambda_payload" {
   type        = "zip"
   source_file = "${path.module}/lambda_function/s3_move_output.py"
@@ -53,7 +54,7 @@ data "archive_file" "lambda_payload" {
 resource "aws_lambda_function" "lambda_s3_move_output" {
   filename         = data.archive_file.lambda_payload.output_path
   source_code_hash = data.archive_file.lambda_payload.output_base64sha256
-  function_name    = "lambda_s3_move_output"
+  function_name    = "${var.prefix}-s3-output-mover"
   role             = aws_iam_role.iam_for_lambda_s3_move.arn
   handler          = "s3_move_output.lambda_handler"
   runtime          = "python3.12"
@@ -61,13 +62,13 @@ resource "aws_lambda_function" "lambda_s3_move_output" {
 }
 
 
-resource "aws_sns_topic" "async-sagemaker-success-topic" {
-  name   = "async-sagemaker-success-topic"
+resource "aws_sns_topic" "async_sagemaker_success_topic" {
+  name   = "${var.prefix}-async-sagemaker-success-topic"
   policy = data.aws_iam_policy_document.sns_publish_and_read_policy.json
 }
 
 resource "aws_sns_topic_subscription" "topic_lambda" {
-  topic_arn = aws_sns_topic.async-sagemaker-success-topic.arn
+  topic_arn = aws_sns_topic.async_sagemaker_success_topic.arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.lambda_s3_move_output.arn
 }
@@ -77,7 +78,7 @@ resource "aws_lambda_permission" "with_sns" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_s3_move_output.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.async-sagemaker-success-topic.arn
+  source_arn    = aws_sns_topic.async_sagemaker_success_topic.arn
 }
 
 data "aws_iam_policy_document" "sns_publish_and_read_policy" {
@@ -89,7 +90,8 @@ data "aws_iam_policy_document" "sns_publish_and_read_policy" {
       type        = "Service"
       identifiers = ["sagemaker.amazonaws.com"]
     }
-    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:async-sagemaker-success-topic"]
+    # TODO: circular dependency to get this ARN programmatically
+    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:${var.prefix}-async-sagemaker-success-topic"]
   }
   statement {
     sid     = "sns_publish_and_read_policy_2"
@@ -99,6 +101,7 @@ data "aws_iam_policy_document" "sns_publish_and_read_policy" {
       type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
-    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:async-sagemaker-success-topic"]
+    # TODO: circular dependency to get this ARN programmatically
+    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:${var.prefix}-async-sagemaker-success-topic"]
   }
 }

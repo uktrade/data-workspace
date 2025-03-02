@@ -256,36 +256,3 @@ resource "aws_acm_certificate_validation" "airflow_webserver" {
   count           = var.airflow_on ? 1 : 0
   certificate_arn = aws_acm_certificate.airflow_webserver[count.index].arn
 }
-
-# resource "aws_route53_record" "jupyterhub" {
-#   zone_id = "${data.aws_route53_zone.aws_route53_zone.zone_id}"
-#   name    = "${var.jupyterhub_domain}."
-#   type    = "A"
-
-#   alias {
-#     name                   = "${aws_alb.jupyterhub.dns_name}"
-#     zone_id                = "${aws_alb.jupyterhub.zone_id}"
-#     evaluate_target_health = false
-#   }
-
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
-
-# resource "aws_acm_certificate" "jupyterhub" {
-#   domain_name       = "${aws_route53_record.jupyterhub.name}"
-#   validation_method = "DNS"
-
-#   # subject_alternative_names = [
-#   #   "${var.jupyterhub_secondary_domain}",
-#   # ]
-
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
-
-# resource "aws_acm_certificate_validation" "jupyterhub" {
-#   certificate_arn = "${aws_acm_certificate.jupyterhub.arn}"
-# }

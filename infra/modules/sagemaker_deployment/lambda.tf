@@ -40,7 +40,7 @@ resource "aws_sns_topic_subscription" "sns_lambda_subscription_scale_down_from_n
 resource "aws_lambda_function" "teams_alert" {
   filename         = data.archive_file.lambda_payload.output_path
   source_code_hash = data.archive_file.lambda_payload.output_base64sha256
-  function_name    = "${var.model_name}-teams-alert"
+  function_name    = "${aws_sagemaker_model.main.name}-teams-alert"
   role             = aws_iam_role.teams_lambda.arn
   handler          = "sns_to_microsoft_teams.lambda_handler"
   runtime          = "python3.12"
@@ -76,7 +76,7 @@ resource "aws_lambda_permission" "allow_sns_scale_down_from_n_to_nm1" {
 
 
 resource "aws_iam_role" "teams_lambda" {
-  name = "${var.model_name}-teams-lambda-role"
+  name = "${aws_sagemaker_model.main.name}-teams-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -94,7 +94,7 @@ resource "aws_iam_role" "teams_lambda" {
 
 
 resource "aws_iam_policy" "teams_lambda" {
-  name = "${var.model_name}-teams-lambda-policy"
+  name = "${aws_sagemaker_model.main.name}-teams-lambda-policy"
 
   policy = jsonencode({
     Version = "2012-10-17",

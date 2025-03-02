@@ -11,7 +11,6 @@ module "gpt_neo_125m_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   max_capacity          = 2
-  min_capacity          = 0
   scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
@@ -39,14 +38,15 @@ module "gpt_neo_125m_deployment" {
   datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs
-  source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
-  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
-  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
-  execution_role_arn    = module.iam[0].inference_role
-  teams_webhook_url     = var.teams_webhook_url
+  source                  = "./modules/sagemaker_deployment"
+  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
+  aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn      = module.iam[0].inference_role
+  teams_webhook_url       = var.teams_webhook_url
+  s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
+  environment_name_prefix = var.prefix
 }
 
 ################
@@ -62,7 +62,6 @@ module "flan_t5_780m_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   max_capacity          = 2
-  min_capacity          = 0
   scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
@@ -90,14 +89,15 @@ module "flan_t5_780m_deployment" {
   datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs
-  source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
-  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
-  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
-  execution_role_arn    = module.iam[0].inference_role
-  teams_webhook_url     = var.teams_webhook_url
+  source                  = "./modules/sagemaker_deployment"
+  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
+  aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn      = module.iam[0].inference_role
+  teams_webhook_url       = var.teams_webhook_url
+  s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
+  environment_name_prefix = var.prefix
 }
 
 
@@ -114,7 +114,6 @@ module "phi_2_3b_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
-  min_capacity          = 0
   scale_up_cooldown     = 900
   scale_down_cooldown   = 0
   environment_variables = {
@@ -141,14 +140,15 @@ module "phi_2_3b_deployment" {
   datapoints_to_alarm_low  = 15
 
   # These variables do not change between LLMs
-  source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
-  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
-  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
-  execution_role_arn    = module.iam[0].inference_role
-  teams_webhook_url     = var.teams_webhook_url
+  source                  = "./modules/sagemaker_deployment"
+  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
+  aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn      = module.iam[0].inference_role
+  teams_webhook_url       = var.teams_webhook_url
+  s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
+  environment_name_prefix = var.prefix
 }
 
 
@@ -165,7 +165,6 @@ module "llama_3_3b_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
-  min_capacity          = 0
   scale_up_cooldown     = 900 * 4
   scale_down_cooldown   = 0
   environment_variables = {
@@ -194,14 +193,15 @@ module "llama_3_3b_deployment" {
   datapoints_to_alarm_low  = 15 * 4
 
   # These variables do not change between LLMs
-  source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
-  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
-  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
-  execution_role_arn    = module.iam[0].inference_role
-  teams_webhook_url     = var.teams_webhook_url
+  source                  = "./modules/sagemaker_deployment"
+  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
+  aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn      = module.iam[0].inference_role
+  teams_webhook_url       = var.teams_webhook_url
+  s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
+  environment_name_prefix = var.prefix
 }
 
 
@@ -218,7 +218,6 @@ module "llama_3_3b_instruct_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
-  min_capacity          = 0
   scale_up_cooldown     = 900 * 4
   scale_down_cooldown   = 0
   environment_variables = {
@@ -247,14 +246,15 @@ module "llama_3_3b_instruct_deployment" {
   datapoints_to_alarm_low  = 15 * 4
 
   # These variables do not change between LLMs
-  source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
-  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
-  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
-  execution_role_arn    = module.iam[0].inference_role
-  teams_webhook_url     = var.teams_webhook_url
+  source                  = "./modules/sagemaker_deployment"
+  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
+  aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn      = module.iam[0].inference_role
+  teams_webhook_url       = var.teams_webhook_url
+  s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
+  environment_name_prefix = var.prefix
 }
 
 
@@ -271,7 +271,6 @@ module "mistral_7b_instruct_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
   max_capacity          = 2
-  min_capacity          = 0
   scale_up_cooldown     = 900 * 4
   scale_down_cooldown   = 0
   environment_variables = {
@@ -299,12 +298,13 @@ module "mistral_7b_instruct_deployment" {
   datapoints_to_alarm_low  = 15 * 4
 
   # These variables do not change between LLMs
-  source                = "./modules/sagemaker_deployment"
-  security_group_ids    = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
-  subnets               = aws_subnet.sagemaker_private_without_egress.*.id
-  s3_output_path        = "https://${module.iam[0].default_sagemaker_bucket.bucket_regional_domain_name}"
-  aws_account_id        = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn = module.sagemaker_output_mover[0].sns_success_topic_arn
-  execution_role_arn    = module.iam[0].inference_role
-  teams_webhook_url     = var.teams_webhook_url
+  source                  = "./modules/sagemaker_deployment"
+  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
+  aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  execution_role_arn      = module.iam[0].inference_role
+  teams_webhook_url       = var.teams_webhook_url
+  s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
+  environment_name_prefix = var.prefix
 }

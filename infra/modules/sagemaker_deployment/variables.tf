@@ -10,12 +10,6 @@ variable "model_name" {
 }
 
 
-variable "s3_output_path" {
-  type        = string
-  description = "Where the async output of the model is sent"
-}
-
-
 variable "execution_role_arn" {
   type        = string
   description = "Execution role ARN for SageMaker"
@@ -67,12 +61,6 @@ variable "instance_type" {
 variable "max_capacity" {
   type        = number
   description = "Maximum capacity for autoscaling"
-}
-
-
-variable "min_capacity" {
-  type        = number
-  description = "Minimum capacity for autoscaling"
 }
 
 
@@ -166,4 +154,16 @@ variable "aws_account_id" {
 
 variable "teams_webhook_url" {
   type = string
+}
+
+
+variable "s3_output_path" {
+  type        = string
+  description = "The s3 location for async results"
+}
+
+
+variable "environment_name_prefix" {
+  type        = string
+  description = "Environment variable prefix"
 }

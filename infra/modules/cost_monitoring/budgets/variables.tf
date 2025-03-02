@@ -1,6 +1,6 @@
-variable "budget_name" {
+variable "budget_name_prefix" {
   type        = string
-  description = "AWS Budget name"
+  description = "AWS Budget name prefix"
 }
 
 variable "budget_limit" {
