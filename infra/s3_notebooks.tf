@@ -76,8 +76,34 @@ data "aws_iam_policy_document" "notebooks" {
       test     = "StringEquals"
       variable = "aws:SourceVpce"
       values = [
-        aws_vpc_endpoint.s3.id
+        aws_vpc_endpoint.s3.id,
       ]
+    }
+  }
+
+  dynamic "statement" {
+
+    for_each = var.sagemaker_on ? [1] : []
+
+    content {
+      effect = "Allow"
+      principals {
+        type        = "*"
+        identifiers = ["*"]
+      }
+      actions = [
+        "s3:GetObject",
+      ]
+      resources = [
+        "arn:aws:s3:::${aws_s3_bucket.notebooks.id}/shared/*",
+      ]
+      condition {
+        test     = "StringEquals"
+        variable = "aws:SourceVpce"
+        values = [
+          aws_vpc_endpoint.sagemaker_s3[0].id,
+        ]
+      }
     }
   }
 }
