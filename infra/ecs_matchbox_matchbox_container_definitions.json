@@ -48,6 +48,10 @@
       {
         "name": "MB__POSTGRES__DB_SCHEMA",
         "value": "mb"
+      },
+      {
+        "name": "SENTRY_MATCHBOX_DSN",
+        "value": "${sentry_matchbox_dsn}"
       }
     ],
     "essential": true,

@@ -92,6 +92,7 @@ module "jupyterhub" {
 
   sentry_dsn           = "REPLACE_ME"
   sentry_notebooks_dsn = "REPLACE_ME"
+  sentry_matchbox_dsn  = "REPLACE_ME"
   sentry_environment   = "Production"
 
   healthcheck_domain = "REPLACE_ME"
