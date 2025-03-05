@@ -87,7 +87,7 @@ resource "aws_ecs_task_definition" "mlflow_service" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

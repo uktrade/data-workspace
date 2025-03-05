@@ -155,7 +155,7 @@ resource "aws_ecs_task_definition" "arango_service" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

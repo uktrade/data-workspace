@@ -101,7 +101,7 @@ resource "aws_ecs_task_definition" "dns_rewrite_proxy" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

@@ -110,7 +110,7 @@ resource "aws_ecs_task_definition" "gitlab" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }
@@ -408,7 +408,7 @@ resource "aws_rds_cluster" "gitlab" {
 
   lifecycle {
     ignore_changes = [
-      "engine_version",
+      engine_version,
     ]
   }
 }

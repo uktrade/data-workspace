@@ -83,7 +83,7 @@ resource "aws_ecs_task_definition" "prometheus" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

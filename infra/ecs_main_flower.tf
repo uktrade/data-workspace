@@ -48,7 +48,7 @@ resource "aws_ecs_task_definition" "flower_service" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

@@ -82,7 +82,7 @@ resource "aws_ecs_task_definition" "healthcheck" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

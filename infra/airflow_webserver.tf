@@ -163,7 +163,7 @@ resource "aws_ecs_task_definition" "airflow_webserver" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }
