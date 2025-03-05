@@ -95,6 +95,7 @@ variable "mirrors_bucket_non_prod_account_ids" {
 
 variable "sentry_dsn" {}
 variable "sentry_notebooks_dsn" {}
+variable "sentry_matchbox_dsn" {}
 variable "sentry_environment" {}
 
 variable "airflow_authbroker_client_id" {}
