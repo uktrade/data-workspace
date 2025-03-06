@@ -138,7 +138,7 @@ resource "aws_ecs_service" "admin" {
 
   depends_on = [
     # The target group must have been associated with the listener first
-    "aws_alb_listener.admin",
+    aws_alb_listener.admin,
   ]
 }
 
@@ -175,7 +175,7 @@ resource "aws_ecs_task_definition" "admin" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }
@@ -221,7 +221,7 @@ resource "aws_ecs_task_definition" "admin_celery" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }
@@ -648,7 +648,7 @@ resource "aws_alb" "admin" {
   }
 
   depends_on = [
-    "aws_s3_bucket_policy.alb_access_logs",
+    aws_s3_bucket_policy.alb_access_logs,
   ]
 }
 

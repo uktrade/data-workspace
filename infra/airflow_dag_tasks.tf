@@ -41,7 +41,7 @@ resource "aws_ecs_task_definition" "airflow_dag_tasks" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

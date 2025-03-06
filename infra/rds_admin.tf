@@ -28,9 +28,9 @@ resource "aws_db_instance" "admin" {
 
   lifecycle {
     ignore_changes = [
-      "snapshot_identifier",
-      "final_snapshot_identifier",
-      "engine_version",
+      snapshot_identifier,
+      final_snapshot_identifier,
+      engine_version,
     ]
   }
 }
