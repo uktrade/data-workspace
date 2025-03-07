@@ -21,7 +21,7 @@ resource "aws_ecs_service" "superset" {
   }
 
   depends_on = [
-    "aws_lb_listener.superset_443",
+    aws_lb_listener.superset_443,
   ]
 }
 
@@ -58,7 +58,7 @@ resource "aws_ecs_task_definition" "superset_service" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

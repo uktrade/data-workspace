@@ -15,7 +15,7 @@ resource "aws_rds_cluster" "datasets" {
 
   timeouts {}
   lifecycle {
-    ignore_changes = ["master_password", "engine_version"]
+    ignore_changes = [master_password, engine_version]
   }
 }
 
@@ -31,7 +31,7 @@ resource "aws_rds_cluster_instance" "datasets" {
   monitoring_interval          = var.datasets_rds_cluster_instance_monitoring_interval
 
   lifecycle {
-    ignore_changes = ["engine_version"]
+    ignore_changes = [engine_version]
   }
 }
 

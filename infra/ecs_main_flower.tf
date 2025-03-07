@@ -20,7 +20,7 @@ resource "aws_ecs_service" "flower" {
   }
 
   depends_on = [
-    "aws_lb_listener.flower_80",
+    aws_lb_listener.flower_80,
   ]
 }
 
@@ -48,7 +48,7 @@ resource "aws_ecs_task_definition" "flower_service" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }
