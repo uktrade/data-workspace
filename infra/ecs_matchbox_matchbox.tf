@@ -13,6 +13,7 @@ locals {
     mb__postgres__user     = "${aws_rds_cluster.matchbox[i].master_username}"
     mb__postgres__password = "${random_string.aws_db_instance_matchbox_password[i].result}"
     mb__postgres__database = "${aws_rds_cluster.matchbox[i].database_name}"
+    sentry_matchbox_dsn    = "${var.sentry_matchbox_dsn}"
   }]
 }
 
@@ -72,7 +73,7 @@ resource "aws_ecs_task_definition" "matchbox_service" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }
@@ -357,4 +358,12 @@ resource "aws_cloudwatch_log_group" "matchbox" {
   count             = var.matchbox_on ? 1 : 0
   name              = "${var.prefix}-matchbox"
   retention_in_days = "3653"
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "matchbox" {
+  count           = var.cloudwatch_subscription_filter && var.matchbox_on ? 1 : 0
+  name            = "${var.prefix}-matchbox"
+  log_group_name  = aws_cloudwatch_log_group.matchbox[count.index].name
+  filter_pattern  = ""
+  destination_arn = var.cloudwatch_destination_arn
 }

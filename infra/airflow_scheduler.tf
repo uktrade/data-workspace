@@ -70,7 +70,7 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }
