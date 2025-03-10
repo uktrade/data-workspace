@@ -41,6 +41,8 @@ variable "subnets_num_bits" {}
 variable "vpc_notebooks_cidr" {}
 variable "vpc_notebooks_subnets_num_bits" {}
 variable "vpc_datasets_cidr" {}
+variable "vpc_sagemaker_cidr" {}
+variable "vpc_sagemaker_subnets_num_bits" {}
 
 variable "aws_route53_zone" {}
 variable "admin_domain" {}
@@ -48,9 +50,7 @@ variable "appstream_domain" {}
 variable "support_domain" {}
 
 variable "admin_db_instance_class" {}
-variable "admin_db_instance_version" {
-  default = "10.15"
-}
+variable "admin_db_instance_version" {}
 variable "admin_db_instance_allocated_storage" {
   type    = number
   default = 200
@@ -275,38 +275,84 @@ variable "s3_prefixes_for_external_role_copy" {
   default = ["import-data", "export-data"]
 }
 
+variable "teams_webhook_url" { default = "" }
+variable "sagemaker_budget_emails" { default = [""] }
+
+variable "sagemaker_on" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_gpt_neo_125m" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_flan_t5_780m" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_phi_2_3b" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_llama_3_3b" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_llama_3_3b_instruct" {
+  type    = bool
+  default = false
+}
+
+variable "sagemaker_mistral_7b_instruct" {
+  type    = bool
+  default = false
+}
+
 variable "matchbox_on" {
   type    = bool
   default = false
 }
+
 variable "matchbox_dev_mode_on" {
   type    = bool
   default = false
 }
+
 variable "vpc_matchbox_cidr" {
   type    = string
   default = ""
 }
+
 variable "matchbox_instances" {
   type    = list(string)
   default = []
 }
+
 variable "matchbox_instances_long" {
   type    = list(string)
   default = []
 }
+
 variable "matchbox_db_instance_class" {
   type    = string
   default = ""
 }
+
 variable "vpc_matchbox_subnets_num_bits" {
   type    = string
   default = ""
 }
+
 variable "matchbox_s3_cache" {
   type    = string
   default = ""
 }
+
 variable "matchbox_s3_dev_artefacts" {
   type    = string
   default = ""
