@@ -257,20 +257,6 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
       ]
     }
   }
-
-  dynamic "statement" {
-
-    for_each = var.sagemaker_on ? [1] : []
-
-    content {
-      actions = [
-        "ec2:*VpcEndpoint*"
-      ]
-      resources = [
-        "*",
-      ]
-    }
-  }
 }
 
 resource "aws_vpc_endpoint" "s3" {
