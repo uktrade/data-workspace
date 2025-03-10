@@ -124,41 +124,6 @@ data "aws_iam_policy_document" "notebook_task_execution" {
     ]
   }
 
-  dynamic "statement" {
-
-    for_each = var.sagemaker_on ? [1] : []
-
-    content {
-      actions = [
-        "sagemaker:DescribeEndpoint",
-        "sagemaker:DescribeEndpointConfig",
-        "sagemaker:DescribeModel",
-        "sagemaker:InvokeEndpointAsync",
-        "sagemaker:ListEndpoints",
-        "sagemaker:ListEndpointConfigs",
-        "sagemaker:ListModels",
-      ]
-
-      resources = [
-        "*",
-      ]
-    }
-  }
-
-  dynamic "statement" {
-
-    for_each = var.sagemaker_on ? [1] : []
-
-    content {
-      actions = [
-        "ec2:*VpcEndpoint*"
-      ]
-      resources = [
-        "*",
-      ]
-    }
-  }
-
   statement {
     actions = [
       "ecr:GetAuthorizationToken",
