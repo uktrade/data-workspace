@@ -47,7 +47,7 @@ resource "aws_ecs_service" "mlflow" {
   }
 
   depends_on = [
-    "aws_lb_listener.mlflow",
+    aws_lb_listener.mlflow,
   ]
 }
 

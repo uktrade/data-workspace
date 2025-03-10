@@ -23,7 +23,7 @@ resource "aws_ecs_service" "prometheus" {
 
   depends_on = [
     # The target group must have been associated with the listener first
-    "aws_alb_listener.prometheus",
+    aws_alb_listener.prometheus,
   ]
 }
 
@@ -194,7 +194,7 @@ resource "aws_alb" "prometheus" {
   }
 
   depends_on = [
-    "aws_s3_bucket_policy.alb_access_logs",
+    aws_s3_bucket_policy.alb_access_logs,
   ]
 }
 

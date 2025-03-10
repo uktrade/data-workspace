@@ -39,7 +39,7 @@ resource "aws_lb_target_group" "dns_rewrite_proxy" {
     port     = "8888"
   }
 
-  depends_on = ["aws_lb.dns_rewrite_proxy"]
+  depends_on = [aws_lb.dns_rewrite_proxy]
 }
 
 resource "aws_ecs_service" "dns_rewrite_proxy" {

@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "pgadmin" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

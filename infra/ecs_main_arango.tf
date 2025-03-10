@@ -28,8 +28,8 @@ resource "aws_ecs_service" "arango" {
 
   depends_on = [
     # The target group must have been associated with the listener first
-    "aws_lb_listener.arango",
-    "aws_autoscaling_group.arango_service"
+    aws_lb_listener.arango,
+    aws_autoscaling_group.arango_service
   ]
 }
 

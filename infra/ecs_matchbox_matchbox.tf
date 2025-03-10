@@ -73,7 +73,7 @@ resource "aws_ecs_task_definition" "matchbox_service" {
 
   lifecycle {
     ignore_changes = [
-      "revision",
+      revision,
     ]
   }
 }

@@ -648,7 +648,7 @@ resource "aws_alb" "admin" {
   }
 
   depends_on = [
-    "aws_s3_bucket_policy.alb_access_logs",
+    aws_s3_bucket_policy.alb_access_logs,
   ]
 }
 
