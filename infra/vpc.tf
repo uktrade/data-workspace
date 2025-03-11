@@ -925,22 +925,6 @@ resource "aws_route_table_association" "private_without_egress_sagemaker" {
   route_table_id = aws_route_table.sagemaker[0].id
 }
 
-resource "aws_route" "main_private_with_egress_to_sagemaker" {
-  count = var.sagemaker_on ? length(var.aws_availability_zones) : 0
-
-  route_table_id            = aws_route_table.private_with_egress.id
-  destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
-  vpc_peering_connection_id = aws_vpc_peering_connection.main_to_sagemaker[0].id
-}
-
-resource "aws_route" "sagemaker_to_main_private_with_egress" {
-  count = var.sagemaker_on ? length(var.aws_availability_zones) : 0
-
-  route_table_id            = aws_route_table.sagemaker[0].id
-  destination_cidr_block    = aws_subnet.private_with_egress.*.cidr_block[count.index]
-  vpc_peering_connection_id = aws_vpc_peering_connection.main_to_sagemaker[0].id
-}
-
 resource "aws_vpc_endpoint_route_table_association" "s3_sagemaker" {
   count           = var.sagemaker_on ? 1 : 0
   vpc_endpoint_id = aws_vpc_endpoint.sagemaker_s3[0].id
