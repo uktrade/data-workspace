@@ -611,51 +611,6 @@ resource "aws_security_group_rule" "sagemaker_endpoint_egress_to_sagemaker_vpc" 
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "egress_sagemaker_vpc" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "egress-sagemaker-vpc"
-
-  security_group_id = aws_security_group.sagemaker[0].id
-  cidr_blocks       = [aws_vpc.main.cidr_block]
-
-  type      = "egress"
-  from_port = "0"
-  to_port   = "65535"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "ingress_notebooks_vpc" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "egress-sagemaker-vpc"
-
-  security_group_id = aws_security_group.sagemaker[0].id
-  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "ingress_main_vpc" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "ingress-main-sagemaker-vpc"
-
-  security_group_id = aws_security_group.sagemaker[0].id
-  cidr_blocks       = [aws_vpc.main.cidr_block]
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
 #######################
 
 resource "aws_security_group" "cloudwatch" {
