@@ -1055,6 +1055,9 @@ resource "aws_vpc_endpoint" "sagemaker_api_endpoint_main" {
 }
 
 data "aws_iam_policy_document" "sagemaker_vpc_endpoint_policy" {
+  # Prevents access to other AWS accounts through the VPC endpoint. There are policies on the
+  # roles themselves that restrict the actions and/or resources
+
   count = var.sagemaker_on ? 1 : 0
   statement {
     principals {
@@ -1062,17 +1065,16 @@ data "aws_iam_policy_document" "sagemaker_vpc_endpoint_policy" {
       identifiers = ["*"]
     }
     actions = [
-      "sagemaker:DescribeEndpoint",
-      "sagemaker:DescribeEndpointConfig",
-      "sagemaker:DescribeModel",
-      "sagemaker:InvokeEndpointAsync",
-      "sagemaker:ListEndpoints",
-      "sagemaker:ListEndpointConfigs",
-      "sagemaker:ListModels",
+      "*",
     ]
     resources = [
-      "arn:aws:sagemaker:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:*/*",
+      "*",
     ]
+    condition {
+      test     = "StringLike"
+      variable = "aws:PrincipalArn"
+      values   = ["arn:aws:iam::${data.aws_caller_identity.aws_caller_identity.account_id}:role/*"]
+    }
   }
 }
 
