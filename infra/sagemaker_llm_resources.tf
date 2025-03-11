@@ -39,7 +39,7 @@ module "gpt_neo_125m_deployment" {
 
   # These variables do not change between LLMs
   source                  = "./modules/sagemaker_deployment"
-  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  security_group_ids      = [aws_security_group.sagemaker[0].id]
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
@@ -90,7 +90,7 @@ module "flan_t5_780m_deployment" {
 
   # These variables do not change between LLMs
   source                  = "./modules/sagemaker_deployment"
-  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  security_group_ids      = [aws_security_group.sagemaker[0].id]
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
@@ -141,7 +141,7 @@ module "phi_2_3b_deployment" {
 
   # These variables do not change between LLMs
   source                  = "./modules/sagemaker_deployment"
-  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  security_group_ids      = [aws_security_group.sagemaker[0].id]
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
@@ -194,7 +194,7 @@ module "llama_3_3b_deployment" {
 
   # These variables do not change between LLMs
   source                  = "./modules/sagemaker_deployment"
-  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  security_group_ids      = [aws_security_group.sagemaker[0].id]
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
@@ -247,7 +247,7 @@ module "llama_3_3b_instruct_deployment" {
 
   # These variables do not change between LLMs
   source                  = "./modules/sagemaker_deployment"
-  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  security_group_ids      = [aws_security_group.sagemaker[0].id]
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
@@ -299,7 +299,7 @@ module "mistral_7b_instruct_deployment" {
 
   # These variables do not change between LLMs
   source                  = "./modules/sagemaker_deployment"
-  security_group_ids      = [aws_security_group.sagemaker[0].id, aws_security_group.sagemaker_endpoints[0].id]
+  security_group_ids      = [aws_security_group.sagemaker[0].id]
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
