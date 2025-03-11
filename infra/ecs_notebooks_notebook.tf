@@ -368,34 +368,6 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
       "arn:aws:s3:::amazonlinux.*.amazonaws.com/*",
     ]
   }
-
-  dynamic "statement" {
-
-    for_each = var.sagemaker_on ? [1] : []
-
-    content {
-
-      principals {
-        type        = "AWS"
-        identifiers = ["*"]
-      }
-
-      actions = [
-        "s3:ListBucket",
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:GetBucketLocation",
-      ]
-
-      resources = [
-        "arn:aws:s3:::jumpstart-cache-prod-eu-west-2/*",
-        "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2/*",
-        "arn:aws:s3:::jumpstart-cache-prod-eu-west-2",
-        "arn:aws:s3:::jumpstart-private-cache-prod-eu-west-2",
-      ]
-    }
-  }
 }
 
 resource "aws_iam_policy" "notebook_task_boundary" {
