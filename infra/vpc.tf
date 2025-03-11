@@ -1071,8 +1071,7 @@ data "aws_iam_policy_document" "sagemaker_vpc_endpoint_policy" {
       "sagemaker:ListModels",
     ]
     resources = [
-      "arn:aws:sagemaker:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:*/*",
-    ]
+        "*",    ]
   }
 }
 
