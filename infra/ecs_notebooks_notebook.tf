@@ -253,7 +253,7 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
       ]
 
       resources = [
-        "arn:aws:sagemaker:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:*/*",
+        "*",
       ]
     }
   }
@@ -457,7 +457,7 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
       ]
 
       resources = [
-        "arn:aws:sagemaker:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:*/*",
+        "*",
       ]
     }
   }
