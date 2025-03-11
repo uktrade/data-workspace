@@ -286,15 +286,6 @@ resource "aws_route" "private_without_egress_to_jupyterhub" {
   vpc_peering_connection_id = aws_vpc_peering_connection.jupyterhub.id
 }
 
-resource "aws_route" "pcx_notebooks_to_sagemaker_endpoints" {
-
-  count = var.sagemaker_on ? length(var.aws_availability_zones) : 0
-
-  route_table_id            = aws_route_table.private_without_egress.id
-  destination_cidr_block    = aws_subnet.sagemaker_private_without_egress.*.cidr_block[count.index]
-  vpc_peering_connection_id = aws_vpc_peering_connection.sagemaker_to_notebooks[0].id
-}
-
 resource "aws_route" "private_without_egress_to_matchbox" {
   count = var.matchbox_on ? length(var.aws_availability_zones) : 0
 
@@ -912,28 +903,6 @@ resource "aws_vpc_peering_connection" "main_to_sagemaker" {
   }
 }
 
-# To enable connection between tools in the notebooks VPC and Sagemaker
-resource "aws_vpc_peering_connection" "sagemaker_to_notebooks" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  peer_vpc_id = aws_vpc.notebooks.id
-  vpc_id      = aws_vpc.sagemaker[0].id
-  auto_accept = true
-
-  accepter {
-    allow_remote_vpc_dns_resolution = false
-  }
-
-  requester {
-    allow_remote_vpc_dns_resolution = false
-  }
-
-  tags = {
-    Name = "${var.prefix}-sagemaker-to-notebooks"
-  }
-}
-
 resource "aws_route_table" "sagemaker" {
 
   count = var.sagemaker_on ? 1 : 0
@@ -970,13 +939,6 @@ resource "aws_route" "sagemaker_to_main_private_with_egress" {
   route_table_id            = aws_route_table.sagemaker[0].id
   destination_cidr_block    = aws_subnet.private_with_egress.*.cidr_block[count.index]
   vpc_peering_connection_id = aws_vpc_peering_connection.main_to_sagemaker[0].id
-}
-
-resource "aws_route" "pcx_sagemaker_to_notebooks" {
-  count                     = var.sagemaker_on ? 1 : 0
-  route_table_id            = aws_route_table.sagemaker[0].id
-  destination_cidr_block    = aws_vpc.notebooks.cidr_block
-  vpc_peering_connection_id = aws_vpc_peering_connection.sagemaker_to_notebooks[0].id
 }
 
 resource "aws_vpc_endpoint_route_table_association" "s3_sagemaker" {
