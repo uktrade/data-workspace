@@ -3,6 +3,11 @@ variable "sns_success_topic_arn" {
   description = "ARN of the SNS topic for Sagemaker successful async outputs"
 }
 
+variable "sns_error_topic_arn" {
+  type        = string
+  description = "ARN of the SNS topic for Sagemaker error async outputs"
+}
+
 
 variable "model_name" {
   type        = string
