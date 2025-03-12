@@ -581,7 +581,7 @@ resource "aws_security_group_rule" "sagemaker_egress_to_sagemaker_endpoints" {
 
   count = var.sagemaker_on ? 1 : 0
 
-  description = "egress-to-sagemaker-endpoints"
+  description = "sagemaker-egress-to-sagemaker-endpoints"
 
   security_group_id        = aws_security_group.sagemaker[0].id
   source_security_group_id = aws_security_group.sagemaker_endpoints[0].id
@@ -596,7 +596,7 @@ resource "aws_security_group_rule" "sagemaker_egress_to_s3_endpoint" {
 
   count = var.sagemaker_on ? 1 : 0
 
-  description = "egress-to-s3"
+  description = "sagemaker-egress-to-s3"
 
   security_group_id = aws_security_group.sagemaker[0].id
   prefix_list_ids   = [aws_vpc_endpoint.sagemaker_s3[0].prefix_list_id]
@@ -607,11 +607,11 @@ resource "aws_security_group_rule" "sagemaker_egress_to_s3_endpoint" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "sagemaker_endpoint_egress_to_sagemaker_vpc" {
+resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_sagemaker_vpc" {
 
   count = var.sagemaker_on ? 1 : 0
 
-  description = "ingress-from-sagemaker"
+  description = "ingress-from-sagemaker-to-sagemaker-endpoints"
 
   security_group_id        = aws_security_group.sagemaker_endpoints[0].id
   source_security_group_id = aws_security_group.sagemaker[0].id
