@@ -43,6 +43,7 @@ module "gpt_neo_125m_deployment" {
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
   execution_role_arn      = module.iam[0].inference_role
   teams_webhook_url       = var.teams_webhook_url
   s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
@@ -94,6 +95,7 @@ module "flan_t5_780m_deployment" {
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
   execution_role_arn      = module.iam[0].inference_role
   teams_webhook_url       = var.teams_webhook_url
   s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
@@ -145,6 +147,7 @@ module "phi_2_3b_deployment" {
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
   execution_role_arn      = module.iam[0].inference_role
   teams_webhook_url       = var.teams_webhook_url
   s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
@@ -198,6 +201,7 @@ module "llama_3_3b_deployment" {
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
   execution_role_arn      = module.iam[0].inference_role
   teams_webhook_url       = var.teams_webhook_url
   s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
@@ -251,6 +255,7 @@ module "llama_3_3b_instruct_deployment" {
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
   execution_role_arn      = module.iam[0].inference_role
   teams_webhook_url       = var.teams_webhook_url
   s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
@@ -303,6 +308,7 @@ module "mistral_7b_instruct_deployment" {
   subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
   aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
   execution_role_arn      = module.iam[0].inference_role
   teams_webhook_url       = var.teams_webhook_url
   s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name

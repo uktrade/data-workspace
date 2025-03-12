@@ -40,8 +40,9 @@ resource "aws_sagemaker_endpoint_configuration" "main" {
     output_config {
       s3_output_path = "https://${var.s3_output_path}"
       notification_config {
-        include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC"]
+        include_inference_response_in = ["SUCCESS_NOTIFICATION_TOPIC", "ERROR_NOTIFICATION_TOPIC"]
         success_topic                 = var.sns_success_topic_arn
+        error_topic                   = var.sns_error_topic_arn
       }
     }
   }
