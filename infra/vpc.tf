@@ -1070,7 +1070,7 @@ resource "aws_vpc_endpoint" "sns_endpoint_sagemaker" {
   service_name       = "com.amazonaws.eu-west-2.sns"
   vpc_endpoint_type  = "Interface"
   subnet_ids         = aws_subnet.sagemaker_private_without_egress.*.id
-  security_group_ids = [aws_security_group.sagemaker_endpoints[0].id, aws_security_group.sagemaker[0].id]
+  security_group_ids = [aws_security_group.sagemaker_endpoints[0].id]
   tags = {
     Environment = var.prefix
     Name        = "sns-endpoint"

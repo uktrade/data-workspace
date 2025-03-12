@@ -38,10 +38,6 @@ resource "aws_security_group_rule" "ingress_sagemaker_vpc_endpoint_notebooks_vpc
   protocol  = "tcp"
 }
 
-###############################
-## To test new SageMaker VPC ##
-###############################
-
 resource "aws_security_group" "sagemaker_endpoints" {
   count = var.sagemaker_on ? 1 : 0
 
@@ -56,20 +52,6 @@ resource "aws_security_group" "sagemaker_endpoints" {
   lifecycle {
     create_before_destroy = true
   }
-}
-
-resource "aws_security_group_rule" "sagemaker_vpc_endpoint_egress" {
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "endpoint-egress-notebooks-to-sagemaker-vpc"
-
-  security_group_id = aws_security_group.sagemaker_endpoints[0].id
-  cidr_blocks       = ["0.0.0.0/0"]
-
-  type      = "egress"
-  from_port = "0"
-  to_port   = "65535"
-  protocol  = "tcp"
 }
 
 # SageMaker Execution Role Output

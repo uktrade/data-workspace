@@ -560,10 +560,6 @@ resource "aws_security_group_rule" "notebooks_egress_arango_lb" {
   protocol  = "tcp"
 }
 
-###########################
-## To test SageMaker VPC ##
-###########################
-
 resource "aws_security_group" "sagemaker" {
 
   count = var.sagemaker_on ? 1 : 0
@@ -581,22 +577,7 @@ resource "aws_security_group" "sagemaker" {
   }
 }
 
-resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_sagemaker_vpc" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "ingress-from-sagemaker-endpoints"
-
-  security_group_id        = aws_security_group.sagemaker[0].id
-  source_security_group_id = aws_security_group.sagemaker_endpoints[0].id
-
-  type      = "ingress"
-  from_port = "0"
-  to_port   = "65535"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "sagemaker_endpoint_egress_to_sagemaker_vpc" {
+resource "aws_security_group_rule" "sagemaker_egress_to_sagemaker_endpoints" {
 
   count = var.sagemaker_on ? 1 : 0
 
@@ -606,8 +587,38 @@ resource "aws_security_group_rule" "sagemaker_endpoint_egress_to_sagemaker_vpc" 
   source_security_group_id = aws_security_group.sagemaker_endpoints[0].id
 
   type      = "egress"
-  from_port = "0"
-  to_port   = "65535"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "sagemaker_egress_to_s3_endpoint" {
+
+  count = var.sagemaker_on ? 1 : 0
+
+  description = "egress-to-s3"
+
+  security_group_id = aws_security_group.sagemaker[0].id
+  prefix_list_ids   = [aws_vpc_endpoint.sagemaker_s3[0].prefix_list_id]
+
+  type      = "egress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "sagemaker_endpoint_egress_to_sagemaker_vpc" {
+
+  count = var.sagemaker_on ? 1 : 0
+
+  description = "ingress-from-sagemaker"
+
+  security_group_id        = aws_security_group.sagemaker_endpoints[0].id
+  source_security_group_id = aws_security_group.sagemaker[0].id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
   protocol  = "tcp"
 }
 
