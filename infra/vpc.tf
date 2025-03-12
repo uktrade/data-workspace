@@ -878,31 +878,6 @@ resource "aws_subnet" "sagemaker_private_without_egress" {
   }
 }
 
-##################################################################
-### VPC Peering Connections from SageMaker to Main & Notebooks ###
-##################################################################
-
-resource "aws_vpc_peering_connection" "main_to_sagemaker" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  peer_vpc_id = aws_vpc.sagemaker[0].id
-  vpc_id      = aws_vpc.main.id
-  auto_accept = true
-
-  accepter {
-    allow_remote_vpc_dns_resolution = true
-  }
-
-  requester {
-    allow_remote_vpc_dns_resolution = true
-  }
-
-  tags = {
-    Name = "${var.prefix}-main-to-sagemaker"
-  }
-}
-
 resource "aws_route_table" "sagemaker" {
 
   count = var.sagemaker_on ? 1 : 0
