@@ -29,13 +29,20 @@ resource "aws_security_group_rule" "ingress_sagemaker_vpc_endpoint_notebooks_vpc
 
   description = "endpoint-ingress-from-notebooks-vpc"
 
-  security_group_id = aws_security_group.sagemaker_vpc_endpoints_main[0].id
-  cidr_blocks       = [aws_vpc.notebooks.cidr_block]
+  security_group_id        = aws_security_group.sagemaker_vpc_endpoints_main[0].id
+  source_security_group_id = aws_security_group.notebooks.id
 
   type      = "ingress"
   from_port = "443"
   to_port   = "443"
   protocol  = "tcp"
+
+  depends_on = [
+    # Security groups rules referencing security groups in different VPCs need the peering
+    # connection setup first, and although oddly named, this connection links the notebooks and
+    # main VPCs
+    aws_vpc_peering_connection.jupyterhub
+  ]
 }
 
 resource "aws_security_group" "sagemaker_endpoints" {
