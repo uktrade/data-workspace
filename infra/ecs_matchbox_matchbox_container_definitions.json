@@ -118,7 +118,7 @@
       }
     ],
     "essential": true,
-    "image": "datadog/agent:7",
+    "image": "${datadog_container_image}",
     "networkMode": "awsvpc",
     "logConfiguration": {
       "logDriver": "awslogs",
