@@ -1,19 +1,23 @@
 
 locals {
   matchbox_container_vars = [for i, v in var.matchbox_instances : {
-    container_image        = "${aws_ecr_repository.matchbox[0].repository_url}:master"
-    container_name         = "matchbox"
-    cpu                    = "${local.matchbox_container_cpu}"
-    memory                 = "${local.matchbox_container_memory}"
-    database_uri           = "postgresql://${aws_rds_cluster.matchbox[i].master_username}:${random_string.aws_db_instance_matchbox_password[i].result}@${aws_rds_cluster.matchbox[i].endpoint}:5432/${aws_rds_cluster.matchbox[i].database_name}"
-    matchbox_s3_cache      = "${var.matchbox_s3_cache}-${var.matchbox_instances[i]}"
-    log_group              = "${aws_cloudwatch_log_group.matchbox[0].name}"
-    log_region             = "${data.aws_region.aws_region.name}"
-    mb__postgres__host     = "${aws_rds_cluster.matchbox[i].endpoint}"
-    mb__postgres__user     = "${aws_rds_cluster.matchbox[i].master_username}"
-    mb__postgres__password = "${random_string.aws_db_instance_matchbox_password[i].result}"
-    mb__postgres__database = "${aws_rds_cluster.matchbox[i].database_name}"
-    sentry_matchbox_dsn    = "${var.sentry_matchbox_dsn}"
+    container_image          = "${aws_ecr_repository.matchbox[0].repository_url}:master"
+    container_name           = "matchbox"
+    cpu                      = "${local.matchbox_container_cpu}"
+    memory                   = "${local.matchbox_container_memory}"
+    database_uri             = "postgresql://${aws_rds_cluster.matchbox[i].master_username}:${random_string.aws_db_instance_matchbox_password[i].result}@${aws_rds_cluster.matchbox[i].endpoint}:5432/${aws_rds_cluster.matchbox[i].database_name}"
+    matchbox_s3_cache        = "${var.matchbox_s3_cache}-${var.matchbox_instances[i]}"
+    log_group                = "${aws_cloudwatch_log_group.matchbox[0].name}"
+    log_region               = "${data.aws_region.aws_region.name}"
+    mb__postgres__host       = "${aws_rds_cluster.matchbox[i].endpoint}"
+    mb__postgres__user       = "${aws_rds_cluster.matchbox[i].master_username}"
+    mb__postgres__password   = "${random_string.aws_db_instance_matchbox_password[i].result}"
+    mb__postgres__database   = "${aws_rds_cluster.matchbox[i].database_name}"
+    sentry_matchbox_dsn      = "${var.sentry_matchbox_dsn}"
+    matchbox_datadog_api_key = "${var.matchbox_datadog_api_key}"
+    datadog_container_image  = "datadog/agent:7"
+
+    matchbox_datadog_environment = "${var.matchbox_datadog_environment}"
   }]
 }
 
