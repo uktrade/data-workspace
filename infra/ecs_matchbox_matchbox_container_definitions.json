@@ -82,15 +82,15 @@
     "environment": [
       {
         "name": "DD_API_KEY",
-        "value": ""
+        "value": "${matchbox_datadog_api_key}"
       },
       {
         "name": "DD_SERVICE",
-        "value": ""
+        "value": "matchbox"
       },
       {
         "name": "DD_ENV",
-        "value": ""
+        "value": "${prefix}-matchbox"
       },
       {
         "name": "DD_APM_ENABLED",
@@ -115,7 +115,7 @@
       {
         "name": "DD_HOSTNAME",
         "value": "datadog-agent"
-      },
+      }
     ],
     "essential": true,
     "image": "datadog/agent:7",
@@ -123,9 +123,9 @@
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
-        "awslogs-group": "${dd_agent_log_group}",
-        "awslogs-region": "${dd_agent_log_region}",
-        "awslogs-stream-prefix": "${dd_agent_container_name}"
+        "awslogs-group": "${log_group}",
+        "awslogs-region": "${log_region}",
+        "awslogs-stream-prefix": "datadog-agent"
       }
     },
     "mountPoints": [],
