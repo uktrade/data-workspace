@@ -11,7 +11,7 @@ module "gpt_neo_125m_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   max_capacity          = 2
-  scale_up_cooldown     = 900
+  scale_up_cooldown     = var.sagemaker_gpt_neo_125m_scale_up_cooldown
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -62,7 +62,7 @@ module "flan_t5_780m_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.2xlarge" # 8 vCPU and 1 GPU and 32 GB-RAM
   max_capacity          = 2
-  scale_up_cooldown     = 900
+  scale_up_cooldown     = var.sagemaker_flan_t3_780m_scaleup_cooldown
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -114,7 +114,7 @@ module "phi_2_3b_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
-  scale_up_cooldown     = 900
+  scale_up_cooldown     = var.sagemaker_phi_2_3b_scaleup_cooldown
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -165,7 +165,7 @@ module "llama_3_3b_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
-  scale_up_cooldown     = 900 * 4
+  scale_up_cooldown     = var.sagemaker_llama_3_3b_scaleup_cooldown
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -218,7 +218,7 @@ module "llama_3_3b_instruct_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g6.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
-  scale_up_cooldown     = 900 * 4
+  scale_up_cooldown     = var.sagemaker_llama_3_3b_instruct_scaleup_cooldown
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -271,7 +271,7 @@ module "mistral_7b_instruct_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.12xlarge" # 48 vCPU and 4 GPU and 192 GB-RAM
   max_capacity          = 2
-  scale_up_cooldown     = 900 * 4
+  scale_up_cooldown     = var.sagemaker_mistral_7b_instruct_scaleup_cooldown
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
