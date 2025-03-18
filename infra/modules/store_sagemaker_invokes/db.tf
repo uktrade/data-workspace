@@ -18,8 +18,8 @@ resource "aws_rds_cluster" "sagemaker" {
   enable_global_write_forwarding = false
 
   serverlessv2_scaling_configuration {
-    max_capacity             = 1.0
-    min_capacity             = 0.0
+    max_capacity = 1.0
+    min_capacity = 0.0
   }
 }
 
