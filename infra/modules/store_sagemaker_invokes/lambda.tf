@@ -12,31 +12,27 @@ resource "aws_iam_role" "lambda_sns_to_rds" {
   }] })
 }
 
-resource "aws_iam_role_policy" "lambda_sns-to-rds" {
-  name = "${var.prefix}-policy-for-lambda-sns-to-rds"
-  role = aws_iam_role.lambda_sns_to_rds.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action   = ["SNS:Receive", "SNS:Subscribe"]
-        Effect   = "Allow"
-        Resource = [var.sns_success_topic_arn, var.sns_error_topic_arn]
-      },
-      {
-        Action   = [""]
-        Effect   = "Allow"
-        Resource = "",
-      },
-      {
-        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
-        Effect   = "Allow"
-        Resource = "arn:aws:logs:*:*:*"
-      }
-    ]
-  })
+resource "aws_iam_role_policy" "lambda_sns_to_rds" {
+  name   = "${var.prefix}-policy-for-lambda-sns-to-rds"
+  role   = aws_iam_role.lambda_sns_to_rds.id
+  policy = data.aws_iam_policy_document.lambda_sns_to_rds.json
 }
+
+data "aws_iam_policy_document" "lambda_sns_to_rds" {
+  statement {
+    actions   = ["SNS:Receive", "SNS:Subscribe"]
+    resources = [var.sns_success_topic_arn, var.sns_error_topic_arn]
+  }
+  statement {
+    actions   = ["rds-db:connect", "rds-data:ExecuteStatement"]
+    resources = [aws_rds_cluster.sagemaker.arn]
+  }
+  statement {
+    actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
+    resources = ["arn:aws:logs:*:*:*"]
+  }
+}
+
 
 data "archive_file" "lambda_payload" {
   type        = "zip"
@@ -52,6 +48,12 @@ resource "aws_lambda_function" "lambda_sns_to_rds" {
   handler          = "sns_to_rds.lambda_handler"
   runtime          = "python3.12"
   timeout          = 30
+  environment {
+    variables = {
+      SAGEMAKER_DB_ARN        = aws_rds_cluster.sagemaker.arn
+      SAGEMAKER_DB_SECRET_ARN = aws_secretsmanager_secret.sagemaker_db.arn
+    }
+  }
 }
 
 resource "aws_sns_topic_subscription" "success_topic_lambda" {

@@ -112,7 +112,7 @@ resource "aws_iam_policy" "teams_lambda" {
         Effect   = "Allow",
         Action   = "sns:Publish",
         Resource = "*"
-      }
+      },
     ]
   })
 }
