@@ -52,6 +52,10 @@
       {
         "name": "SENTRY_MATCHBOX_DSN",
         "value": "${sentry_matchbox_dsn}"
+      },
+      {
+        "name": "DD_AGENT_HOST",
+        "value": "127.0.0.1"
       }
     ],
     "essential": true,
@@ -69,10 +73,62 @@
     "cpu": ${cpu},
     "mountPoints": [],
     "name": "${container_name}",
-    "portMappings": [{
-      "containerPort": 8000,
-      "hostPort": 8000,
-      "protocol": "tcp"
-  }]
+      "portMappings": [{
+        "containerPort": 8000,
+        "hostPort": 8000,
+        "protocol": "tcp"
+    }]
+  }, {
+    "environment": [
+      {
+        "name": "DD_API_KEY",
+        "value": "${matchbox_datadog_api_key}"
+      },
+      {
+        "name": "DD_SERVICE",
+        "value": "matchbox"
+      },
+      {
+        "name": "DD_ENV",
+        "value": "${matchbox_datadog_environment}"
+      },
+      {
+        "name": "DD_APM_ENABLED",
+        "value": "true"
+      },
+      {
+        "name": "DD_LOGS_ENABLED",
+        "value": "true"
+      },
+      {
+        "name": "DD_PROFILING_ENABLED",
+        "value": "true"
+      },
+      {
+        "name": "DD_PROCESS_AGENT_PROCESS_COLLECTION_ENABLED",
+        "value": "true"
+      },
+      {
+        "name": "DD_SITE",
+        "value": "datadoghq.eu"
+      },
+      {
+        "name": "DD_HOSTNAME",
+        "value": "127.0.0.1"
+      }
+    ],
+    "essential": true,
+    "image": "${datadog_container_image}",
+    "networkMode": "awsvpc",
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${log_group}",
+        "awslogs-region": "${log_region}",
+        "awslogs-stream-prefix": "datadog-agent"
+      }
+    },
+    "mountPoints": [],
+    "name": "datadog-agent"
   }
 ]
