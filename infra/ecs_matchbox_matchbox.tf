@@ -15,7 +15,7 @@ locals {
     mb__postgres__database   = "${aws_rds_cluster.matchbox[i].database_name}"
     sentry_matchbox_dsn      = "${var.sentry_matchbox_dsn}"
     matchbox_datadog_api_key = "${var.matchbox_datadog_api_key}"
-    datadog_container_image  = "datadog/agent:7"
+    datadog_container_image  = "${aws_ecr_repository.datadog.repository_url}:7"
 
     matchbox_datadog_environment = "${var.matchbox_datadog_environment}"
   }]
@@ -136,6 +136,7 @@ data "aws_iam_policy_document" "matchbox_task_execution" {
 
     resources = [
       "${aws_ecr_repository.matchbox[0].arn}",
+      "${aws_ecr_repository.datadog.arn}",
     ]
   }
 
