@@ -118,3 +118,21 @@ module "budgets" {
   sns_topic_arn       = module.sns[0].sns_topic_arn
   notification_email  = var.sagemaker_budget_emails
 }
+
+
+module "store_sagemaker_invokes" {
+
+  source                                      = "./modules/store_sagemaker_invokes"
+  prefix                                      = var.prefix
+  sagemaker_db_instance_allocated_storage     = 1
+  sagemaker_db_instance_max_allocated_storage = 10
+  sagemaker_db_instance_version               = "17.1"
+  sagemaker_db_instance_class                 = "t4g.micro"
+  aws_region                                  = data.aws_region.aws_region.name
+  account_id                                  = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn                       = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn                         = module.sagemaker_output_mover[0].sns_error_topic_arn
+  vpc_id_sagemaker                            = aws_vpc.sagemaker[0].id
+  aws_subnet_sagemaker                        = aws_subnet.sagemaker_private_without_egress.*.id
+  notebooks_security_group_id                 = aws_security_group.notebooks.id
+}
