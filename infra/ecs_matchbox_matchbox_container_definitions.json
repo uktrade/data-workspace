@@ -85,12 +85,8 @@
         "value": "${matchbox_datadog_api_key}"
       },
       {
-        "name": "DD_SERVICE",
-        "value": "matchbox"
-      },
-      {
-        "name": "DD_ENV",
-        "value": "${matchbox_datadog_environment}"
+        "name": "DD_TAGS",
+        "value": "env:${matchbox_datadog_environment} service:matchbox"
       },
       {
         "name": "DD_APM_ENABLED",
