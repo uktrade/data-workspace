@@ -24,12 +24,16 @@ data "aws_iam_policy_document" "lambda_sns_to_rds" {
     resources = [var.sns_success_topic_arn, var.sns_error_topic_arn]
   }
   statement {
-    actions   = ["rds-db:connect", "rds-data:ExecuteStatement"]
+    actions   = ["rds-db:connect", "rds-data:ExecuteStatement", "rds-data:ExecuteSql", "rds-data:BatchExecuteStatement", "rds-data:BeginTransaction", "rds-data:CommitTransaction", "rds-data:RollbackTransaction"]
     resources = [aws_rds_cluster.sagemaker.arn]
   }
   statement {
     actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
     resources = ["arn:aws:logs:*:*:*"]
+  }
+  statement {
+    actions   = ["secretsmanager:GetSecretValue", "secretsmanager:ListSecrets", "secretsmanager:GetRandomPassword"]
+    resources = [aws_secretsmanager_secret.sagemaker_db.arn]
   }
 }
 

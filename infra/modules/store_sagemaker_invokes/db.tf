@@ -7,7 +7,7 @@ resource "aws_rds_cluster" "sagemaker" {
   backup_retention_period = 31
   preferred_backup_window = "03:29-03:59"
   apply_immediately       = true
-  enable_http_endpoint    = false
+  enable_http_endpoint    = true
 
   vpc_security_group_ids = [aws_security_group.sagemaker_db.id]
   db_subnet_group_name   = aws_db_subnet_group.sagemaker_db.name

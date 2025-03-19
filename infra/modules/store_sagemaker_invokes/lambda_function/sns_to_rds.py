@@ -19,6 +19,7 @@ def lambda_handler(event, context):
 
 def process_message(record):
     try:
+        logger.info(f"Starting processing of message to determine contents")
         message_str = str(record["Sns"]["Message"])
         message_dict = ast.literal_eval(message_str)
         invocation_status = str(message_dict["invocationStatus"])
@@ -47,12 +48,13 @@ def process_message(record):
                 f"{federated_user_id})"
             )
 
-            rds.execute_statement(
+            response = rds.execute_statement(
                 resourceArn=os.getenv("SAGEMAKER_DB_ARN"),
                 secretArn=os.getenv("SAGEMAKER_DB_SECRET_ARN"),
                 sql=sql_statement,
                 database="sagemaker",
             )
+            logger.info(f"Sent to sagemaker database - response contents: {response}")
         else:
             logger.error(f"Unexpected invocation_status {invocation_status}")
     except Exception as e:
