@@ -97,6 +97,10 @@
         "value": "true"
       },
       {
+        "name": "DD_APM_NON_LOCAL_TRAFFIC",
+        "value": "true"
+      },
+      {
         "name": "DD_LOGS_ENABLED",
         "value": "true"
       },
@@ -111,10 +115,6 @@
       {
         "name": "DD_SITE",
         "value": "datadoghq.eu"
-      },
-      {
-        "name": "DD_HOSTNAME",
-        "value": "127.0.0.1"
       }
     ],
     "essential": true,
