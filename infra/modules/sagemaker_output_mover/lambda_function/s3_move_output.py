@@ -1,4 +1,5 @@
 import ast
+import json
 import logging
 
 import boto3
@@ -48,10 +49,9 @@ def process_message(record):
         elif invocation_status == "Failed":
             logger.info(f"Now processing a failed inference from {endpoint_name}")
             error_message = message_dict["responseBody"]["content"]
-            error_message_dict = ast.literal_eval(error_message)
             s3_filepath_output = f"user/federated/{federated_user_id}/sagemaker/errors/{inference_id}.out"  # noqa: E501
             s3.meta.client.put_object(
-                Body=str(error_message_dict["error"]).encode("unicode-escape"),
+                Body=str(error_message).encode("unicode-escape"),
                 Bucket=input_file_bucket,
                 Key=s3_filepath_output,
             )

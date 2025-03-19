@@ -19,7 +19,7 @@ def lambda_handler(event, context):
 
 def process_message(record):
     try:
-        logger.info(f"Starting processing of message to determine contents")
+        logger.info("Starting processing of message to determine contents")
         message_str = str(record["Sns"]["Message"])
         message_dict = ast.literal_eval(message_str)
         invocation_status = str(message_dict["invocationStatus"])
@@ -36,6 +36,7 @@ def process_message(record):
         received_time = datetime.strptime(
             str(message_dict["receivedTime"]), "%Y-%m-%dT%H:%M:%S.%f%z"
         )
+        # TODO: add number of characters
 
         if invocation_status in ["Completed", "Failed"]:
             logger.info(f"Received notification of a {invocation_status} inference")
@@ -47,7 +48,6 @@ def process_message(record):
                 f"{event_time}, {received_time}, {endpoint_name}, "
                 f"{federated_user_id})"
             )
-
             response = rds.execute_statement(
                 resourceArn=os.getenv("SAGEMAKER_DB_ARN"),
                 secretArn=os.getenv("SAGEMAKER_DB_SECRET_ARN"),
