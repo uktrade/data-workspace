@@ -26,9 +26,9 @@ def process_message(record):
         ]
         federated_user_id = input_file_uri.split("/user/federated/")[1].split("/")[0]
         inference_id = message_dict["inferenceId"]
-
+        logging.info(f"Invocation status: {invocation_status}")
         if invocation_status == "Completed":
-            logger.info("Received notification of a completed inference")
+            logger.info(f"Now processing a completed inference from {endpoint_name}")
             output_file_uri = message_dict["responseParameters"]["outputLocation"]
             output_file_bucket = (
                 output_file_uri.split("https://")[1]
@@ -42,11 +42,11 @@ def process_message(record):
             s3_filepath_output = f"user/federated/{federated_user_id}/sagemaker/outputs/{inference_id}.out"  # noqa: E501
             s3.meta.client.copy(copy_source, input_file_bucket, s3_filepath_output)
             logger.info(
-                f"Output from {endpoint_name} with id:{inference_id}"
+                f"Output from {endpoint_name} with id:{inference_id} "
                 "moved to user's files"
             )
         elif invocation_status == "Failed":
-            logger.info("Received notification of a failed inference")
+            logger.info(f"Now processing a failed inference from {endpoint_name}")
             error_message = message_dict["responseBody"]["content"]
             error_message_dict = ast.literal_eval(error_message)
             s3_filepath_output = f"user/federated/{federated_user_id}/sagemaker/errors/{inference_id}.out"  # noqa: E501
@@ -56,8 +56,8 @@ def process_message(record):
                 Key=s3_filepath_output,
             )
             logger.info(
-                f"Output from {endpoint_name} with id:{inference_id}"
-                "failed and error was moved to user's files"
+                f"Output from {endpoint_name} with id:{inference_id} failed and "
+                "the error output was stored to user's files for debugging"
             )
         else:
             logger.error(f"Unexpected invocation_status {invocation_status}")
