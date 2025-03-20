@@ -2,10 +2,10 @@
 name = "lambda_functions"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["boto3"]  # strictly speaking boto3-stubs but this may not be installed in the lambda
+dependencies = ["boto3", "boto3-stubs[s3]"]
 
 [tool.uv]
-dev-dependencies = ["bump-my-version", "ruff"]
+dev-dependencies = ["bump-my-version", "ruff", "mypy"]
 
 [tool.mypy]
 pretty = true
