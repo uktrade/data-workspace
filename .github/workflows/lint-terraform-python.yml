@@ -2,9 +2,9 @@ name: Lint Terraform
 
 on:
   push:
-    branches: [ "main", "feat/sagemaker-llms" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main", "feat/sagemaker-llms" ]
+    branches: ["main"]
 
 jobs:
   lint:
@@ -57,3 +57,4 @@ jobs:
         run: |
           cd infra/modules/
           uv run ruff check .
+          uv run mypy .

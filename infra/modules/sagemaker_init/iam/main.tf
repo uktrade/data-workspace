@@ -83,7 +83,8 @@ data "aws_iam_policy_document" "sagemaker_inference_policy_document" {
     actions = [
       "sns:Publish",
     ]
-    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:${var.prefix}-async-sagemaker-success-topic"]
+    resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:${var.prefix}-async-sagemaker-success-topic",
+    "arn:aws:sns:${var.aws_region}:${var.account_id}:${var.prefix}-async-sagemaker-error-topic"]
   }
 
   statement {
