@@ -56,3 +56,38 @@ variable "aws_subnet_main" {
 variable "notebooks_security_group_id" {
   type = string
 }
+
+
+variable "datasets_db_username" {
+  type = string
+}
+
+
+variable "datasets_db_password" {
+  type = string
+}
+
+
+variable "datasets_db_host" {
+  type = string
+}
+
+
+variable "datasets_db_arn" {
+  type = string
+}
+
+
+variable "datasets_db_secret_arn" {
+  type = string
+}
+
+
+variable "datasets_db_port" {
+  type = string
+}
+
+
+variable "datasets_db_name" {
+  type = string
+}

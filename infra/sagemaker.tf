@@ -135,4 +135,12 @@ module "store_sagemaker_invokes" {
   vpc_id_main                                 = aws_vpc.main.id
   aws_subnet_main                             = aws_subnet.private_with_egress.*.id
   notebooks_security_group_id                 = aws_security_group.notebooks.id
+  datasets_db_username                        = aws_rds_cluster.datasets.master_username
+  datasets_db_password                        = "i8vkmdY0Wg5vtbItzzlvTgLuhHcp7RdJrgdR0dLCsRNTaMGSGGKcxu2sRy7cryVo"
+  datasets_db_host                            = aws_rds_cluster.datasets.endpoint
+  datasets_db_arn                             = aws_rds_cluster.datasets.arn
+  datasets_db_secret_arn                      = "arn:aws:secretsmanager:eu-west-2:339713044404:secret:temp-datasets-db-dev-a-yGSFmW"
+  datasets_db_port                            = aws_rds_cluster.datasets.port
+  datasets_db_name                            = aws_rds_cluster.datasets.database_name
+
 }

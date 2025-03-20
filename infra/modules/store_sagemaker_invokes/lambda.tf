@@ -25,23 +25,23 @@ data "aws_iam_policy_document" "lambda_sns_to_rds" {
   }
   statement {
     actions   = ["rds-db:connect", "rds-data:ExecuteStatement", "rds-data:ExecuteSql", "rds-data:BatchExecuteStatement", "rds-data:BeginTransaction", "rds-data:CommitTransaction", "rds-data:RollbackTransaction"]
-    resources = [aws_rds_cluster.sagemaker.arn]
+    resources = [var.datasets_db_arn]
   }
   statement {
     actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
     resources = ["arn:aws:logs:*:*:*"]
   }
-  statement {
-    actions   = ["secretsmanager:GetSecretValue", "secretsmanager:ListSecrets", "secretsmanager:GetRandomPassword"]
-    resources = [aws_secretsmanager_secret.sagemaker_db.arn]
-  }
+  //statement {
+  //  actions   = ["secretsmanager:GetSecretValue", "secretsmanager:ListSecrets", "secretsmanager:GetRandomPassword"]
+  //  resources = [aws_secretsmanager_secret.sagemaker_db.arn]
+  //}
 }
 
 
 data "archive_file" "lambda_payload" {
   type        = "zip"
-  source_file = "${path.module}/lambda_function/sns_to_rds.py"
-  output_path = "${path.module}/lambda_function/payload.zip"
+  source_dir  = "${path.module}/lambda_function"
+  output_path = "${path.module}/payload.zip"
 }
 
 resource "aws_lambda_function" "lambda_sns_to_rds" {
@@ -52,10 +52,16 @@ resource "aws_lambda_function" "lambda_sns_to_rds" {
   handler          = "sns_to_rds.lambda_handler"
   runtime          = "python3.12"
   timeout          = 30
+  layers           = ["arn:aws:lambda:eu-west-2:339713044404:layer:psycopg3-layer:2"]
   environment {
     variables = {
-      SAGEMAKER_DB_ARN        = aws_rds_cluster.sagemaker.arn
-      SAGEMAKER_DB_SECRET_ARN = aws_secretsmanager_secret.sagemaker_db.arn
+      DATASETS_DB_USERNAME   = var.datasets_db_username
+      DATASETS_DB_PASSWORD   = var.datasets_db_password
+      DATASETS_DB_HOST       = var.datasets_db_host
+      DATASETS_DB_PORT       = var.datasets_db_port
+      DATASETS_DB_NAME       = var.datasets_db_name
+      DATASETS_DB_ARN        = var.datasets_db_arn
+      DATASETS_DB_SECRET_ARN = var.datasets_db_secret_arn
     }
   }
 }

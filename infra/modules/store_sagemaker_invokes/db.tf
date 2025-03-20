@@ -1,3 +1,4 @@
+/*
 resource "aws_rds_cluster" "sagemaker" {
   cluster_identifier      = "${var.prefix}-sagemaker"
   engine                  = "aurora-postgresql"
@@ -97,3 +98,4 @@ resource "random_password" "password" {
   length  = 16
   special = true
 }
+*/

@@ -4,12 +4,18 @@ import os
 import uuid
 from datetime import datetime
 
-import boto3
+import psycopg
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
-rds = boto3.client("rds-data")
+DATASETS_DB_HOST = os.getenv("DATASETS_DB_HOST")
+DATASETS_DB_USERNAME = os.getenv("DATASETS_DB_USERNAME")
+DATASETS_DB_PASSWORD = os.getenv("DATASETS_DB_PASSWORD")
+DATASETS_DB_NAME = os.getenv("DATASETS_DB_NAME")
+DATASETS_DB_PORT = os.getenv("DATASETS_DB_PORT")
+DATASETS_DB_ARN = os.getenv("DATASETS_DB_ARN")
+DATASETS_DB_SECRET_ARN = os.getenv("DATASETS_DB_SECRET_ARN")
 
 
 def lambda_handler(event, context):
@@ -46,15 +52,16 @@ def process_message(record):
                 f"endpoint_name, federated_user_id)\n"
                 f"VALUES ({inference_id}, {invocation_status}, "
                 f"{event_time}, {received_time}, {endpoint_name}, "
-                f"{federated_user_id})"
+                f"{federated_user_id});"
             )
-            response = rds.execute_statement(
-                resourceArn=os.getenv("SAGEMAKER_DB_ARN"),
-                secretArn=os.getenv("SAGEMAKER_DB_SECRET_ARN"),
-                sql=sql_statement,
-                database="sagemaker",
-            )
-            logger.info(f"Sent to sagemaker database - response contents: {response}")
+            with psycopg.connect(
+                f"dbname={DATASETS_DB_NAME} user={DATASETS_DB_USERNAME} password={DATASETS_DB_PASSWORD} host={DATASETS_DB_HOST} port={DATASETS_DB_PORT}"
+            ) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql_statement)
+                    conn.commit()
+
+            logger.info("Sent to sagemaker database")
         else:
             logger.error(f"Unexpected invocation_status {invocation_status}")
     except Exception as e:
