@@ -116,7 +116,7 @@ module "phi_2_3b_deployment" {
   model_uri_compression = "None"
   instance_type         = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
   max_capacity          = 2
-  scale_up_cooldown     = 900
+  scale_up_cooldown     = 900 * 4
   scale_down_cooldown   = 0
   environment_variables = {
     "ENDPOINT_SERVER_TIMEOUT" : "3600",
@@ -138,8 +138,8 @@ module "phi_2_3b_deployment" {
   ram_threshold_low        = 20
   evaluation_periods_high  = 1
   datapoints_to_alarm_high = 1
-  evaluation_periods_low   = 15
-  datapoints_to_alarm_low  = 15
+  evaluation_periods_low   = 15 * 4
+  datapoints_to_alarm_low  = 15 * 4
 
   # These variables do not change between LLMs
   source                  = "./modules/sagemaker_deployment"

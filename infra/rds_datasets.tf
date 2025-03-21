@@ -5,7 +5,7 @@ resource "aws_rds_cluster" "datasets" {
   database_name                   = var.datasets_rds_cluster_database_name
   db_subnet_group_name            = aws_db_subnet_group.datasets.name
   engine                          = var.datasets_rds_cluster_database_engine
-  master_password                 = random_string.aws_rds_cluster_instance_datasets_password.result
+  master_password                 = random_password.datasets_db.result
   master_username                 = var.datasets_rds_cluster_master_username
   storage_encrypted               = var.datasets_rds_cluster_storage_encryption_enabled
   vpc_security_group_ids          = ["${aws_security_group.datasets.id}"]
@@ -27,13 +27,15 @@ resource "aws_rds_cluster_instance" "datasets" {
   instance_class               = var.datasets_rds_cluster_instance_class
   performance_insights_enabled = var.datasets_rds_cluster_instance_performance_insights_enabled
   promotion_tier               = 1
-  db_parameter_group_name      = var.datasets_rds_cluster_instance_parameter_group
+  // TODO: I could not create the db with this parameter?
+  //db_parameter_group_name      = var.datasets_rds_cluster_instance_parameter_group
   monitoring_interval          = var.datasets_rds_cluster_instance_monitoring_interval
 
   lifecycle {
     ignore_changes = [engine_version]
   }
 }
+
 
 resource "aws_db_subnet_group" "datasets" {
   name       = "${var.prefix}-datasets"
@@ -45,11 +47,23 @@ resource "aws_db_subnet_group" "datasets" {
 }
 
 
-resource "random_string" "aws_rds_cluster_instance_datasets_password" {
-  length  = 64
-  special = false
+resource "aws_secretsmanager_secret_version" "datasets_db" {
+  secret_id     = aws_secretsmanager_secret.datasets_db.id
+  secret_string = random_password.datasets_db.result
+}
 
-  lifecycle {
-    ignore_changes = all
+
+resource "aws_secretsmanager_secret" "datasets_db" {
+  name        = "datasets_db"
+  description = "Password for user datasets_db"
+
+  tags = {
+    Name = "${var.prefix}-datasets-db"
   }
+}
+
+
+resource "random_password" "datasets_db" {
+  length  = 16
+  special = true
 }

@@ -2,7 +2,7 @@
 name = "lambda_functions"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["boto3", "boto3-stubs[s3]"]
+dependencies = ["boto3", "boto3-stubs[s3]", "psycopg[binary]"]
 
 [tool.uv]
 dev-dependencies = ["bump-my-version", "ruff", "mypy"]
