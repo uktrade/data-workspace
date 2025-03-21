@@ -52,7 +52,7 @@ def process_message(record: dict[str, Any]) -> None:
         n_characters_payload = int(len(input_payload_str))
 
         if invocation_status in ["Completed", "Failed"]:
-            logger.info(f"Initiating connection to datasets db")
+            logger.info("Initiating connection to datasets db")
             sql_statement = (
                 f"INSERT INTO inferences (id, federated_user_id,"
                 f"invocation_status, event_time, received_time, "

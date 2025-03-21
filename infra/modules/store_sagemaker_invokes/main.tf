@@ -1,15 +1,16 @@
 resource "aws_vpc_endpoint" "lambda_to_rds" {
-  vpc_id            = var.vpc_id_datasets
-  service_name      = "com.amazonaws.eu-west-2.lambda"
-  vpc_endpoint_type = "Interface"
-  //private_dns_enabled = true
+  vpc_id              = var.vpc_id_datasets
+  service_name        = "com.amazonaws.eu-west-2.lambda"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
 
-  //security_group_ids = [var.datasets_security_group_id]
-  //subnet_ids         = var.datasets_subnet_ids
-  route_table_ids      = [var.datasets_route_table_id]
-  policy               = data.aws_iam_policy_document.lambda_endpoint_policy.json
+  security_group_ids = [var.datasets_security_group_id]
+  subnet_ids         = var.datasets_subnet_ids
+  policy             = data.aws_iam_policy_document.lambda_endpoint_policy.json
 }
 
+
+// TODO: these permissions are excessive, given due to current non-working status to explore correct values
 data "aws_iam_policy_document" "lambda_endpoint_policy" {
   statement {
     principals {
@@ -25,6 +26,7 @@ data "aws_iam_policy_document" "lambda_endpoint_policy" {
   }
 }
 
+
 resource "aws_iam_role" "lambda_sns_to_rds" {
   name = "${var.prefix}-iam-for-lambda-sns-to-rds"
   assume_role_policy = jsonencode({
@@ -39,12 +41,15 @@ resource "aws_iam_role" "lambda_sns_to_rds" {
   }] })
 }
 
+
 resource "aws_iam_role_policy" "lambda_sns_to_rds" {
   name   = "${var.prefix}-policy-for-lambda-sns-to-rds"
   role   = aws_iam_role.lambda_sns_to_rds.id
   policy = data.aws_iam_policy_document.lambda_sns_to_rds.json
 }
 
+
+// TODO: these permissions are excessive, given due to current non-working status to explore correct values
 data "aws_iam_policy_document" "lambda_sns_to_rds" {
   statement {
     actions   = ["SNS:Receive", "SNS:Subscribe"]
@@ -67,26 +72,20 @@ data "aws_iam_policy_document" "lambda_sns_to_rds" {
     resources = ["${var.notebooks_s3_bucket_arn}/*"]
   }
   statement {
-    actions   = ["ec2:DescribeNetworkInterfaces",
-                "ec2:DescribeSubnets",
-                "ec2:CreateNetworkInterface",
-                "ec2:DeleteNetworkInterface",
-                "ec2:AssignPrivateIpAddresses",
-                "ec2:UnassignPrivateIpAddresses",
-                "ec2:DescribeSecurityGroups",
-                "ec2:DescribeSubnets",
-                "ec2:DescribeVpcs",
-                "ec2:getSecurityGroupsForVpc",
-                ]
+    actions = ["ec2:DescribeNetworkInterfaces",
+      "ec2:DescribeSubnets",
+      "ec2:CreateNetworkInterface",
+      "ec2:DeleteNetworkInterface",
+      "ec2:AssignPrivateIpAddresses",
+      "ec2:UnassignPrivateIpAddresses",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeVpcs",
+      "ec2:getSecurityGroupsForVpc",
+    ]
     effect    = "Allow"
     resources = ["*"]
   }
-
-
-  //statement {
-  //  actions   = ["secretsmanager:GetSecretValue", "secretsmanager:ListSecrets", "secretsmanager:GetRandomPassword"]
-  //  resources = [aws_secretsmanager_secret.sagemaker_db.arn]
-  //}
 }
 
 
@@ -105,7 +104,7 @@ resource "aws_lambda_function" "lambda_sns_to_rds" {
   handler          = "sns_to_rds.lambda_handler"
   runtime          = "python3.12"
   timeout          = 30
-  layers           = ["arn:aws:lambda:eu-west-2:339713044404:layer:psycopg3-layer:2"]
+  layers           = [var.lambda_layer_pyscopg3_arn]
   environment {
     variables = {
       DATASETS_DB_USERNAME   = var.datasets_db_username
@@ -135,7 +134,6 @@ resource "aws_sns_topic_subscription" "error_topic_lambda" {
 
 
 resource "aws_lambda_permission" "success_with_sns" {
-  statement_id  = "AllowExecutionFromSNS-success-store"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_sns_to_rds.function_name
   principal     = "sns.amazonaws.com"
@@ -144,52 +142,8 @@ resource "aws_lambda_permission" "success_with_sns" {
 
 
 resource "aws_lambda_permission" "error_with_sns" {
-  statement_id  = "AllowExecutionFromSNS-error-store"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_sns_to_rds.function_name
   principal     = "sns.amazonaws.com"
   source_arn    = var.sns_error_topic_arn
-}
-
-
-data "aws_iam_policy_document" "sns_publish_and_read_policy_success_store" {
-  statement {
-    actions = ["SNS:Publish"]
-    effect  = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["sagemaker.amazonaws.com"]
-    }
-    resources = [var.sns_success_topic_arn]
-  }
-  statement {
-    actions = ["SNS:Receive", "SNS:Subscribe"]
-    effect  = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-    resources = [var.sns_success_topic_arn]
-  }
-}
-
-data "aws_iam_policy_document" "sns_publish_and_read_policy_error_store" {
-  statement {
-    actions = ["SNS:Publish"]
-    effect  = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["sagemaker.amazonaws.com"]
-    }
-    resources = [var.sns_error_topic_arn]
-  }
-  statement {
-    actions = ["SNS:Receive", "SNS:Subscribe"]
-    effect  = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-    resources = [var.sns_error_topic_arn]
-  }
 }

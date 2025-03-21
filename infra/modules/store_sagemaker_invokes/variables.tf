@@ -25,7 +25,7 @@ variable "sns_error_topic_arn" {
 
 
 variable "vpc_id_datasets" {
-  type=string
+  type = string
 }
 
 
@@ -79,5 +79,10 @@ variable "datasets_db_name" {
 
 
 variable "notebooks_s3_bucket_arn" {
-  type=string
+  type = string
+}
+
+
+variable "lambda_layer_pyscopg3_arn" {
+  type = string
 }

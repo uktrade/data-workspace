@@ -27,13 +27,15 @@ resource "aws_rds_cluster_instance" "datasets" {
   instance_class               = var.datasets_rds_cluster_instance_class
   performance_insights_enabled = var.datasets_rds_cluster_instance_performance_insights_enabled
   promotion_tier               = 1
-  db_parameter_group_name      = var.datasets_rds_cluster_instance_parameter_group
+  // TODO: I could not create the db with this parameter?
+  //db_parameter_group_name      = var.datasets_rds_cluster_instance_parameter_group
   monitoring_interval          = var.datasets_rds_cluster_instance_monitoring_interval
 
   lifecycle {
     ignore_changes = [engine_version]
   }
 }
+
 
 resource "aws_db_subnet_group" "datasets" {
   name       = "${var.prefix}-datasets"
@@ -45,10 +47,11 @@ resource "aws_db_subnet_group" "datasets" {
 }
 
 
-resource "aws_secretsmanager_secret_version" "secret" {
+resource "aws_secretsmanager_secret_version" "datasets_db" {
   secret_id     = aws_secretsmanager_secret.datasets_db.id
   secret_string = random_password.datasets_db.result
 }
+
 
 resource "aws_secretsmanager_secret" "datasets_db" {
   name        = "datasets_db"
@@ -58,6 +61,7 @@ resource "aws_secretsmanager_secret" "datasets_db" {
     Name = "${var.prefix}-datasets-db"
   }
 }
+
 
 resource "random_password" "datasets_db" {
   length  = 16

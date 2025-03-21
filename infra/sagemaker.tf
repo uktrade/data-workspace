@@ -97,16 +97,6 @@ module "sns" {
   #notification_email = var.sagemaker_budget_emails
 }
 
-module "sagemaker_output_mover" {
-  count = var.sagemaker_on ? 1 : 0
-
-  source                       = "./modules/sagemaker_output_mover"
-  account_id                   = data.aws_caller_identity.aws_caller_identity.account_id
-  aws_region                   = data.aws_region.aws_region.name
-  s3_bucket_notebooks_arn      = aws_s3_bucket.notebooks.arn
-  prefix                       = var.prefix
-  default_sagemaker_bucket_arn = module.iam[0].default_sagemaker_bucket_arn
-}
 
 module "budgets" {
   count = var.sagemaker_on ? 1 : 0
@@ -120,23 +110,44 @@ module "budgets" {
 }
 
 
+module "sagemaker_output_mover" {
+  count = var.sagemaker_on ? 1 : 0
+
+  source                          = "./modules/sagemaker_output_mover"
+  account_id                      = data.aws_caller_identity.aws_caller_identity.account_id
+  aws_region                      = data.aws_region.aws_region.name
+  s3_bucket_notebooks_arn         = aws_s3_bucket.notebooks.arn
+  prefix                          = var.prefix
+  default_sagemaker_bucket_arn    = module.iam[0].default_sagemaker_bucket_arn
+  lambda_layer_boto3_stubs_s3_arn = module.lambda_layers.lambda_layer_boto3_stubs_s3_arn
+}
+
+
 module "store_sagemaker_invokes" {
-  source                                      = "./modules/store_sagemaker_invokes"
-  prefix                                      = var.prefix
-  aws_region                                  = data.aws_region.aws_region.name
-  account_id                                  = data.aws_caller_identity.aws_caller_identity.account_id
-  sns_success_topic_arn                       = module.sagemaker_output_mover[0].sns_success_topic_arn
-  sns_error_topic_arn                         = module.sagemaker_output_mover[0].sns_error_topic_arn
-  vpc_id_datasets                             = aws_vpc.datasets.id
-  datasets_security_group_id                  = aws_security_group.datasets.id
-  datasets_route_table_id                     = aws_route_table.datasets.id
-  datasets_subnet_ids                         = aws_subnet.datasets.*.id
-  notebooks_s3_bucket_arn                     = aws_s3_bucket.notebooks.arn
-  datasets_db_username                        = aws_rds_cluster.datasets.master_username
-  datasets_db_password                        = "i8vkmdY0Wg5vtbItzzlvTgLuhHcp7RdJrgdR0dLCsRNTaMGSGGKcxu2sRy7cryVo"
-  datasets_db_host                            = aws_rds_cluster.datasets.endpoint
-  datasets_db_arn                             = aws_rds_cluster.datasets.arn
-  datasets_db_secret_arn                      = "arn:aws:secretsmanager:eu-west-2:339713044404:secret:temp-datasets-db-dev-a-yGSFmW"
-  datasets_db_port                            = aws_rds_cluster.datasets.port
-  datasets_db_name                            = aws_rds_cluster.datasets.database_name
+  source                          = "./modules/store_sagemaker_invokes"
+  prefix                          = var.prefix
+  aws_region                      = data.aws_region.aws_region.name
+  account_id                      = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn           = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn             = module.sagemaker_output_mover[0].sns_error_topic_arn
+  vpc_id_datasets                 = aws_vpc.datasets.id
+  datasets_security_group_id      = aws_security_group.datasets.id
+  datasets_route_table_id         = aws_route_table.datasets.id
+  datasets_subnet_ids             = aws_subnet.datasets.*.id
+  notebooks_s3_bucket_arn         = aws_s3_bucket.notebooks.arn
+  datasets_db_username            = aws_rds_cluster.datasets.master_username
+  datasets_db_password            = random_password.datasets_db.result
+  datasets_db_host                = aws_rds_cluster.datasets.endpoint
+  datasets_db_arn                 = aws_rds_cluster.datasets.arn
+  datasets_db_secret_arn          = aws_secretsmanager_secret_version.datasets_db.arn
+  datasets_db_port                = aws_rds_cluster.datasets.port
+  datasets_db_name                = aws_rds_cluster.datasets.database_name
+  lambda_layer_pyscopg3_arn       = module.lambda_layers.lambda_layer_pyscopg3_arn
+}
+
+
+module "lambda_layers" {
+  source                        = "./modules/lambda_layers"
+  prefix                        = var.prefix
+  aws_region                    = data.aws_region.aws_region.name
 }
