@@ -57,3 +57,4 @@ jobs:
         run: |
           cd infra/modules/
           uv run ruff check .
+          uv run mypy .

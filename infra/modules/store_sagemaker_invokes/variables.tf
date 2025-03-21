@@ -3,26 +3,6 @@ variable "prefix" {
 }
 
 
-variable "sagemaker_db_instance_allocated_storage" {
-  type = number
-}
-
-
-variable "sagemaker_db_instance_max_allocated_storage" {
-  type = number
-}
-
-
-variable "sagemaker_db_instance_version" {
-  type = string
-}
-
-
-variable "sagemaker_db_instance_class" {
-  type = string
-}
-
-
 variable "aws_region" {
   type = string
 }
@@ -43,20 +23,25 @@ variable "sns_error_topic_arn" {
 }
 
 
-variable "vpc_id_main" {
+
+variable "vpc_id_datasets" {
+  type=string
+}
+
+
+variable "datasets_security_group_id" {
   type = string
 }
 
 
-variable "aws_subnet_main" {
+variable "datasets_subnet_ids" {
   type = list(string)
 }
 
 
-variable "notebooks_security_group_id" {
+variable "datasets_route_table_id" {
   type = string
 }
-
 
 variable "datasets_db_username" {
   type = string
@@ -90,4 +75,9 @@ variable "datasets_db_port" {
 
 variable "datasets_db_name" {
   type = string
+}
+
+
+variable "notebooks_s3_bucket_arn" {
+  type=string
 }

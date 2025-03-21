@@ -2681,12 +2681,52 @@ resource "aws_security_group_rule" "matchbox_api_ingress_http_from_notebooks_mat
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "matchbox_egress_https_all" {
+resource "aws_security_group_rule" "matchbox_egress_https_datadog" {
   count       = length(var.matchbox_instances)
-  description = "egress-https-to-all"
+  description = "egress-https-to-datadog"
 
   security_group_id = aws_security_group.matchbox_service[count.index].id
-  cidr_blocks       = ["0.0.0.0/0"]
+  # From https://ip-ranges.datadoghq.eu/
+  cidr_blocks = [
+    "34.107.147.46/32",
+    "34.107.148.131/32",
+    "34.107.178.244/32",
+    "34.107.236.155/32",
+    "34.110.210.251/32",
+    "34.117.189.27/32",
+    "34.117.37.81/32",
+    "34.120.15.173/32",
+    "34.120.31.75/32",
+    "34.120.57.90/32",
+    "34.120.77.189/32",
+    "34.120.96.217/32",
+    "34.149.115.128/26",
+    "34.149.135.19/32",
+    "34.149.169.145/32",
+    "34.149.206.161/32",
+    "34.149.254.123/32",
+    "34.149.49.28/32",
+    "34.149.78.213/32",
+    "34.160.168.175/32",
+    "34.160.186.117/32",
+    "34.160.253.227/32",
+    "34.160.51.118/32",
+    "34.95.101.191/32",
+    "34.96.71.221/32",
+    "34.98.110.196/32",
+    "34.98.83.239/32",
+    "34.98.95.189/32",
+    "35.190.39.146/32",
+    "35.190.78.95/32",
+    "35.190.9.84/32",
+    "35.201.126.123/32",
+    "35.227.218.104/32",
+    "35.227.223.199/32",
+    "35.241.39.98/32",
+    "35.244.140.126/32",
+    "35.244.180.206/32",
+    "35.244.221.148/32",
+  ]
 
   type      = "egress"
   from_port = "443"

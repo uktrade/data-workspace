@@ -1,19 +1,21 @@
 import ast
 import logging
+from typing import Any
 
 import boto3
+from mypy_boto3_s3.type_defs import CopySourceTypeDef
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
 s3 = boto3.resource("s3")
 
 
-def lambda_handler(event, context):
+def lambda_handler(event: dict[str, Any], context: Any) -> None:
     for record in event["Records"]:
         process_message(record)
 
 
-def process_message(record):
+def process_message(record: dict[str, Any]) -> None:
     try:
         message_str = record["Sns"]["Message"]
         message_dict = ast.literal_eval(message_str)
@@ -38,7 +40,9 @@ def process_message(record):
             output_file_key = output_file_uri.split("https://")[1].split("/")[1]
             inference_id = message_dict["inferenceId"]
 
-            copy_source = {"Bucket": output_file_bucket, "Key": output_file_key}
+            copy_source = CopySourceTypeDef(
+                {"Bucket": output_file_bucket, "Key": output_file_key}
+            )
             s3_filepath_output = f"user/federated/{federated_user_id}/sagemaker/outputs/{inference_id}.out"  # noqa: E501
             s3.meta.client.copy(copy_source, input_file_bucket, s3_filepath_output)
             logger.info(

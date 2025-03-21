@@ -1,7 +1,8 @@
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime as Datetime
+from typing import Any
 
 import urllib3
 
@@ -10,8 +11,8 @@ logger.setLevel("INFO")
 http = urllib3.PoolManager()
 
 
-def lambda_handler(event, context):
-    webhook_url = os.getenv("TEAMS_WEBHOOK_URL")
+def lambda_handler(event: dict[str, Any], context: Any) -> None:
+    webhook_url: str = os.getenv("TEAMS_WEBHOOK_URL", "")
     message_str = event["Records"][0]["Sns"]["Message"]
     alarm_name = json.loads(message_str)["AlarmName"]
     dimensions_list = json.loads(message_str)["Trigger"]["Metrics"][0]["MetricStat"][
@@ -22,12 +23,15 @@ def lambda_handler(event, context):
     )
     new_state = json.loads(message_str)["NewStateValue"]
     timestamp_str = json.loads(message_str)["StateChangeTime"]
-    timestamp_dt = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+    timestamp_dt = Datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
     readable_date_str = str(timestamp_dt.date())
     readable_time_str = str(timestamp_dt.strftime("%H:%M:%S"))
     region = "eu-west-2"  # it was easier to hard-code this (apologies for inelegance)
 
-    alarm_url = f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#alarmsV2:alarm/{alarm_name}"
+    alarm_url = (
+        f"https://{region}.console.aws.amazon.com/cloudwatch/home?"
+        "region={region}#alarmsV2:alarm/{alarm_name}"
+    )
 
     if new_state == "ALARM":
         colour = "FF0000"
@@ -59,5 +63,5 @@ def lambda_handler(event, context):
         headers=headers,
     )
     logger.info(
-        f"Completed with code {response.status} and full response {response.data}"
+        f"Completed with code {response.status} and full response {response.data!s}"
     )

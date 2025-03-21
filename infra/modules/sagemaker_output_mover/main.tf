@@ -1,5 +1,11 @@
+resource "aws_iam_role_policy" "lambda_s3_move" {
+  name   = "${var.prefix}-policy-for-lambda-s3-move"
+  role   = aws_iam_role.lambda_s3_move.id
+  policy = data.aws_iam_policy_document.lambda_s3_move.json
+}
 
-resource "aws_iam_role" "iam_for_lambda_s3_move" {
+
+resource "aws_iam_role" "lambda_s3_move" {
   name = "${var.prefix}-iam-for-lambda-s3-move"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -13,35 +19,24 @@ resource "aws_iam_role" "iam_for_lambda_s3_move" {
   }] })
 }
 
-resource "aws_iam_role_policy" "policy_for_lambda_s3_move" {
-  name = "${var.prefix}-policy-for-lambda-s3-move"
-  role = aws_iam_role.iam_for_lambda_s3_move.id
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action   = ["SNS:Receive", "SNS:Subscribe"]
-        Effect   = "Allow"
-        Resource = aws_sns_topic.async_sagemaker_success_topic.arn
-      },
-      {
-        Action   = ["s3:GetObject"]
-        Effect   = "Allow"
-        Resource = "${var.default_sagemaker_bucket_arn}/*",
-      },
-      {
-        Action   = ["s3:PutObject"]
-        Effect   = "Allow"
-        Resource = "${var.s3_bucket_notebooks_arn}/*"
-      },
-      {
-        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
-        Effect   = "Allow"
-        Resource = "arn:aws:logs:*:*:*"
-      }
-    ]
-  })
+data "aws_iam_policy_document" "lambda_s3_move" {
+  statement {
+    actions   = ["SNS:Receive", "SNS:Subscribe"]
+    resources = [aws_sns_topic.async_sagemaker_success_topic.arn, aws_sns_topic.async_sagemaker_error_topic.arn]
+  }
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${var.default_sagemaker_bucket_arn}/*"]
+  }
+  statement {
+    actions   = ["s3:PutObject"]
+    resources = ["${var.s3_bucket_notebooks_arn}/*"]
+  }
+  statement {
+    actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
+    resources = ["arn:aws:logs:*:*:*"]
+  }
 }
 
 
@@ -51,14 +46,36 @@ data "archive_file" "lambda_payload" {
   output_path = "${path.module}/lambda_function/payload.zip"
 }
 
+
 resource "aws_lambda_function" "lambda_s3_move_output" {
   filename         = data.archive_file.lambda_payload.output_path
   source_code_hash = data.archive_file.lambda_payload.output_base64sha256
   function_name    = "${var.prefix}-s3-output-mover"
-  role             = aws_iam_role.iam_for_lambda_s3_move.arn
+  role             = aws_iam_role.lambda_s3_move.arn
   handler          = "s3_move_output.lambda_handler"
   runtime          = "python3.12"
   timeout          = 30
+  layers           = [aws_lambda_layer_version.boto3_stubs_s3.arn]
+}
+
+
+resource "aws_lambda_layer_version" "boto3_stubs_s3" {
+  layer_name  = "boto3-stubs-s3"
+  s3_bucket   = aws_s3_bucket.lambda_layers.id
+  s3_key      = "boto3-stubs-s3-layer.zip"
+  description = "Contains boto3-stubs[s3]"
+}
+
+
+resource "aws_s3_bucket" "lambda_layers" {
+  bucket = "${var.prefix}-${var.aws_region}-lambda-layers"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
 }
 
 

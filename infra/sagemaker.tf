@@ -121,20 +121,17 @@ module "budgets" {
 
 
 module "store_sagemaker_invokes" {
-
   source                                      = "./modules/store_sagemaker_invokes"
   prefix                                      = var.prefix
-  sagemaker_db_instance_allocated_storage     = 20
-  sagemaker_db_instance_max_allocated_storage = 40
-  sagemaker_db_instance_version               = "17.1"
-  sagemaker_db_instance_class                 = "db.t4g.micro"
   aws_region                                  = data.aws_region.aws_region.name
   account_id                                  = data.aws_caller_identity.aws_caller_identity.account_id
   sns_success_topic_arn                       = module.sagemaker_output_mover[0].sns_success_topic_arn
   sns_error_topic_arn                         = module.sagemaker_output_mover[0].sns_error_topic_arn
-  vpc_id_main                                 = aws_vpc.main.id
-  aws_subnet_main                             = aws_subnet.private_with_egress.*.id
-  notebooks_security_group_id                 = aws_security_group.notebooks.id
+  vpc_id_datasets                             = aws_vpc.datasets.id
+  datasets_security_group_id                  = aws_security_group.datasets.id
+  datasets_route_table_id                     = aws_route_table.datasets.id
+  datasets_subnet_ids                         = aws_subnet.datasets.*.id
+  notebooks_s3_bucket_arn                     = aws_s3_bucket.notebooks.arn
   datasets_db_username                        = aws_rds_cluster.datasets.master_username
   datasets_db_password                        = "i8vkmdY0Wg5vtbItzzlvTgLuhHcp7RdJrgdR0dLCsRNTaMGSGGKcxu2sRy7cryVo"
   datasets_db_host                            = aws_rds_cluster.datasets.endpoint
@@ -142,5 +139,4 @@ module "store_sagemaker_invokes" {
   datasets_db_secret_arn                      = "arn:aws:secretsmanager:eu-west-2:339713044404:secret:temp-datasets-db-dev-a-yGSFmW"
   datasets_db_port                            = aws_rds_cluster.datasets.port
   datasets_db_name                            = aws_rds_cluster.datasets.database_name
-
 }

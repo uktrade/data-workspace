@@ -358,6 +358,16 @@ variable "matchbox_s3_dev_artefacts" {
   default = ""
 }
 
+variable "matchbox_datadog_api_key" {
+  type    = string
+  default = ""
+}
+
+variable "matchbox_datadog_environment" {
+  type    = string
+  default = ""
+}
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"
