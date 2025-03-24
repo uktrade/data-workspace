@@ -368,6 +368,11 @@ variable "matchbox_datadog_environment" {
   default = ""
 }
 
+variable "matchbox_api_key" {
+  type    = string
+  default = ""
+}
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"
