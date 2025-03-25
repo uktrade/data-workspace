@@ -13,7 +13,7 @@ locals {
     mb__postgres__user       = "${aws_rds_cluster.matchbox[i].master_username}"
     mb__postgres__password   = "${random_string.aws_db_instance_matchbox_password[i].result}"
     mb__postgres__database   = "${aws_rds_cluster.matchbox[i].database_name}"
-    mb__api__ai_key          = "${var.matchbox_api_key}"
+    mb__api__api_key         = "${var.matchbox_api_key}"
     sentry_matchbox_dsn      = "${var.sentry_matchbox_dsn}"
     matchbox_datadog_api_key = "${var.matchbox_datadog_api_key}"
     datadog_container_image  = "${aws_ecr_repository.datadog.repository_url}:7"

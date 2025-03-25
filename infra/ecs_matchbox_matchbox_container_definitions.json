@@ -51,7 +51,7 @@
       },
       {
         "name": "MB__API__API_KEY",
-        "value": "${mb__api__ai_key}"
+        "value": "${mb__api__api_key}"
       },
       {
         "name": "SENTRY_MATCHBOX_DSN",
