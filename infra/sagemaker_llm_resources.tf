@@ -138,8 +138,8 @@ module "phi_2_3b_deployment" {
   ram_threshold_low        = 20
   evaluation_periods_high  = 1
   datapoints_to_alarm_high = 1
-  evaluation_periods_low   = 15
-  datapoints_to_alarm_low  = 15
+  evaluation_periods_low   = 15 * 4
+  datapoints_to_alarm_low  = 15 * 4
 
   # These variables do not change between LLMs
   source                  = "./modules/sagemaker_deployment"

@@ -1,28 +1,28 @@
+variable "prefix" {
+  type = string
+}
+
+
 variable "account_id" {
-  type        = string
-  description = "AWS Account ID"
+  type = string
 }
 
 
 variable "aws_region" {
-  type        = string
-  description = "AWS Region in format e.g. us-west-1"
+  type = string
 }
 
 
 variable "s3_bucket_notebooks_arn" {
-  type        = string
-  description = "S3 Bucket for notebook user data storage"
-}
-
-
-variable "prefix" {
-  type        = string
-  description = "Environment prefix"
+  type = string
 }
 
 
 variable "default_sagemaker_bucket_arn" {
-  type        = string
-  description = "Output of Sagemaker async"
+  type = string
+}
+
+
+variable "lambda_layer_boto3_stubs_s3_arn" {
+  type = string
 }
