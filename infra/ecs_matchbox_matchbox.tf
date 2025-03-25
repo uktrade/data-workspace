@@ -260,7 +260,7 @@ resource "aws_rds_cluster_role_association" "matchbox_s3_import_role_association
 
 resource "aws_iam_role" "matchbox_s3_import" {
   count = var.matchbox_on ? 1 : 0
-  name  = "matchbox-s3-import-association-role"
+  name  = "${var.prefix}-matchbox-s3-import-association-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
