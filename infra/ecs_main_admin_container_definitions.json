@@ -965,6 +965,10 @@
         "value": "eu-west-2"
       },
       {
+        "name": "APPLICATION_SPAWNER_OPTIONS__FARGATE__TOOL__MATCHBOX_CLIENT_API_ROOT",
+        "value": "${matchbox_client_api_root}"
+      },
+      {
         "name": "APPLICATION_ROOT_DOMAIN",
         "value": "${root_domain}"
       },
