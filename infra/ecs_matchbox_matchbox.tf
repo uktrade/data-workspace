@@ -22,10 +22,14 @@ locals {
   }]
 }
 
+resource "aws_ecs_cluster" "matchbox" {
+  name = "${var.prefix}-matchbox"
+}
+
 resource "aws_ecs_service" "matchbox" {
   count                             = var.matchbox_on ? length(var.matchbox_instances) : 0
   name                              = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
-  cluster                           = aws_ecs_cluster.main_cluster.id
+  cluster                           = aws_ecs_cluster.matchbox.id
   task_definition                   = aws_ecs_task_definition.matchbox_service[count.index].arn
   desired_count                     = 1
   launch_type                       = "FARGATE"
