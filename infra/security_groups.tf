@@ -2854,3 +2854,40 @@ resource "aws_security_group_rule" "notebooks_egress_https_to_matchbox_db" {
   to_port   = local.matchbox_db_port
   protocol  = "tcp"
 }
+
+resource "aws_security_group" "airflow_resource_endpoints" {
+  count       = length(var.airflow_resource_endpoints)
+  name        = "${var.prefix}-airflow-resource-endpoints-${count.index}"
+  description = "${var.prefix}-airflow-resource-endpoints-${count.index}"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}-airflow-resource-endpoints-endpoints-${count.index}"
+  }
+}
+
+resource "aws_security_group_rule" "airflow_resource_endpoints_ingress_from_dag" {
+  count             = length(var.airflow_resource_endpoints)
+  security_group_id = aws_security_group.airflow_resource_endpoints[count.index].id
+
+  # This security is also used by Airflow tasks
+  source_security_group_id = aws_security_group.airflow_dag_processor_service.id
+
+  type      = "ingress"
+  from_port = var.airflow_resource_endpoints[count.index].port
+  to_port   = var.airflow_resource_endpoints[count.index].port
+  protocol  = "tcp"
+}
+
+resource "aws_security_group_rule" "airflow_dag_egress_to_resource_endpoints" {
+  count = length(var.airflow_resource_endpoints)
+
+  # This security is also used by Airflow tasks
+  security_group_id        = aws_security_group.airflow_dag_processor_service.id
+  source_security_group_id = aws_security_group.airflow_resource_endpoints[count.index].id
+
+  type      = "egress"
+  from_port = var.airflow_resource_endpoints[count.index].port
+  to_port   = var.airflow_resource_endpoints[count.index].port
+  protocol  = "tcp"
+}

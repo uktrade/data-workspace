@@ -109,6 +109,13 @@ variable "airflow_data_workspace_s3_import_hawk_key" {
   type    = string
   default = ""
 }
+variable "airflow_resource_endpoints" {
+  type = list(object({
+    arn  = string
+    port = number
+  }))
+  default = []
+}
 
 variable "notebook_task_role_prefix" {}
 variable "notebook_task_role_policy_name" {}
