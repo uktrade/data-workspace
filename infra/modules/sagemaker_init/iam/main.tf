@@ -2,6 +2,23 @@ resource "aws_s3_bucket" "sagemaker_default_bucket" {
   bucket = "${var.prefix}-eu-west-2-${var.account_id}"
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "sagemaker_default_bucket" {
+  bucket = aws_s3_bucket.sagemaker_default_bucket.id
+
+  rule {
+    id     = "Lifecycle"
+    status = "Enabled"
+
+    expiration {
+      days = 7
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 7
+    }
+
+  }
+}
 
 resource "aws_s3_bucket_cors_configuration" "sagemaker_default_bucket" {
   bucket                = aws_s3_bucket.sagemaker_default_bucket.id
