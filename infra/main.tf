@@ -415,6 +415,26 @@ variable "matchbox_github_source_url" {
   default = "https://github.com/uktrade/matchbox.git"
 }
 
+variable "matchbox_codeconnection_arn" {
+  type    = string
+  default = ""
+}
+
+variable "matchbox_deploy_on_github_merge" {
+  type    = bool
+  default = false
+}
+
+variable "matchbox_deploy_on_github_merge_pattern" {
+  type    = string
+  default = "refs/heads/main"
+}
+
+variable "matchbox_deploy_on_github_release" {
+  type    = bool
+  default = false
+}
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"

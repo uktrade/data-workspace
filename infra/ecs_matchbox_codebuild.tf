@@ -62,6 +62,37 @@ resource "aws_codebuild_project" "matchbox" {
   }
 }
 
+resource "aws_codebuild_webhook" "matchbox_merge" {
+  count        = var.matchbox_on && var.matchbox_codeconnection_arn != "" && var.matchbox_deploy_on_github_merge ? length(var.matchbox_instances) : 0
+  project_name = aws_codebuild_project.matchbox[count.index].name
+  build_type   = "BUILD"
+
+  filter_group {
+    filter {
+      type    = "EVENT"
+      pattern = "PUSH"
+    }
+
+    filter {
+      type    = "HEAD_REF"
+      pattern = var.matchbox_deploy_on_github_merge_pattern
+    }
+  }
+}
+
+resource "aws_codebuild_webhook" "matchbox_release" {
+  count        = var.matchbox_on && var.matchbox_codeconnection_arn != "" && var.matchbox_deploy_on_github_release ? length(var.matchbox_instances) : 0
+  project_name = aws_codebuild_project.matchbox[count.index].name
+  build_type   = "BUILD"
+
+  filter_group {
+    filter {
+      type    = "EVENT"
+      pattern = "RELEASED"
+    }
+  }
+}
+
 resource "aws_iam_role" "matchbox_codebuild" {
   count = var.matchbox_on ? length(var.matchbox_instances) : 0
   name  = "${var.prefix}-matchbox-codebuild"
@@ -88,7 +119,7 @@ resource "aws_iam_role_policy" "matchbox_codebuild" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       {
         Effect = "Allow",
         Resource = [
@@ -167,7 +198,15 @@ resource "aws_iam_role_policy" "matchbox_codebuild" {
           }
         }
       }
-    ]
+      ], var.matchbox_codeconnection_arn != "" ? [
+      {
+        Effect = "Allow",
+        Action = [
+          "codeconnections:GetConnectionToken",
+        ],
+        Resource = var.matchbox_codeconnection_arn,
+      }
+    ] : [])
   })
 }
 
