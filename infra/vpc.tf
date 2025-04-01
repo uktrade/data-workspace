@@ -1271,13 +1271,19 @@ data "aws_iam_policy_document" "aws_matchbox_endpoint_ecr" {
   statement {
     principals {
       type        = "AWS"
-      identifiers = ["${aws_iam_role.matchbox_task_execution[0].arn}"]
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [
+        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+      ]
     }
 
     actions = [
-      "ecr:GetAuthorizationToken",
-      "ecr:BatchGetImage",
-      "ecr:GetDownloadUrlForLayer"
+      "*"
     ]
 
     resources = [
@@ -1319,15 +1325,23 @@ data "aws_iam_policy_document" "matchbox_cloudwatch_endpoint" {
   statement {
     principals {
       type        = "AWS"
-      identifiers = ["${aws_iam_role.matchbox_task_execution[0].arn}"]
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [
+        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+      ]
     }
 
     actions = [
-      "*",
+      "*"
     ]
 
     resources = [
-      "*"
+      "*",
     ]
   }
 }

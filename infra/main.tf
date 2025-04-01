@@ -410,6 +410,11 @@ variable "matchbox_api_key" {
   default = ""
 }
 
+variable "matchbox_github_source_url" {
+  type    = string
+  default = "https://github.com/uktrade/matchbox.git"
+}
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"
