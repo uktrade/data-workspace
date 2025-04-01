@@ -37,7 +37,7 @@ resource "aws_ecs_task_definition" "airflow_scheduler" {
 
       datasets_db_host     = "${aws_rds_cluster.datasets.endpoint}"
       datasets_db_name     = "${aws_rds_cluster.datasets.database_name}"
-      datasets_db_password = "${random_string.aws_rds_cluster_instance_datasets_password.result}"
+      datasets_db_password = random_password.datasets_db.result
       datasets_db_port     = "${aws_rds_cluster.datasets.port}"
       datasets_db_user     = "${var.datasets_rds_cluster_master_username}"
 
