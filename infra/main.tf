@@ -415,7 +415,7 @@ variable "matchbox_github_source_url" {
   default = "https://github.com/uktrade/matchbox.git"
 }
 
-variable "matchbox_codeconnection_arn" {
+variable "codeconnection_arn" {
   type    = string
   default = ""
 }
@@ -433,6 +433,11 @@ variable "matchbox_deploy_on_github_merge_pattern" {
 variable "matchbox_deploy_on_github_release" {
   type    = bool
   default = false
+}
+
+variable "tools_github_source_url" {
+  type    = string
+  default = "https://github.com/uktrade/data-workspace-tools"
 }
 
 locals {

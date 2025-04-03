@@ -666,6 +666,18 @@ resource "aws_security_group" "ecr_api" {
   }
 }
 
+resource "aws_security_group_rule" "ecr_api_ingress_https_from_codebuild" {
+  description = "ingress-https-from-codebuild"
+
+  security_group_id        = aws_security_group.ecr_api.id
+  source_security_group_id = aws_security_group.vscode_codebuild.id
+
+  type      = "ingress"
+  from_port = "443"
+  to_port   = "443"
+  protocol  = "tcp"
+}
+
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_dns_rewrite_proxy" {
   description = "ingress-https-from-dns-rewrite-proxy"
 

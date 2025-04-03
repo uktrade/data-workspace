@@ -1,8 +1,7 @@
-resource "aws_codebuild_project" "matchbox" {
-  count        = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name         = "${var.prefix}-matchbox"
-  description  = "${var.prefix}-matchbox"
-  service_role = aws_iam_role.matchbox_codebuild[count.index].arn
+resource "aws_codebuild_project" "python_vscode" {
+  name         = "${var.prefix}-python-vscode"
+  description  = "${var.prefix}-python-vscode"
+  service_role = aws_iam_role.vscode_codebuild.arn
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -10,7 +9,7 @@ resource "aws_codebuild_project" "matchbox" {
 
   source {
     type            = "GITHUB"
-    location        = var.matchbox_github_source_url
+    location        = var.tools_github_source_url
     git_clone_depth = 1
 
     # Although not seemingly common, it's quite handy for the buildspec to be in the Terraform, so
@@ -22,17 +21,17 @@ resource "aws_codebuild_project" "matchbox" {
       phases:
         build:
           commands:
-            - aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin ${aws_ecr_repository.matchbox[count.index].repository_url}
+            - aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin ${aws_ecr_repository.vscode.repository_url}
             - docker buildx create --use --name builder --driver docker-container
             - |
               docker buildx build --builder builder \
-                --file src/matchbox/server/Dockerfile \
+                --file Dockerfile \
                 --build-arg GIT_COMMIT=$${CODEBUILD_SOURCE_VERSION} \
-                --push -t ${aws_ecr_repository.matchbox[count.index].repository_url}:master \
-                --cache-from type=registry,ref=${aws_ecr_repository.matchbox[count.index].repository_url}:cache \
-                --cache-to mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${aws_ecr_repository.matchbox[count.index].repository_url}:cache \
+                --push -t ${aws_ecr_repository.vscode.repository_url}:master \
+                --cache-from type=registry,ref=${aws_ecr_repository.vscode.repository_url}:cache \
+                --cache-to mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${aws_ecr_repository.vscode.repository_url}:cache \
+                --target python-vscode \
                 .
-            - aws ecs update-service --cluster ${aws_ecs_cluster.matchbox.name} --service ${aws_ecs_service.matchbox[count.index].name} --force-new-deployment
     EOT
   }
   source_version = "main"
@@ -47,7 +46,7 @@ resource "aws_codebuild_project" "matchbox" {
 
   logs_config {
     cloudwatch_logs {
-      group_name  = aws_cloudwatch_log_group.matchbox_codebuild[count.index].name
+      group_name  = aws_cloudwatch_log_group.vscode_codebuild.name
       stream_name = "main"
     }
   }
@@ -56,46 +55,14 @@ resource "aws_codebuild_project" "matchbox" {
   # NAT instance, and so from our IP, and so less likely to hit rate limits that are based on IP
   # addresses that are shared with other CodeBuild users. Specifically, pulling from Docker Hub
   vpc_config {
-    vpc_id             = aws_vpc.matchbox[count.index].id
-    subnets            = aws_subnet.matchbox_private[*].id
-    security_group_ids = [aws_security_group.matchbox_codebuild[count.index].id]
+    vpc_id             = aws_vpc.main.id
+    subnets            = aws_subnet.private_with_egress[*].id
+    security_group_ids = [aws_security_group.vscode_codebuild.id]
   }
 }
 
-resource "aws_codebuild_webhook" "matchbox_merge" {
-  count        = var.matchbox_on && var.codeconnection_arn != "" && var.matchbox_deploy_on_github_merge ? length(var.matchbox_instances) : 0
-  project_name = aws_codebuild_project.matchbox[count.index].name
-  build_type   = "BUILD"
-
-  filter_group {
-    filter {
-      type    = "EVENT"
-      pattern = "PUSH"
-    }
-
-    filter {
-      type    = "HEAD_REF"
-      pattern = var.matchbox_deploy_on_github_merge_pattern
-    }
-  }
-}
-
-resource "aws_codebuild_webhook" "matchbox_release" {
-  count        = var.matchbox_on && var.codeconnection_arn != "" && var.matchbox_deploy_on_github_release ? length(var.matchbox_instances) : 0
-  project_name = aws_codebuild_project.matchbox[count.index].name
-  build_type   = "BUILD"
-
-  filter_group {
-    filter {
-      type    = "EVENT"
-      pattern = "RELEASED"
-    }
-  }
-}
-
-resource "aws_iam_role" "matchbox_codebuild" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name  = "${var.prefix}-matchbox-codebuild"
+resource "aws_iam_role" "vscode_codebuild" {
+  name = "${var.prefix}-vscode-codebuild"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -112,10 +79,9 @@ resource "aws_iam_role" "matchbox_codebuild" {
   })
 }
 
-resource "aws_iam_role_policy" "matchbox_codebuild" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name  = "${var.prefix}-matchbox-codebuild"
-  role  = aws_iam_role.matchbox_codebuild[count.index].id
+resource "aws_iam_role_policy" "vscode_codebuild" {
+  name = "${var.prefix}-vscode-codebuild"
+  role = aws_iam_role.vscode_codebuild.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -123,8 +89,8 @@ resource "aws_iam_role_policy" "matchbox_codebuild" {
       {
         Effect = "Allow",
         Resource = [
-          "${aws_cloudwatch_log_group.matchbox_codebuild[count.index].arn}",
-          "${aws_cloudwatch_log_group.matchbox_codebuild[count.index].arn}:*",
+          "${aws_cloudwatch_log_group.vscode_codebuild.arn}",
+          "${aws_cloudwatch_log_group.vscode_codebuild.arn}:*",
         ],
         Action = [
           "logs:CreateLogGroup",
@@ -144,7 +110,7 @@ resource "aws_iam_role_policy" "matchbox_codebuild" {
       {
         Effect = "Allow",
         Resource = [
-          aws_ecr_repository.matchbox[count.index].arn,
+          aws_ecr_repository.vscode.arn,
         ],
         Action = [
           "ecr:BatchCheckLayerAvailability",
@@ -156,15 +122,6 @@ resource "aws_iam_role_policy" "matchbox_codebuild" {
           "ecr:ListImages",
           "ecr:DescribeImages",
           "ecr:BatchGetImage",
-        ],
-      },
-      {
-        Effect = "Allow",
-        Resource = [
-          aws_ecs_service.matchbox[count.index].id,
-        ],
-        Action = [
-          "ecs:UpdateService",
         ],
       },
       # Codebuild requires various VPC permissions to run things in our VPC
@@ -194,7 +151,7 @@ resource "aws_iam_role_policy" "matchbox_codebuild" {
             "ec2:AuthorizedService" = "codebuild.amazonaws.com"
           },
           ArnEquals = {
-            "ec2:Subnet" = aws_subnet.matchbox_private[*].arn
+            "ec2:Subnet" = aws_subnet.private_with_egress[*].arn
           }
         }
       }
@@ -210,27 +167,25 @@ resource "aws_iam_role_policy" "matchbox_codebuild" {
   })
 }
 
-resource "aws_cloudwatch_log_group" "matchbox_codebuild" {
-  count             = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name              = "${var.prefix}-matchbox-codebuild"
+
+resource "aws_cloudwatch_log_group" "vscode_codebuild" {
+  name              = "${var.prefix}-vscode-codebuild"
   retention_in_days = "3653"
 }
 
-resource "aws_security_group" "matchbox_codebuild" {
-  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name        = "${var.prefix}-matchbox-codebuild"
-  description = "${var.prefix}-matchbox-codebuild"
-  vpc_id      = aws_vpc.matchbox[count.index].id
+resource "aws_security_group" "vscode_codebuild" {
+  name        = "${var.prefix}-vscode-codebuild"
+  description = "${var.prefix}-vscode-codebuild"
+  vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "${var.prefix}-mathbox-codebuild"
+    Name = "${var.prefix}-vscode-codebuild"
   }
 }
 
 # Allows the Docker build to pull in packages from the outside world, e.g. PyPI
-resource "aws_vpc_security_group_egress_rule" "matchbox_codebuild_https_to_all" {
-  count             = var.matchbox_on ? length(var.matchbox_instances) : 0
-  security_group_id = aws_security_group.matchbox_codebuild[count.index].id
+resource "aws_vpc_security_group_egress_rule" "vscode_codebuild_https_to_all" {
+  security_group_id = aws_security_group.vscode_codebuild.id
   cidr_ipv4         = "0.0.0.0/0"
 
   ip_protocol = "tcp"
@@ -239,9 +194,8 @@ resource "aws_vpc_security_group_egress_rule" "matchbox_codebuild_https_to_all" 
 }
 
 # Allows install of Debian packages which are via HTTP
-resource "aws_vpc_security_group_egress_rule" "matchbox_codebuild_http_to_all" {
-  count             = var.matchbox_on ? length(var.matchbox_instances) : 0
-  security_group_id = aws_security_group.matchbox_codebuild[count.index].id
+resource "aws_vpc_security_group_egress_rule" "vscode_codebuild_http_to_all" {
+  security_group_id = aws_security_group.vscode_codebuild.id
   cidr_ipv4         = "0.0.0.0/0"
 
   ip_protocol = "tcp"
