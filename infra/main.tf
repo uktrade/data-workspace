@@ -462,7 +462,7 @@ variable "tools" {
     docker_target = "rv4-rstudio",
     }, {
     name          = "remotedesktop",
-    docker_target = "remotedesktop",
+    docker_target = "remote-desktop",
   }]
 }
 
