@@ -1,7 +1,8 @@
-resource "aws_codebuild_project" "python_vscode" {
-  name         = "${var.prefix}-python-vscode"
-  description  = "${var.prefix}-python-vscode"
-  service_role = aws_iam_role.vscode_codebuild.arn
+resource "aws_codebuild_project" "tools" {
+  count        = length(var.tools)
+  name         = "${var.prefix}-${var.tools[count.index].name}"
+  description  = "${var.prefix}-${var.tools[count.index].name}"
+  service_role = aws_iam_role.tools_codebuild[count.index].arn
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -21,16 +22,16 @@ resource "aws_codebuild_project" "python_vscode" {
       phases:
         build:
           commands:
-            - aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin ${aws_ecr_repository.vscode.repository_url}
+            - aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin ${aws_ecr_repository.tools[count.index].repository_url}
             - docker buildx create --use --name builder --driver docker-container
             - |
               docker buildx build --builder builder \
                 --file Dockerfile \
                 --build-arg GIT_COMMIT=$${CODEBUILD_SOURCE_VERSION} \
-                --push -t ${aws_ecr_repository.vscode.repository_url}:master \
-                --cache-from type=registry,ref=${aws_ecr_repository.vscode.repository_url}:cache \
-                --cache-to mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${aws_ecr_repository.vscode.repository_url}:cache \
-                --target python-vscode \
+                --push -t ${aws_ecr_repository.tools[count.index].repository_url}:master \
+                --cache-from type=registry,ref=${aws_ecr_repository.tools[count.index].repository_url}:cache \
+                --cache-to mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${aws_ecr_repository.tools[count.index].repository_url}:cache \
+                --target ${var.tools[count.index].docker_target} \
                 .
     EOT
   }
@@ -46,7 +47,7 @@ resource "aws_codebuild_project" "python_vscode" {
 
   logs_config {
     cloudwatch_logs {
-      group_name  = aws_cloudwatch_log_group.vscode_codebuild.name
+      group_name  = aws_cloudwatch_log_group.tools_codebuild[count.index].name
       stream_name = "main"
     }
   }
@@ -57,12 +58,13 @@ resource "aws_codebuild_project" "python_vscode" {
   vpc_config {
     vpc_id             = aws_vpc.main.id
     subnets            = aws_subnet.private_with_egress[*].id
-    security_group_ids = [aws_security_group.vscode_codebuild.id]
+    security_group_ids = [aws_security_group.tools_codebuild[count.index].id]
   }
 }
 
-resource "aws_iam_role" "vscode_codebuild" {
-  name = "${var.prefix}-vscode-codebuild"
+resource "aws_iam_role" "tools_codebuild" {
+  count = length(var.tools)
+  name  = "${var.prefix}-${var.tools[count.index].name}-codebuild"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -79,9 +81,10 @@ resource "aws_iam_role" "vscode_codebuild" {
   })
 }
 
-resource "aws_iam_role_policy" "vscode_codebuild" {
-  name = "${var.prefix}-vscode-codebuild"
-  role = aws_iam_role.vscode_codebuild.id
+resource "aws_iam_role_policy" "tools_codebuild" {
+  count = length(var.tools)
+  name  = "${var.prefix}-${var.tools[count.index].name}-codebuild"
+  role  = aws_iam_role.tools_codebuild[count.index].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -89,8 +92,8 @@ resource "aws_iam_role_policy" "vscode_codebuild" {
       {
         Effect = "Allow",
         Resource = [
-          "${aws_cloudwatch_log_group.vscode_codebuild.arn}",
-          "${aws_cloudwatch_log_group.vscode_codebuild.arn}:*",
+          "${aws_cloudwatch_log_group.tools_codebuild[count.index].arn}",
+          "${aws_cloudwatch_log_group.tools_codebuild[count.index].arn}:*",
         ],
         Action = [
           "logs:CreateLogGroup",
@@ -110,7 +113,7 @@ resource "aws_iam_role_policy" "vscode_codebuild" {
       {
         Effect = "Allow",
         Resource = [
-          aws_ecr_repository.vscode.arn,
+          aws_ecr_repository.tools[count.index].arn,
         ],
         Action = [
           "ecr:BatchCheckLayerAvailability",
@@ -168,24 +171,27 @@ resource "aws_iam_role_policy" "vscode_codebuild" {
 }
 
 
-resource "aws_cloudwatch_log_group" "vscode_codebuild" {
-  name              = "${var.prefix}-vscode-codebuild"
+resource "aws_cloudwatch_log_group" "tools_codebuild" {
+  count             = length(var.tools)
+  name              = "${var.prefix}-${var.tools[count.index].name}-codebuild"
   retention_in_days = "3653"
 }
 
-resource "aws_security_group" "vscode_codebuild" {
-  name        = "${var.prefix}-vscode-codebuild"
-  description = "${var.prefix}-vscode-codebuild"
+resource "aws_security_group" "tools_codebuild" {
+  count       = length(var.tools)
+  name        = "${var.prefix}-${var.tools[count.index].name}-codebuild"
+  description = "${var.prefix}-${var.tools[count.index].name}-codebuild"
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "${var.prefix}-vscode-codebuild"
+    Name = "${var.prefix}-${var.tools[count.index].name}-codebuild"
   }
 }
 
 # Allows the Docker build to pull in packages from the outside world, e.g. PyPI
-resource "aws_vpc_security_group_egress_rule" "vscode_codebuild_https_to_all" {
-  security_group_id = aws_security_group.vscode_codebuild.id
+resource "aws_vpc_security_group_egress_rule" "tools_codebuild_https_to_all" {
+  count             = length(var.tools)
+  security_group_id = aws_security_group.tools_codebuild[count.index].id
   cidr_ipv4         = "0.0.0.0/0"
 
   ip_protocol = "tcp"
@@ -194,8 +200,9 @@ resource "aws_vpc_security_group_egress_rule" "vscode_codebuild_https_to_all" {
 }
 
 # Allows install of Debian packages which are via HTTP
-resource "aws_vpc_security_group_egress_rule" "vscode_codebuild_http_to_all" {
-  security_group_id = aws_security_group.vscode_codebuild.id
+resource "aws_vpc_security_group_egress_rule" "tools_codebuild_http_to_all" {
+  count             = length(var.tools)
+  security_group_id = aws_security_group.tools_codebuild[count.index].id
   cidr_ipv4         = "0.0.0.0/0"
 
   ip_protocol = "tcp"

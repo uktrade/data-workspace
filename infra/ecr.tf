@@ -76,12 +76,14 @@ resource "aws_ecr_lifecycle_policy" "theia_expire_non_master_non_latest_after_on
   policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
-resource "aws_ecr_repository" "vscode" {
-  name = "${var.prefix}-vscode"
+resource "aws_ecr_repository" "tools" {
+  count = length(var.tools)
+  name  = "${var.prefix}-${var.tools[count.index].name}"
 }
 
-resource "aws_ecr_lifecycle_policy" "vscode_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.vscode.name
+resource "aws_ecr_lifecycle_policy" "tools_expire_untagged_after_one_day" {
+  count      = length(var.tools)
+  repository = aws_ecr_repository.tools[count.index].name
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 

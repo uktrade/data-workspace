@@ -1,8 +1,9 @@
-resource "aws_ecs_task_definition" "vscode" {
-  family = "${var.prefix}-vscode"
+resource "aws_ecs_task_definition" "tools" {
+  count  = length(var.tools)
+  family = "${var.prefix}-${var.tools[count.index].name}"
   container_definitions = templatefile(
     "${path.module}/ecs_notebooks_notebook_container_definitions.json", {
-      container_image = "${aws_ecr_repository.vscode.repository_url}:master"
+      container_image = "${aws_ecr_repository.tools[count.index].repository_url}:master"
       container_name  = "${local.notebook_container_name}"
 
       log_group  = "${aws_cloudwatch_log_group.notebook.name}"
@@ -41,29 +42,32 @@ resource "aws_ecs_task_definition" "vscode" {
   }
 }
 
-data "external" "vscode_current_tag" {
+data "external" "tools_current_tag" {
+  count   = length(var.tools)
   program = ["${path.module}/task_definition_tag.sh"]
 
   query = {
-    task_family    = "${var.prefix}-vscode"
+    task_family    = "${var.prefix}-${var.tools[count.index].name}"
     container_name = "${local.notebook_container_name}"
   }
 }
 
-data "external" "vscode_metrics_current_tag" {
+data "external" "tools_metrics_current_tag" {
+  count   = length(var.tools)
   program = ["${path.module}/task_definition_tag.sh"]
 
   query = {
-    task_family    = "${var.prefix}-vscode"
+    task_family    = "${var.prefix}-${var.tools[count.index].name}"
     container_name = "metrics"
   }
 }
 
-data "external" "vscode_s3sync_current_tag" {
+data "external" "tools_s3sync_current_tag" {
+  count   = length(var.tools)
   program = ["${path.module}/task_definition_tag.sh"]
 
   query = {
-    task_family    = "${var.prefix}-vscode"
+    task_family    = "${var.prefix}-${var.tools[count.index].name}"
     container_name = "s3sync"
   }
 }
