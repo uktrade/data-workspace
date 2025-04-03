@@ -440,6 +440,17 @@ variable "tools_github_source_url" {
   default = "https://github.com/uktrade/data-workspace-tools"
 }
 
+variable "tools" {
+  type = list(object({
+    name          = string,
+    docker_target = string,
+  }))
+  default = [{
+    name          = "vscode",
+    docker_target = "python-vscode",
+  }]
+}
+
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"

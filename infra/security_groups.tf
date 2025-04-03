@@ -666,11 +666,12 @@ resource "aws_security_group" "ecr_api" {
   }
 }
 
-resource "aws_security_group_rule" "ecr_api_ingress_https_from_codebuild" {
+resource "aws_security_group_rule" "ecr_api_ingress_https_from_tools_codebuild" {
+  count       = length(var.tools)
   description = "ingress-https-from-codebuild"
 
   security_group_id        = aws_security_group.ecr_api.id
-  source_security_group_id = aws_security_group.vscode_codebuild.id
+  source_security_group_id = aws_security_group.tools_codebuild[count.index].id
 
   type      = "ingress"
   from_port = "443"

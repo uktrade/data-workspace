@@ -949,11 +949,10 @@ data "aws_iam_policy_document" "gitlab_runner" {
       "ecr:GetDownloadUrlForLayer",
     ]
 
-    resources = [
+    resources = concat([
       "${aws_ecr_repository.visualisation_base.arn}",
-      "${aws_ecr_repository.vscode.arn}",
       "${aws_ecr_repository.theia.arn}",
-    ]
+    ], [for i, tool in var.tools : "${aws_ecr_repository.tools[i].arn}"])
   }
 
   # All for user-provided
