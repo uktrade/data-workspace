@@ -22,15 +22,6 @@ resource "aws_ecr_lifecycle_policy" "admin_keep_last_five_releases" {
   policy     = data.aws_ecr_lifecycle_policy_document.keep_last_five_releases.json
 }
 
-resource "aws_ecr_repository" "jupyterlab_python" {
-  name = "${var.prefix}-jupyterlab-python"
-}
-
-resource "aws_ecr_lifecycle_policy" "jupyterlab_python_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.jupyterlab_python.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
 resource "aws_ecr_repository" "rstudio" {
   name = "${var.prefix}-rstudio"
 }
@@ -38,42 +29,6 @@ resource "aws_ecr_repository" "rstudio" {
 resource "aws_ecr_lifecycle_policy" "rstudio_expire_untagged_after_one_day" {
   repository = aws_ecr_repository.rstudio.name
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
-resource "aws_ecr_repository" "rstudio_rv4" {
-  name = "${var.prefix}-rstudio-rv4"
-}
-
-resource "aws_ecr_lifecycle_policy" "rstudio_rv4_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.rstudio_rv4.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
-resource "aws_ecr_repository" "pgadmin" {
-  name = "${var.prefix}-pgadmin"
-}
-
-resource "aws_ecr_lifecycle_policy" "pgadmin_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.pgadmin.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
-resource "aws_ecr_repository" "remotedesktop" {
-  name = "${var.prefix}-remotedesktop"
-}
-
-resource "aws_ecr_lifecycle_policy" "remotedesktop_rv4_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.remotedesktop.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
-}
-
-resource "aws_ecr_repository" "theia" {
-  name = "${var.prefix}-theia"
-}
-
-resource "aws_ecr_lifecycle_policy" "theia_expire_non_master_non_latest_after_one_day" {
-  repository = aws_ecr_repository.theia.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_non_master_non_latest_after_one_day.json
 }
 
 resource "aws_ecr_repository" "tools" {

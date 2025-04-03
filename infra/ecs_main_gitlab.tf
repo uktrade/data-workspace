@@ -951,7 +951,6 @@ data "aws_iam_policy_document" "gitlab_runner" {
 
     resources = concat([
       "${aws_ecr_repository.visualisation_base.arn}",
-      "${aws_ecr_repository.theia.arn}",
     ], [for i, tool in var.tools : "${aws_ecr_repository.tools[i].arn}"])
   }
 
@@ -1034,10 +1033,9 @@ data "aws_iam_policy_document" "gitlab_runner_data_science" {
       "ecr:GetDownloadUrlForLayer",
     ]
 
-    resources = [
-      "${aws_ecr_repository.theia.arn}",
-      "${aws_ecr_repository.visualisation_base.arn}"
-    ]
+    resources = concat([
+      "${aws_ecr_repository.visualisation_base.arn}",
+    ], [for i, tool in var.tools : "${aws_ecr_repository.tools[i].arn}"])
   }
 
   # Allow list and put object for Gitlab private package index
@@ -1202,9 +1200,9 @@ data "aws_iam_policy_document" "gitlab_runner_ag_data_science" {
       "ecr:GetDownloadUrlForLayer",
     ]
 
-    resources = [
-      "${aws_ecr_repository.theia.arn}",
-    ]
+    resources = concat([
+      "${aws_ecr_repository.visualisation_base.arn}",
+    ], [for i, tool in var.tools : "${aws_ecr_repository.tools[i].arn}"])
   }
 
   # Allow list and put object for Gitlab private package index
