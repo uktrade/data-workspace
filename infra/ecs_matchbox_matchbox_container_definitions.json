@@ -10,7 +10,7 @@
         "value": "eu-west-2"
       },
       {
-        "name": "MB__DATASTORE__CACHE_BUCKET_NAME",
+        "name": "MB__SERVER__DATASTORE__CACHE_BUCKET_NAME",
         "value": "${matchbox_s3_cache}"
       },
       {
@@ -18,40 +18,44 @@
         "value": ""
       },
       {
-        "name": "MB__BACKEND_TYPE",
+        "name": "MB__SERVER__BACKEND_TYPE",
         "value": "postgres"
       },
       {
-        "name": "MB__DATASETS_CONFIG",
-        "value": "datasets.toml"
-      },
-      {
-        "name": "MB__POSTGRES__HOST",
+        "name": "MB__SERVER__POSTGRES__HOST",
         "value": "${mb__postgres__host}"
       },
       {
-        "name": "MB__POSTGRES__PORT",
+        "name": "MB__SERVER__POSTGRES__PORT",
         "value": "5432"
       },
       {
-        "name": "MB__POSTGRES__USER",
+        "name": "MB__SERVER__POSTGRES__USER",
         "value": "${mb__postgres__user}"
       },
       {
-        "name": "MB__POSTGRES__PASSWORD",
+        "name": "MB__SERVER__POSTGRES__PASSWORD",
         "value": "${mb__postgres__password}"
       },
       {
-        "name": "MB__POSTGRES__DATABASE",
+        "name": "MB__SERVER__POSTGRES__DATABASE",
         "value": "${mb__postgres__database}"
       },
       {
-        "name": "MB__POSTGRES__DB_SCHEMA",
+        "name": "MB__SERVER__POSTGRES__DB_SCHEMA",
         "value": "mb"
       },
       {
-        "name": "MB__API__API_KEY",
+        "name": "MB__SERVER__API_KEY",
         "value": "${mb__api__api_key}"
+      },
+      {
+        "name": "MB__SERVER__LOG_LEVEL",
+        "value": "INFO"
+      },
+      {
+        "name": "MB__SERVER__BATCH_SIZE",
+        "value": "250_000"
       },
       {
         "name": "SENTRY_MATCHBOX_DSN",
