@@ -52,11 +52,11 @@ locals {
     fargate_spawner__task_security_group                   = "${aws_security_group.notebooks.id}"
     fargate_spawner__task_subnet                           = "${aws_subnet.private_without_egress.*.id[0]}"
 
-    fargate_spawner__jupyterlabpython_task_definition_arn = "${aws_ecs_task_definition.jupyterlabpython.family}"
-    fargate_spawner__rstudio_rv4_task_definition_arn      = "${aws_ecs_task_definition.rstudio_rv4.family}"
-    fargate_spawner__pgadmin_task_definition_arn          = "${aws_ecs_task_definition.pgadmin.family}"
-    fargate_spawner__remotedesktop_task_definition_arn    = "${aws_ecs_task_definition.remotedesktop.family}"
-    fargate_spawner__theia_task_definition_arn            = "${aws_ecs_task_definition.theia.family}"
+    fargate_spawner__jupyterlabpython_task_definition_arn = "${aws_ecs_task_definition.tools[1].family}"
+    fargate_spawner__rstudio_rv4_task_definition_arn      = "${aws_ecs_task_definition.tools[4].family}"
+    fargate_spawner__pgadmin_task_definition_arn          = "${aws_ecs_task_definition.tools[3].family}"
+    fargate_spawner__remotedesktop_task_definition_arn    = "${aws_ecs_task_definition.tools[5].family}"
+    fargate_spawner__theia_task_definition_arn            = "${aws_ecs_task_definition.tools[2].family}"
     fargate_spawner__vscode_task_definition_arn           = "${aws_ecs_task_definition.tools[0].family}"
 
     fargate_spawner__user_provided_task_definition_arn                        = "${aws_ecs_task_definition.user_provided.family}"
@@ -425,16 +425,6 @@ data "aws_iam_policy_document" "admin_run_tasks" {
     }
 
     resources = concat([
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.jupyterlabpython.family}",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.jupyterlabpython.family}-*",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.rstudio_rv4.family}",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.rstudio_rv4.family}-*",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.pgadmin.family}",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.pgadmin.family}-*",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.remotedesktop.family}",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.remotedesktop.family}-*",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.theia.family}",
-      "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.theia.family}-*",
       "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.user_provided.family}-*",
       ],
       [for i, v in var.tools : "arn:aws:ecs:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:task-definition/${aws_ecs_task_definition.tools[i].family}"],

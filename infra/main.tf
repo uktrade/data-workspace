@@ -448,6 +448,21 @@ variable "tools" {
   default = [{
     name          = "vscode",
     docker_target = "python-vscode",
+    }, {
+    name          = "jupyterlab-python",
+    docker_target = "python-jupyterlab",
+    }, {
+    name          = "theia",
+    docker_target = "python-theia",
+    }, {
+    name          = "pgadmin",
+    docker_target = "python-pgadmin",
+    }, {
+    name          = "rstudio-rv4",
+    docker_target = "rv4-rstudio",
+    }, {
+    name          = "remotedesktop",
+    docker_target = "remotedesktop",
   }]
 }
 
