@@ -38,7 +38,7 @@ resource "aws_codebuild_project" "tools" {
   source_version = "main"
 
   environment {
-    compute_type                = "BUILD_GENERAL1_SMALL"
+    compute_type                = var.tools[count.index].codebuild_compute_type
     image                       = "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
@@ -208,4 +208,15 @@ resource "aws_vpc_security_group_egress_rule" "tools_codebuild_http_to_all" {
   ip_protocol = "tcp"
   from_port   = "80"
   to_port     = "80"
+}
+
+# Allows apt-key to fetch public keys
+resource "aws_vpc_security_group_egress_rule" "tools_codebuild_pgp_to_all" {
+  count             = length(var.tools)
+  security_group_id = aws_security_group.tools_codebuild[count.index].id
+  cidr_ipv4         = "0.0.0.0/0"
+
+  ip_protocol = "tcp"
+  from_port   = "11371"
+  to_port     = "11371"
 }
