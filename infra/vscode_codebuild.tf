@@ -28,7 +28,7 @@ resource "aws_codebuild_project" "tools" {
               docker buildx build --builder builder \
                 --file Dockerfile \
                 --build-arg GIT_COMMIT=$${CODEBUILD_SOURCE_VERSION} \
-                --push -t ${aws_ecr_repository.tools[count.index].repository_url}:master \
+                --push -t ${aws_ecr_repository.tools[count.index].repository_url}:${var.tools[count.index].docker_tag} \
                 --cache-from type=registry,ref=${aws_ecr_repository.tools[count.index].repository_url}:cache \
                 --cache-to mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${aws_ecr_repository.tools[count.index].repository_url}:cache \
                 --target ${var.tools[count.index].docker_target} \

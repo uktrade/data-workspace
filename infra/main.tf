@@ -444,31 +444,63 @@ variable "tools" {
   type = list(object({
     name                   = string,
     docker_target          = string,
+    docker_tag             = string,
     codebuild_compute_type = string,
   }))
   default = [{
     name                   = "vscode",
     docker_target          = "python-vscode",
+    docker_tag             = "master",
     codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     }, {
     name                   = "jupyterlab-python",
     docker_target          = "python-jupyterlab",
+    docker_tag             = "master",
     codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     }, {
     name                   = "theia",
     docker_target          = "python-theia",
+    docker_tag             = "master",
     codebuild_compute_type = "BUILD_GENERAL1_MEDIUM"
     }, {
     name                   = "pgadmin",
     docker_target          = "python-pgadmin",
+    docker_tag             = "master",
     codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     }, {
     name                   = "rstudio-rv4",
     docker_target          = "rv4-rstudio",
+    docker_tag             = "master",
     codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     }, {
     name                   = "remotedesktop",
     docker_target          = "remote-desktop",
+    docker_tag             = "master",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+    }, {
+    name                   = "python-visualisation",
+    docker_target          = "python-visualisation",
+    docker_tag             = "python",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+    }, {
+    name                   = "rv4-visualisation",
+    docker_target          = "rv4-visualisation",
+    docker_tag             = "rv4",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+    }, {
+    name                   = "rv4-cran-binary-mirror",
+    docker_target          = "rv4-cran-binary-mirror",
+    docker_tag             = "master",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+    }, {
+    name                   = "s3sync",
+    docker_target          = "s3sync",
+    docker_tag             = "master",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+    }, {
+    name                   = "metrics",
+    docker_target          = "metrics",
+    docker_tag             = "master",
     codebuild_compute_type = "BUILD_GENERAL1_SMALL"
   }]
 }
