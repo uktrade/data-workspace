@@ -442,27 +442,34 @@ variable "tools_github_source_url" {
 
 variable "tools" {
   type = list(object({
-    name          = string,
-    docker_target = string,
+    name                   = string,
+    docker_target          = string,
+    codebuild_compute_type = string,
   }))
   default = [{
-    name          = "vscode",
-    docker_target = "python-vscode",
+    name                   = "vscode",
+    docker_target          = "python-vscode",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     }, {
-    name          = "jupyterlab-python",
-    docker_target = "python-jupyterlab",
+    name                   = "jupyterlab-python",
+    docker_target          = "python-jupyterlab",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     }, {
-    name          = "theia",
-    docker_target = "python-theia",
+    name                   = "theia",
+    docker_target          = "python-theia",
+    codebuild_compute_type = "BUILD_GENERAL1_MEDIUM"
     }, {
-    name          = "pgadmin",
-    docker_target = "python-pgadmin",
+    name                   = "pgadmin",
+    docker_target          = "python-pgadmin",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     }, {
-    name          = "rstudio-rv4",
-    docker_target = "rv4-rstudio",
+    name                   = "rstudio-rv4",
+    docker_target          = "rv4-rstudio",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     }, {
-    name          = "remotedesktop",
-    docker_target = "remote-desktop",
+    name                   = "remotedesktop",
+    docker_target          = "remote-desktop",
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
   }]
 }
 
