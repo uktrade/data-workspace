@@ -667,7 +667,7 @@ resource "aws_security_group" "ecr_api" {
 }
 
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_tools_codebuild" {
-  count       = length(var.tools)
+  count       = length(local.tool_builds)
   description = "ingress-https-from-codebuild"
 
   security_group_id        = aws_security_group.ecr_api.id
