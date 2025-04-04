@@ -14,6 +14,11 @@ locals {
     docker_target          = "metrics"
     codebuild_compute_type = "BUILD_GENERAL1_SMALL"
     tool_ecr_repo          = aws_ecr_repository.metrics
+    }], [{
+    name                   = "mirrors_sync_cran_binary_rv4",
+    docker_target          = "rv4-cran-binary-mirror"
+    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+    tool_ecr_repo          = aws_ecr_repository.mirrors_sync_cran_binary_rv4
   }])
 }
 
