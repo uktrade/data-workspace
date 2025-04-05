@@ -16,7 +16,7 @@ locals {
     admin_db__user           = "${aws_db_instance.admin.username}"
     datasets_db__host        = "${aws_rds_cluster_instance.datasets.endpoint}"
     datasets_db__name        = "${aws_rds_cluster.datasets.database_name}"
-    datasets_db__password    = "${random_string.aws_rds_cluster_instance_datasets_password.result}"
+    datasets_db__password    = random_password.datasets_db.result
     datasets_db__port        = "${aws_rds_cluster_instance.datasets.port}"
     datasets_db__user        = "${aws_rds_cluster.datasets.master_username}"
     datasets_db__instance_id = "${aws_rds_cluster_instance.datasets.identifier}"
