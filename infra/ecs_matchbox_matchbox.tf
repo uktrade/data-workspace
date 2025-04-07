@@ -175,6 +175,42 @@ data "aws_iam_policy_document" "matchbox_task_ecs_tasks_assume_role" {
   }
 }
 
+# Use the Datadog Forwarder to ship logs from S3 and CloudWatch, as well as observability data from Lambda functions to Datadog. 
+# For more information, see https://github.com/DataDog/datadog-serverless-functions/tree/master/aws/logs_monitoring
+resource "aws_cloudformation_stack" "datadog_forwarder" {
+  name         = "${var.prefix}-matchbox-datadog-forwarder"
+  capabilities = ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"]
+  parameters = {
+    DdApiKey     = "${var.matchbox_datadog_api_key}",
+    DdSite       = "datadoghq.eu",
+    FunctionName = "${var.prefix}-matchbox-datadog-forwarder"
+    DdLogLevel   = "INFO"
+  }
+  template_url = "https://datadog-cloudformation-template.s3.amazonaws.com/aws/forwarder/latest.yaml"
+}
+
+data "aws_cloudwatch_log_group" "matchbox" {
+  name = "${var.prefix}-matchbox"
+}
+
+resource "aws_lambda_permission" "lambda_permission" {
+  action        = "lambda:InvokeFunction"
+  function_name = "${var.prefix}-matchbox-datadog-forwarder"
+  principal     = "logs.amazonaws.com"
+  source_arn    = data.aws_cloudwatch_log_group.matchbox.arn
+}
+
+data "aws_lambda_function" "datadog_forwarder" {
+  function_name = "${var.prefix}-matchbox-datadog-forwarder"
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "datadog_log_subscription_filter" {
+  name            = "datadog_log_subscription_filter"
+  log_group_name  = "${var.prefix}-matchbox"
+  destination_arn = data.aws_lambda_function.datadog_forwarder.arn
+  filter_pattern  = ""
+}
+
 resource "aws_iam_role_policy_attachment" "matchbox_task" {
   count      = var.matchbox_on ? length(var.matchbox_instances) : 0
   role       = aws_iam_role.matchbox_task[count.index].name
