@@ -118,3 +118,10 @@ module "budgets" {
   sns_topic_arn       = module.sns[0].sns_topic_arn
   notification_email  = var.sagemaker_budget_emails
 }
+
+module "test_resources" {
+  count = var.sagemaker_on ? 1 : 0
+
+  source = "./modules/test_resources"
+  prefix = var.prefix
+}
