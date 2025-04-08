@@ -371,7 +371,7 @@ resource "aws_cloudwatch_log_group" "matchbox" {
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "matchbox" {
-  count           = var.cloudwatch_subscription_filter && var.matchbox_on ? 1 : 0
+  count           = var.cloudwatch_subscription_filter != "" && var.matchbox_on ? 1 : 0
   name            = "${var.prefix}-matchbox"
   log_group_name  = aws_cloudwatch_log_group.matchbox[count.index].name
   filter_pattern  = ""
@@ -379,7 +379,7 @@ resource "aws_cloudwatch_log_subscription_filter" "matchbox" {
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog" {
-  count           = var.cloudwatch_destination_datadog_arn && var.matchbox_on ? 1 : 0
+  count           = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? 1 : 0
   name            = "${var.prefix}-matchbox-datadog"
   log_group_name  = aws_cloudwatch_log_group.matchbox[count.index].name
   filter_pattern  = ""
@@ -388,7 +388,7 @@ resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog" {
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog_codebuild" {
-  count           = var.cloudwatch_destination_datadog_arn && var.matchbox_on ? 1 : 0
+  count           = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? 1 : 0
   name            = "${var.prefix}-matchbox-codebuild-datadog"
   log_group_name  = aws_cloudwatch_log_group.matchbox_codebuild[count.index].name
   filter_pattern  = ""
@@ -397,7 +397,7 @@ resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog_codebuild" {
 }
 
 resource "aws_iam_role" "matchbox_datadog_logs" {
-  count = var.cloudwatch_destination_datadog_arn && var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? length(var.matchbox_instances) : 0
   name  = "${var.prefix}-matchbox-datadog-logs"
 
   assume_role_policy = jsonencode({
@@ -416,7 +416,7 @@ resource "aws_iam_role" "matchbox_datadog_logs" {
 }
 
 resource "aws_iam_role_policy" "matchbox_datadog_logs" {
-  count = var.cloudwatch_destination_datadog_arn && var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? length(var.matchbox_instances) : 0
   name  = "${var.prefix}-matchbox-datadog-logs"
   role  = aws_iam_role.matchbox_datadog_logs[0].id
 
