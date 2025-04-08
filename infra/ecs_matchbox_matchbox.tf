@@ -377,3 +377,60 @@ resource "aws_cloudwatch_log_subscription_filter" "matchbox" {
   filter_pattern  = ""
   destination_arn = var.cloudwatch_destination_arn
 }
+
+resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog" {
+  count           = var.cloudwatch_destination_datadog_arn && var.matchbox_on ? 1 : 0
+  name            = "${var.prefix}-matchbox-datadog"
+  log_group_name  = aws_cloudwatch_log_group.matchbox[count.index].name
+  filter_pattern  = ""
+  destination_arn = var.cloudwatch_destination_datadog_arn
+  role_arn        = aws_iam_role.matchbox_datadog_logs[0].arn
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog_codebuild" {
+  count           = var.cloudwatch_destination_datadog_arn && var.matchbox_on ? 1 : 0
+  name            = "${var.prefix}-matchbox-codebuild-datadog"
+  log_group_name  = aws_cloudwatch_log_group.matchbox_codebuild[count.index].name
+  filter_pattern  = ""
+  destination_arn = var.cloudwatch_destination_datadog_arn
+  role_arn        = aws_iam_role.matchbox_datadog_logs[0].arn
+}
+
+resource "aws_iam_role" "matchbox_datadog_logs" {
+  count = var.cloudwatch_destination_datadog_arn && var.matchbox_on ? length(var.matchbox_instances) : 0
+  name  = "${var.prefix}-matchbox-datadog-logs"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "logs.eu-west-2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "matchbox_datadog_logs" {
+  count = var.cloudwatch_destination_datadog_arn && var.matchbox_on ? length(var.matchbox_instances) : 0
+  name  = "${var.prefix}-matchbox-datadog-logs"
+  role  = aws_iam_role.matchbox_datadog_logs[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      "Effect" = "Allow",
+      "Action" = [
+        "firehose:PutRecord",
+        "firehose:PutRecordBatch",
+        "kinesis:PutRecord",
+        "kinesis:PutRecords"
+      ],
+      "Resource" = var.cloudwatch_destination_datadog_arn
+    }]
+  })
+}
