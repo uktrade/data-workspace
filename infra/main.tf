@@ -85,6 +85,10 @@ variable "alb_access_logs_bucket" {}
 variable "alb_logs_account" {}
 
 variable "cloudwatch_destination_arn" {}
+variable "cloudwatch_destination_datadog_arn" {
+  type    = string
+  default = ""
+}
 
 variable "mirrors_bucket_name" {}
 variable "mirrors_data_bucket_name" {}

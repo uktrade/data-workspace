@@ -85,7 +85,8 @@ module "jupyterhub" {
   alb_access_logs_bucket = "REPLACE_ME"
   alb_logs_account       = "REPLACE_ME"
 
-  cloudwatch_destination_arn = "REPLACE_ME"
+  cloudwatch_destination_arn         = "REPLACE_ME"
+  cloudwatch_destination_datadog_arn = "REPLACE_ME"
 
   mirrors_data_bucket_name = ""
   mirrors_bucket_name      = "REPLACE_ME"
