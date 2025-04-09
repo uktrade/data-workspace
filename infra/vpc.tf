@@ -58,42 +58,6 @@ data "aws_iam_policy_document" "vpc_notebooks_flow_log_vpc_flow_logs_assume_role
   }
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
-
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "${var.prefix}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_vpc_dhcp_options" "main" {
-  domain_name_servers = ["AmazonProvidedDNS"]
-  domain_name         = "eu-west-2.compute.internal"
-
-  tags = {
-    Name = "${var.prefix}"
-  }
-}
-
-resource "aws_vpc_dhcp_options_association" "main" {
-  vpc_id          = aws_vpc.main.id
-  dhcp_options_id = aws_vpc_dhcp_options.main.id
-}
-
-resource "aws_flow_log" "main" {
-  log_destination = aws_cloudwatch_log_group.vpc_main_flow_log.arn
-  iam_role_arn    = aws_iam_role.vpc_main_flow_log.arn
-  vpc_id          = aws_vpc.main.id
-  traffic_type    = "ALL"
-}
-
 resource "aws_cloudwatch_log_group" "vpc_main_flow_log" {
   name              = "${var.prefix}-vpc-main-flow-log"
   retention_in_days = "3653"
@@ -132,21 +96,6 @@ data "aws_iam_policy_document" "vpc_main_flow_log" {
     resources = [
       "${aws_cloudwatch_log_group.vpc_main_flow_log.arn}:*",
     ]
-  }
-}
-
-resource "aws_subnet" "public" {
-  count             = length(var.aws_availability_zones)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
-  availability_zone = var.aws_availability_zones[count.index]
-
-  tags = {
-    Name = "${var.prefix}-public-${var.aws_availability_zones_short[count.index]}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
@@ -248,23 +197,6 @@ resource "aws_route" "private_with_egress_nat_gateway_ipv4" {
   route_table_id         = aws_route_table.private_with_egress.id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.main.id
-}
-
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "${var.prefix}"
-  }
-}
-
-resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat_gateway.id
-  subnet_id     = aws_subnet.public.*.id[0]
-
-  tags = {
-    Name = "${var.prefix}"
-  }
 }
 
 resource "aws_eip" "nat_gateway" {
