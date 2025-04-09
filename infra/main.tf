@@ -444,6 +444,11 @@ variable "tools_github_source_url" {
   default = "https://github.com/uktrade/data-workspace-tools"
 }
 
+variable "admin_github_source_url" {
+  type    = string
+  default = "https://github.com/uktrade/data-workspace-frontend"
+}
+
 variable "tools" {
   type = list(object({
     name                   = string,
