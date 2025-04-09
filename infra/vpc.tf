@@ -106,21 +106,6 @@ data "aws_iam_policy_document" "vpc_main_flow_log" {
   }
 }
 
-resource "aws_subnet" "public" {
-  count             = length(var.aws_availability_zones)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, count.index)
-  availability_zone = var.aws_availability_zones[count.index]
-
-  tags = {
-    Name = "${var.prefix}-public-${var.aws_availability_zones_short[count.index]}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_subnet" "private_with_egress" {
   count      = length(var.aws_availability_zones)
   vpc_id     = aws_vpc.main.id
