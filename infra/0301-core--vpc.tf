@@ -42,3 +42,27 @@ resource "aws_subnet" "public" {
     create_before_destroy = true
   }
 }
+
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+}
+
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat_gateway.id
+  subnet_id     = aws_subnet.public.*.id[0]
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+}
+
+resource "aws_flow_log" "main" {
+  log_destination = aws_cloudwatch_log_group.vpc_main_flow_log.arn
+  iam_role_arn    = aws_iam_role.vpc_main_flow_log.arn
+  vpc_id          = aws_vpc.main.id
+  traffic_type    = "ALL"
+}

@@ -58,13 +58,6 @@ data "aws_iam_policy_document" "vpc_notebooks_flow_log_vpc_flow_logs_assume_role
   }
 }
 
-resource "aws_flow_log" "main" {
-  log_destination = aws_cloudwatch_log_group.vpc_main_flow_log.arn
-  iam_role_arn    = aws_iam_role.vpc_main_flow_log.arn
-  vpc_id          = aws_vpc.main.id
-  traffic_type    = "ALL"
-}
-
 resource "aws_cloudwatch_log_group" "vpc_main_flow_log" {
   name              = "${var.prefix}-vpc-main-flow-log"
   retention_in_days = "3653"
@@ -204,23 +197,6 @@ resource "aws_route" "private_with_egress_nat_gateway_ipv4" {
   route_table_id         = aws_route_table.private_with_egress.id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.main.id
-}
-
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "${var.prefix}"
-  }
-}
-
-resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat_gateway.id
-  subnet_id     = aws_subnet.public.*.id[0]
-
-  tags = {
-    Name = "${var.prefix}"
-  }
 }
 
 resource "aws_eip" "nat_gateway" {
