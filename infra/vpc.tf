@@ -58,21 +58,6 @@ data "aws_iam_policy_document" "vpc_notebooks_flow_log_vpc_flow_logs_assume_role
   }
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
-
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "${var.prefix}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_vpc_dhcp_options" "main" {
   domain_name_servers = ["AmazonProvidedDNS"]
   domain_name         = "eu-west-2.compute.internal"
