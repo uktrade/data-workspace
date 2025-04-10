@@ -1,12 +1,3 @@
-provider "aws" {}
-provider "aws" {
-  alias = "route53"
-}
-provider "aws" {
-  alias = "mirror"
-}
-
-
 locals {
   admin_container_name   = "jupyterhub-admin"
   admin_container_port   = "8000"
