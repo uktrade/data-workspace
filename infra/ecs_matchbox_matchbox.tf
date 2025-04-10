@@ -371,7 +371,7 @@ resource "aws_cloudwatch_log_group" "matchbox" {
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "matchbox" {
-  count           = var.cloudwatch_subscription_filter != "" && var.matchbox_on ? 1 : 0
+  count           = var.cloudwatch_subscription_filter && var.matchbox_on ? 1 : 0
   name            = "${var.prefix}-matchbox"
   log_group_name  = aws_cloudwatch_log_group.matchbox[count.index].name
   filter_pattern  = ""
