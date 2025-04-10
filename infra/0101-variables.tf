@@ -217,6 +217,11 @@ variable "datasets_rds_cluster_instance_monitoring_interval" {
   default = 0
 }
 
+variable "datasets_create_elastic_aws_service_linked_role" {
+  type    = bool
+  default = false
+}
+
 variable "paas_cidr_block" {}
 variable "paas_vpc_id" {}
 variable "quicksight_cidr_block" {}
