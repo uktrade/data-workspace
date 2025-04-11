@@ -200,17 +200,35 @@ data "aws_iam_policy_document" "matchbox_task" {
   }
 }
 
+resource "aws_db_parameter_group" "matchbox_postgres" {
+  count       = var.matchbox_on ? 1 : 0
+  name        = "${var.prefix}-matchbox-postgres"
+  family      = "aurora-postgresql17"
+  description = "Default parameters for Matchbox's PostgreSQL backend."
+
+  dynamic "parameter" {
+    for_each = var.matchbox_postgres_parameters
+    content {
+      name         = parameter.key
+      value        = parameter.value
+      apply_method = "immediate"
+    }
+  }
+}
+
 resource "aws_rds_cluster" "matchbox" {
-  count                   = var.matchbox_on ? length(var.matchbox_instances) : 0
-  cluster_identifier      = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
-  engine                  = "aurora-postgresql"
-  availability_zones      = var.aws_availability_zones
-  database_name           = "${var.prefix_underscore}_matchbox_${var.matchbox_instances[count.index]}"
-  master_username         = "${var.prefix_underscore}_matchbox_master_${var.matchbox_instances[count.index]}"
-  master_password         = random_string.aws_db_instance_matchbox_password[count.index].result
-  backup_retention_period = 1
-  preferred_backup_window = "03:29-03:59"
-  apply_immediately       = true
+  count                       = var.matchbox_on ? length(var.matchbox_instances) : 0
+  cluster_identifier          = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  engine                      = "aurora-postgresql"
+  engine_version              = "17.4"
+  allow_major_version_upgrade = true
+  availability_zones          = var.aws_availability_zones
+  database_name               = "${var.prefix_underscore}_matchbox_${var.matchbox_instances[count.index]}"
+  master_username             = "${var.prefix_underscore}_matchbox_master_${var.matchbox_instances[count.index]}"
+  master_password             = random_string.aws_db_instance_matchbox_password[count.index].result
+  backup_retention_period     = 1
+  preferred_backup_window     = "03:29-03:59"
+  apply_immediately           = true
 
   vpc_security_group_ids = ["${aws_security_group.matchbox_db[count.index].id}"]
   db_subnet_group_name   = aws_db_subnet_group.matchbox[count.index].name
@@ -220,13 +238,14 @@ resource "aws_rds_cluster" "matchbox" {
 }
 
 resource "aws_rds_cluster_instance" "matchbox" {
-  count              = var.matchbox_on ? 1 : 0
-  identifier         = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
-  cluster_identifier = aws_rds_cluster.matchbox[count.index].id
-  engine             = aws_rds_cluster.matchbox[count.index].engine
-  engine_version     = aws_rds_cluster.matchbox[count.index].engine_version
-  instance_class     = var.matchbox_db_instance_class
-  promotion_tier     = 1
+  count                   = var.matchbox_on ? 1 : 0
+  identifier              = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  cluster_identifier      = aws_rds_cluster.matchbox[count.index].id
+  engine                  = aws_rds_cluster.matchbox[count.index].engine
+  engine_version          = aws_rds_cluster.matchbox[count.index].engine_version
+  db_parameter_group_name = aws_db_parameter_group.matchbox_postgres[0].name
+  instance_class          = var.matchbox_db_instance_class
+  promotion_tier          = 1
 }
 
 resource "aws_db_subnet_group" "matchbox" {
