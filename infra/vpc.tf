@@ -213,64 +213,6 @@ data "aws_iam_policy_document" "vpc_sagemaker_flow_log_vpc_flow_logs_assume_role
   }
 }
 
-#########################################################
-## VPC Endpoints in Main VPC (SageMaker Runtime & API) ##
-#########################################################
-
-resource "aws_vpc_endpoint" "sagemaker_runtime_endpoint_main" {
-  count              = var.sagemaker_on ? 1 : 0
-  vpc_id             = aws_vpc.main.id
-  service_name       = "com.amazonaws.eu-west-2.sagemaker.runtime"
-  vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_with_egress.*.id
-  security_group_ids = [aws_security_group.sagemaker_vpc_endpoints_main[0].id]
-  tags = {
-    Environment = var.prefix
-    Name        = "main-sagemaker-runtime-endpoint"
-  }
-  private_dns_enabled = true
-  policy              = data.aws_iam_policy_document.sagemaker_vpc_endpoint_policy[0].json
-}
-
-resource "aws_vpc_endpoint" "sagemaker_api_endpoint_main" {
-  count              = var.sagemaker_on ? 1 : 0
-  vpc_id             = aws_vpc.main.id
-  service_name       = "com.amazonaws.eu-west-2.sagemaker.api"
-  vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_with_egress.*.id
-  security_group_ids = [aws_security_group.sagemaker_vpc_endpoints_main[0].id]
-  tags = {
-    Environment = var.prefix
-    Name        = "main-sagemaker-api-endpoint"
-  }
-  private_dns_enabled = true
-  policy              = data.aws_iam_policy_document.sagemaker_vpc_endpoint_policy[0].json
-}
-
-data "aws_iam_policy_document" "sagemaker_vpc_endpoint_policy" {
-  # Prevents access to other AWS accounts through the VPC endpoint. There are policies on the
-  # roles themselves that restrict the actions and/or resources
-
-  count = var.sagemaker_on ? 1 : 0
-  statement {
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    actions = [
-      "*",
-    ]
-    resources = [
-      "*",
-    ]
-    condition {
-      test     = "StringLike"
-      variable = "aws:PrincipalArn"
-      values   = ["arn:aws:iam::${data.aws_caller_identity.aws_caller_identity.account_id}:role/*"]
-    }
-  }
-}
-
 ###################################################
 ## VPC Endpoints in SageMaker VPC (SNS, S3, ECR) ##
 ###################################################
