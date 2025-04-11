@@ -3,8 +3,8 @@ locals {
   matchbox_container_vars = [for i, v in var.matchbox_instances : {
     container_image          = "${aws_ecr_repository.matchbox[0].repository_url}:master"
     container_name           = "matchbox"
-    cpu                      = "${local.matchbox_container_cpu}"
-    memory                   = "${local.matchbox_container_memory}"
+    cpu                      = var.matchbox_api_container_resources["cpu"]
+    memory                   = var.matchbox_api_container_resources["memory"]
     database_uri             = "postgresql://${aws_rds_cluster.matchbox[i].master_username}:${random_string.aws_db_instance_matchbox_password[i].result}@${aws_rds_cluster.matchbox[i].endpoint}:5432/${aws_rds_cluster.matchbox[i].database_name}"
     matchbox_s3_cache        = "${var.matchbox_s3_cache}-${var.matchbox_instances[i]}"
     log_group                = "${aws_cloudwatch_log_group.matchbox[0].name}"
@@ -75,8 +75,9 @@ resource "aws_ecs_task_definition" "matchbox_service" {
   task_role_arn      = aws_iam_role.matchbox_task[count.index].arn
   network_mode       = "awsvpc"
 
-  cpu                      = local.matchbox_container_cpu
-  memory                   = local.matchbox_container_memory
+  cpu    = var.matchbox_api_container_resources["cpu"]
+  memory = var.matchbox_api_container_resources["memory"]
+
   requires_compatibilities = ["FARGATE"]
   tags                     = {}
 
