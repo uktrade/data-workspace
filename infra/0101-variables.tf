@@ -378,6 +378,14 @@ variable "matchbox_db_instance_class" {
   default = ""
 }
 
+variable "matchbox_postgres_parameters" {
+  description = "Map of PostgreSQL parameters to apply to the DB parameter group"
+  type        = map(string)
+  default = {
+    statement_timeout = "600000"
+  }
+}
+
 variable "vpc_matchbox_subnets_num_bits" {
   type    = string
   default = ""
