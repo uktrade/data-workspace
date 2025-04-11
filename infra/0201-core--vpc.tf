@@ -77,3 +77,83 @@ resource "aws_vpc_endpoint_route_table_association" "main_s3" {
   vpc_endpoint_id = aws_vpc_endpoint.main_s3.id
   route_table_id  = aws_route_table.private_with_egress.id
 }
+
+resource "aws_subnet" "private_with_egress" {
+  count      = length(var.aws_availability_zones)
+  vpc_id     = aws_vpc.main.id
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, length(var.aws_availability_zones) + count.index)
+
+  availability_zone = var.aws_availability_zones[count.index]
+
+  tags = {
+    Name = "${var.prefix}-private-with-egress-${var.aws_availability_zones_short[count.index]}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_subnet" "public_whitelisted_ingress" {
+  count      = length(var.aws_availability_zones)
+  vpc_id     = aws_vpc.main.id
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnets_num_bits, length(var.aws_availability_zones) * 2 + count.index)
+
+  availability_zone = var.aws_availability_zones[count.index]
+
+  tags = {
+    Name = "${var.prefix}-public-whitelisted-ingress-${var.aws_availability_zones_short[count.index]}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route_table_association" "public_whitelisted_ingress" {
+  count          = length(var.aws_availability_zones)
+  subnet_id      = aws_subnet.public_whitelisted_ingress.*.id[count.index]
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "${var.prefix}-public"
+  }
+}
+
+resource "aws_route_table_association" "jupyterhub_public" {
+  count          = length(var.aws_availability_zones)
+  subnet_id      = aws_subnet.public.*.id[count.index]
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route" "public_internet_gateway_ipv4" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.main.id
+}
+
+resource "aws_route_table" "private_with_egress" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "${var.prefix}-private-with-egress"
+  }
+}
+
+resource "aws_route_table_association" "jupyterhub_private_with_egress" {
+  count          = length(var.aws_availability_zones)
+  subnet_id      = aws_subnet.private_with_egress.*.id[count.index]
+  route_table_id = aws_route_table.private_with_egress.id
+}
+
+resource "aws_route" "private_with_egress_nat_gateway_ipv4" {
+  route_table_id         = aws_route_table.private_with_egress.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.main.id
+}
+
+resource "aws_eip" "nat_gateway" {
+  vpc = true
+}
