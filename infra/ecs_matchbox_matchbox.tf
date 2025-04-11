@@ -308,13 +308,16 @@ data "aws_iam_policy_document" "matchbox_s3_import_policy_template" {
 resource "aws_s3_bucket" "matchbox_dev" {
   count  = var.matchbox_on && var.matchbox_dev_mode_on ? 1 : 0
   bucket = var.matchbox_s3_dev_artefacts
+}
 
-  server_side_encryption_configuration {
-    rule {
-      bucket_key_enabled = false
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+resource "aws_s3_bucket_server_side_encryption_configuration" "matchbox_dev_encryption" {
+  count  = var.matchbox_on ? 1 : 0
+  bucket = aws_s3_bucket.matchbox_dev[count.index].id
+
+  rule {
+    bucket_key_enabled = false
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }
@@ -323,13 +326,16 @@ resource "aws_s3_bucket" "matchbox_s3_cache" {
   # count  = length(var.matchbox_instances)
   count  = var.matchbox_on ? 1 : 0
   bucket = "${var.matchbox_s3_cache}-${var.matchbox_instances[count.index]}"
+}
 
-  server_side_encryption_configuration {
-    rule {
-      bucket_key_enabled = false
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+resource "aws_s3_bucket_server_side_encryption_configuration" "matchbox_s3_cache_encryption" {
+  count  = var.matchbox_on ? 1 : 0
+  bucket = aws_s3_bucket.matchbox_s3_cache[count.index].id
+
+  rule {
+    bucket_key_enabled = false
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }
