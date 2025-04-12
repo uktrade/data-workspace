@@ -111,49 +111,143 @@ resource "aws_lb_target_group" "airflow_webserver_8080" {
 resource "aws_ecs_task_definition" "airflow_webserver" {
   count  = var.airflow_on ? 1 : 0
   family = "${var.prefix}-airflow-webserver"
-  container_definitions = templatefile(
-    "${path.module}/airflow_webserver_container_definitions.json", {
-      command = "[\"airflow\",\"webserver\",\"-p 8080\"]"
-
-      container_image = "${aws_ecr_repository.airflow.repository_url}:master"
-      container_name  = "airflow"
-      log_group       = "${aws_cloudwatch_log_group.airflow_webserver[count.index].name}"
-      log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.airflow_container_cpu}"
-      memory          = "${local.airflow_container_memory}"
-
-      db_host     = "${aws_rds_cluster.airflow[count.index].endpoint}"
-      db_name     = "${aws_rds_cluster.airflow[count.index].database_name}"
-      db_password = "${random_string.aws_db_instance_airflow_password.result}"
-      db_port     = "${aws_rds_cluster.airflow[count.index].port}"
-      db_user     = "${aws_rds_cluster.airflow[count.index].master_username}"
-      secret_key  = "${random_string.airflow_secret_key.result}"
-
-      datasets_db_host     = "${aws_rds_cluster.datasets.endpoint}"
-      datasets_db_name     = "${aws_rds_cluster.datasets.database_name}"
-      datasets_db_password = "${random_string.aws_rds_cluster_instance_datasets_password.result}"
-      datasets_db_port     = "${aws_rds_cluster.datasets.port}"
-      datasets_db_user     = "${var.datasets_rds_cluster_master_username}"
-
-      sentry_dsn         = "${var.sentry_notebooks_dsn}"
-      sentry_environment = "${var.sentry_environment}"
-
-      authbroker_url           = "${var.airflow_authbroker_url}"
-      authbroker_client_id     = "${var.airflow_authbroker_client_id}"
-      authbroker_client_secret = "${var.airflow_authbroker_client_secret}"
-
-      subnets         = "${aws_subnet.private_with_egress.*.id[0]}"
-      security_groups = "${aws_security_group.airflow_webserver.id}"
-      task_definition = "${aws_ecs_task_definition.airflow_dag_tasks[0].arn}"
-      cluster         = "${aws_ecs_cluster.airflow_dag_tasks.name}"
-
-      cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
-
-      dag_sync_github_key               = "${var.dag_sync_github_key}"
-      data_workspace_s3_import_hawk_id  = "${var.airflow_data_workspace_s3_import_hawk_id}"
-      data_workspace_s3_import_hawk_key = "${var.airflow_data_workspace_s3_import_hawk_key}"
+  container_definitions = jsonencode([
+    {
+      "command"    = ["airflow", "webserver", "-p 8080"]
+      "entryPoint" = ["/home/vcap/app/dataflow/bin/aws-wrapper-no-git-sync.sh"],
+      "environment" = [
+        {
+          "name"  = "DB_HOST",
+          "value" = aws_rds_cluster.airflow[count.index].endpoint,
+        },
+        {
+          "name"  = "DB_NAME",
+          "value" = aws_rds_cluster.airflow[count.index].database_name
+        },
+        {
+          "name"  = "DB_PASSWORD",
+          "value" = random_string.aws_db_instance_airflow_password.result
+        },
+        {
+          "name"  = "DB_PORT",
+          "value" = tostring(aws_rds_cluster.airflow[count.index].port)
+        },
+        {
+          "name"  = "DB_USER",
+          "value" = aws_rds_cluster.airflow[count.index].master_username
+        },
+        {
+          "name"  = "AIRFLOW__WEBSERVER__SECRET_KEY",
+          "value" = random_string.airflow_secret_key.result
+        },
+        {
+          "name"  = "SENTRY_DSN",
+          "value" = var.sentry_notebooks_dsn
+        },
+        {
+          "name"  = "SENTRY_ENVIRONMENT",
+          "value" = var.sentry_environment
+        },
+        {
+          "name"  = "AUTHBROKER_URL",
+          "value" = var.airflow_authbroker_url
+        },
+        {
+          "name"  = "AUTHBROKER_CLIENT_ID",
+          "value" = var.airflow_authbroker_client_id
+        },
+        {
+          "name"  = "AUTHBROKER_CLIENT_SECRET",
+          "value" = var.airflow_authbroker_client_secret
+        },
+        {
+          "name"  = "DATASETS_DB_HOST",
+          "value" = aws_rds_cluster.datasets.endpoint
+        },
+        {
+          "name"  = "DATASETS_DB_NAME",
+          "value" = aws_rds_cluster.datasets.database_name
+        },
+        {
+          "name"  = "DATASETS_DB_PASSWORD",
+          "value" = random_string.aws_rds_cluster_instance_datasets_password.result
+        },
+        {
+          "name"  = "DATASETS_DB_PORT",
+          "value" = tostring(aws_rds_cluster.datasets.port)
+        },
+        {
+          "name"  = "DATASETS_DB_USER",
+          "value" = var.datasets_rds_cluster_master_username
+        },
+        {
+          "name"  = "AIRFLOW__AWS_ECS_EXECUTOR__REGION_NAME",
+          "value" = "eu-west-2"
+        },
+        {
+          "name"  = "AIRFLOW__AWS_ECS_EXECUTOR__SUBNETS",
+          "value" = aws_subnet.private_with_egress.*.id[0]
+        },
+        {
+          "name"  = "AIRFLOW__AWS_ECS_EXECUTOR__SECURITY_GROUPS",
+          "value" = aws_security_group.airflow_webserver.id
+        },
+        {
+          "name"  = "AIRFLOW__AWS_ECS_EXECUTOR__TASK_DEFINITION",
+          "value" = aws_ecs_task_definition.airflow_dag_tasks[0].arn
+        },
+        {
+          "name"  = "AIRFLOW__AWS_ECS_EXECUTOR__CLUSTER",
+          "value" = aws_ecs_cluster.airflow_dag_tasks.name
+        },
+        {
+          "name"  = "AIRFLOW__AWS_ECS_EXECUTOR__CONTAINER_NAME",
+          "value" = "airflow"
+        },
+        {
+          "name"  = "AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER",
+          "value" = "cloudwatch://${aws_cloudwatch_log_group.airflow_dag_tasks_airflow_logging[0].arn}"
+        },
+        {
+          # The key is already json-encoded, so to avoid it being double-json encoded, we decode it
+          # first. But to do this we need to wrap it in double quotes so it's valid JSON.
+          "name"  = "DAG_SYNC_GITHUB_KEY",
+          "value" = jsondecode("\"${var.dag_sync_github_key}\"")
+        },
+        {
+          "name"  = "DATA_WORKSPACE_S3_IMPORT_HAWK_ID",
+          "value" = var.airflow_data_workspace_s3_import_hawk_id
+        },
+        {
+          "name"  = "DATA_WORKSPACE_S3_IMPORT_HAWK_KEY",
+          "value" = var.airflow_data_workspace_s3_import_hawk_key
+        }
+      ],
+      "essential" = true,
+      "image"     = "${aws_ecr_repository.airflow.repository_url}:master",
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = aws_cloudwatch_log_group.airflow_webserver[count.index].name,
+          "awslogs-region"        = data.aws_region.aws_region.name,
+          "awslogs-stream-prefix" = "airflow"
+        }
+      },
+      "networkMode"       = "awsvpc",
+      "memoryReservation" = local.airflow_container_memory,
+      "cpu"               = local.airflow_container_cpu,
+      "mountPoints"       = [],
+      "name"              = "airflow",
+      "portMappings" = [
+        {
+          "containerPort" = 8080,
+          "hostPort"      = 8080,
+          "protocol"      = "tcp"
+        },
+      ]
     }
-  )
+  ])
+
   execution_role_arn       = aws_iam_role.airflow_webserver_execution[count.index].arn
   task_role_arn            = aws_iam_role.airflow_webserver_task[count.index].arn
   network_mode             = "awsvpc"
