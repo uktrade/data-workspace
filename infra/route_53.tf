@@ -1,8 +1,3 @@
-data "aws_route53_zone" "aws_route53_zone" {
-  provider = aws.route53
-  name     = var.aws_route53_zone
-}
-
 resource "aws_route53_record" "healthcheck" {
   provider = aws.route53
   zone_id  = data.aws_route53_zone.aws_route53_zone.zone_id
