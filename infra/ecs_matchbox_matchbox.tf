@@ -330,7 +330,7 @@ resource "aws_s3_bucket" "matchbox_dev" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "matchbox_dev_encryption" {
-  count  = var.matchbox_on ? 1 : 0
+  count  = var.matchbox_on && var.matchbox_dev_mode_on ? 1 : 0
   bucket = aws_s3_bucket.matchbox_dev[count.index].id
 
   rule {
