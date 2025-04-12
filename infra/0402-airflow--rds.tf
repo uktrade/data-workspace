@@ -28,3 +28,22 @@ resource "aws_rds_cluster_instance" "airflow" {
   instance_class     = var.airflow_db_instance_class
   promotion_tier     = 1
 }
+
+resource "aws_db_subnet_group" "airflow" {
+  count      = var.airflow_on ? 1 : 0
+  name       = "${var.prefix}-airflow"
+  subnet_ids = aws_subnet.private_with_egress.*.id
+
+  tags = {
+    Name = "${var.prefix}-airflow"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "random_string" "aws_db_instance_airflow_password" {
+  length  = 99
+  special = false
+}
