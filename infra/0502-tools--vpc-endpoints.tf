@@ -8,6 +8,11 @@ resource "aws_vpc_endpoint" "s3" {
   timeouts {}
 }
 
+resource "aws_vpc_endpoint_route_table_association" "s3" {
+  vpc_endpoint_id = aws_vpc_endpoint.s3.id
+  route_table_id  = aws_route_table.private_without_egress.id
+}
+
 data "aws_iam_policy_document" "aws_vpc_endpoint_s3_notebooks" {
   statement {
     principals {

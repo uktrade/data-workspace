@@ -63,6 +63,82 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_ecr" {
   }
 }
 
+resource "aws_vpc_endpoint" "cloudwatch_logs" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.logs"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids = ["${aws_security_group.cloudwatch.id}"]
+  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_cloudwatch_logs.json
+
+  private_dns_enabled = true
+}
+
+data "aws_iam_policy_document" "aws_vpc_endpoint_cloudwatch_logs" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "*",
+    ]
+
+    resources = [
+      "*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [
+        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+      ]
+    }
+  }
+}
+
+resource "aws_vpc_endpoint" "cloudwatch_monitoring" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.monitoring"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids = ["${aws_security_group.cloudwatch.id}"]
+  subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
+
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_cloudwatch_monitoring.json
+
+  private_dns_enabled = true
+}
+
+data "aws_iam_policy_document" "aws_vpc_endpoint_cloudwatch_monitoring" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "*",
+    ]
+
+    resources = [
+      "*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values = [
+        "${data.aws_caller_identity.aws_caller_identity.account_id}"
+      ]
+    }
+  }
+}
+
 resource "aws_vpc_endpoint" "sagemaker_runtime_endpoint_main" {
   count              = var.sagemaker_on ? 1 : 0
   vpc_id             = aws_vpc.main.id
