@@ -49,13 +49,39 @@ resource "aws_service_discovery_service" "arango" {
 resource "aws_ecs_task_definition" "arango_service" {
   count  = var.arango_on ? 1 : 0
   family = "${var.prefix}-arango"
-  container_definitions = templatefile("${path.module}/ecs_main_arango_container_definitions.json", {
-    container_image = "${aws_ecr_repository.arango[0].repository_url}:latest"
-    container_name  = "arango"
-    log_group       = "${aws_cloudwatch_log_group.arango[0].name}"
-    log_region      = "${data.aws_region.aws_region.name}"
-    root_password   = "${random_string.aws_arangodb_root_password[0].result}"
-  })
+  container_definitions = jsonencode([
+    {
+      "name"      = "arango",
+      "image"     = "${aws_ecr_repository.arango[0].repository_url}:latest"
+      "essential" = true,
+      "portMappings" = [
+        {
+          "containerPort" = 8529,
+          "protocol"      = "tcp"
+        }
+      ],
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = "${aws_cloudwatch_log_group.arango[0].name}"
+          "awslogs-region"        = "${data.aws_region.aws_region.name}"
+          "awslogs-stream-prefix" = "arango"
+        }
+      },
+      "environment" = [
+        {
+          "name"  = "ARANGO_ROOT_PASSWORD",
+          "value" = "${random_string.aws_arangodb_root_password[0].result}"
+        }
+      ],
+      "mountPoints" = [
+        {
+          "containerPath" = "/var/lib/arangodb3",
+          "sourceVolume"  = "data-arango"
+        }
+      ]
+    }
+  ])
 
   execution_role_arn       = aws_iam_role.arango_task_execution[0].arn
   task_role_arn            = aws_iam_role.arango_task[0].arn
