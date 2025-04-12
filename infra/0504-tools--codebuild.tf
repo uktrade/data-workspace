@@ -1,41 +1,53 @@
 locals {
-  tool_builds = concat([for i, t in var.tools : {
-    name                   = t.name,
-    docker_target          = t.docker_target,
-    docker_tag             = "master"
-    codebuild_compute_type = t.codebuild_compute_type
-    tool_ecr_repo          = aws_ecr_repository.tools[i]
-    }], [{
-    name                   = "s3sync",
-    docker_target          = "s3sync"
-    docker_tag             = "master"
-    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
-    tool_ecr_repo          = aws_ecr_repository.s3sync
-    }], [{
-    name                   = "metrics",
-    docker_target          = "metrics"
-    docker_tag             = "master"
-    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
-    tool_ecr_repo          = aws_ecr_repository.metrics
-    }], [{
-    name                   = "mirrors_sync_cran_binary_rv4",
-    docker_target          = "rv4-cran-binary-mirror"
-    docker_tag             = "master"
-    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
-    tool_ecr_repo          = aws_ecr_repository.mirrors_sync_cran_binary_rv4
-    }], [{
-    name                   = "python_visualisation",
-    docker_target          = "python-visualisation"
-    docker_tag             = "python"
-    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
-    tool_ecr_repo          = aws_ecr_repository.visualisation_base
-    }], [{
-    name                   = "rv4_visualisation",
-    docker_target          = "rv4-visualisation"
-    docker_tag             = "rv4"
-    codebuild_compute_type = "BUILD_GENERAL1_SMALL"
-    tool_ecr_repo          = aws_ecr_repository.visualisation_base
-  }])
+  tool_builds = concat(
+    [
+      for i, t in var.tools :
+      {
+        name                   = t.name,
+        docker_target          = t.docker_target,
+        docker_tag             = "master"
+        codebuild_compute_type = t.codebuild_compute_type
+        tool_ecr_repo          = aws_ecr_repository.tools[i]
+      }
+    ],
+    [
+      {
+        name                   = "s3sync",
+        docker_target          = "s3sync"
+        docker_tag             = "master"
+        codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+        tool_ecr_repo          = aws_ecr_repository.s3sync
+      },
+      {
+        name                   = "metrics",
+        docker_target          = "metrics"
+        docker_tag             = "master"
+        codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+        tool_ecr_repo          = aws_ecr_repository.metrics
+      },
+      {
+        name                   = "mirrors_sync_cran_binary_rv4",
+        docker_target          = "rv4-cran-binary-mirror"
+        docker_tag             = "master"
+        codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+        tool_ecr_repo          = aws_ecr_repository.mirrors_sync_cran_binary_rv4
+      },
+      {
+        name                   = "python_visualisation",
+        docker_target          = "python-visualisation"
+        docker_tag             = "python"
+        codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+        tool_ecr_repo          = aws_ecr_repository.visualisation_base
+      },
+      {
+        name                   = "rv4_visualisation",
+        docker_target          = "rv4-visualisation"
+        docker_tag             = "rv4"
+        codebuild_compute_type = "BUILD_GENERAL1_SMALL"
+        tool_ecr_repo          = aws_ecr_repository.visualisation_base
+      }
+    ]
+  )
 }
 
 resource "aws_codebuild_project" "tools" {
