@@ -50,33 +50,3 @@ resource "aws_ecs_task_definition" "tools" {
     ]
   }
 }
-
-data "external" "tools_current_tag" {
-  count   = length(var.tools)
-  program = ["${path.module}/task_definition_tag.sh"]
-
-  query = {
-    task_family    = "${var.prefix}-${var.tools[count.index].name}"
-    container_name = "${local.notebook_container_name}"
-  }
-}
-
-data "external" "tools_metrics_current_tag" {
-  count   = length(var.tools)
-  program = ["${path.module}/task_definition_tag.sh"]
-
-  query = {
-    task_family    = "${var.prefix}-${var.tools[count.index].name}"
-    container_name = "metrics"
-  }
-}
-
-data "external" "tools_s3sync_current_tag" {
-  count   = length(var.tools)
-  program = ["${path.module}/task_definition_tag.sh"]
-
-  query = {
-    task_family    = "${var.prefix}-${var.tools[count.index].name}"
-    container_name = "s3sync"
-  }
-}
