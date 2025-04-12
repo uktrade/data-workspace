@@ -183,18 +183,6 @@ resource "aws_ecr_lifecycle_policy" "datadog_expire_untagged_after_one_day" {
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
-data "aws_ecr_lifecycle_policy_document" "expire_untagged_after_one_day" {
-  rule {
-    priority = 1
-    selection {
-      tag_status   = "untagged"
-      count_type   = "sinceImagePushed"
-      count_unit   = "days"
-      count_number = 1
-    }
-  }
-}
-
 data "aws_ecr_lifecycle_policy_document" "expire_preview_and_untagged_after_one_day" {
   # Match *--prod images, but expire them in 1000 years...
   rule {
