@@ -178,19 +178,6 @@ resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_superset" 
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_mwaa" {
-  count       = var.mwaa_environment_name != "" ? 1 : 0
-  description = "ingress-postgres-from-mwaa"
-
-  security_group_id        = aws_security_group.datasets.id
-  source_security_group_id = aws_security_group.mwaa[0].id
-
-  type      = "ingress"
-  from_port = aws_rds_cluster_instance.datasets.port
-  to_port   = aws_rds_cluster_instance.datasets.port
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "datasets_db_ingress_all_from_quicksight" {
   description = "ingress-all-from-quicksight"
 
