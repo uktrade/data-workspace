@@ -16,8 +16,8 @@ resource "aws_ecs_service" "admin_celery" {
 
 resource "aws_ecs_task_definition" "admin_celery" {
   family = "${var.prefix}-admin-celery"
-  container_definitions = templatefile(
-    "${path.module}/ecs_main_admin_container_definitions.json",
+  container_definitions = templatestring(
+    local.admin_container_definitions,
     merge(local.admin_container_vars, tomap({ "container_command" = "[\"/dataworkspace/start-celery.sh\"]" }))
   )
   execution_role_arn       = aws_iam_role.admin_task_execution.arn
