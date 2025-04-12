@@ -29,15 +29,6 @@ resource "aws_ecs_task_definition" "user_provided" {
   }
 }
 
-data "external" "user_provided_metrics_current_tag" {
-  program = ["${path.module}/task_definition_tag.sh"]
-
-  query = {
-    task_family    = "${var.prefix}-user-provided"
-    container_name = "metrics"
-  }
-}
-
 data "aws_iam_policy_document" "user_provided_access_template" {
   statement {
     resources = ["*"]
