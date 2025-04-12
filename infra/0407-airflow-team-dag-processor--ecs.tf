@@ -25,8 +25,8 @@ locals {
       container_name  = "airflow-dag-processor"
       log_group       = "${aws_cloudwatch_log_group.airflow_dag_processor[i].name}"
       log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.airflow_container_cpu}"
-      memory          = "${local.airflow_container_memory}"
+      cpu             = local.airflow_container_cpu
+      memory          = local.airflow_container_memory
 
       db_host     = "${aws_rds_cluster.airflow[0].endpoint}"
       db_name     = "${aws_rds_cluster.airflow[0].database_name}"
@@ -56,10 +56,82 @@ locals {
 resource "aws_ecs_task_definition" "airflow_dag_processor_service" {
   count  = var.airflow_on ? length(var.airflow_dag_processors) : 0
   family = "${var.prefix}-airflow-dag-processor-${var.airflow_dag_processors[count.index].name}"
-  container_definitions = templatefile(
-    "${path.module}/airflow_dag_processor_container_definitions.json",
-    local.airflow_dag_processor_container_vars[count.index]
-  )
+  container_definitions = jsonencode([
+    {
+      "command" = ["/home/vcap/app/dataflow/bin/aws-dag-processor.sh"],
+      "environment" = [
+        {
+          "name"  = "DB_HOST",
+          "value" = local.airflow_dag_processor_container_vars[count.index].db_host
+        },
+        {
+          "name"  = "DB_NAME",
+          "value" = local.airflow_dag_processor_container_vars[count.index].db_name
+        },
+        {
+          "name"  = "DB_PASSWORD",
+          "value" = local.airflow_dag_processor_container_vars[count.index].db_password
+        },
+        {
+          "name"  = "DB_PORT",
+          "value" = tostring(local.airflow_dag_processor_container_vars[count.index].db_port)
+        },
+        {
+          "name"  = "DB_USER",
+          "value" = local.airflow_dag_processor_container_vars[count.index].db_user
+        },
+        {
+          "name"  = "SECRET_KEY",
+          "value" = local.airflow_dag_processor_container_vars[count.index].secret_key
+        },
+        {
+          "name"  = "SENTRY_ENVIRONMENT",
+          "value" = local.airflow_dag_processor_container_vars[count.index].sentry_environment
+        },
+        {
+          "name"  = "AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER",
+          "value" = "cloudwatch://${local.airflow_dag_processor_container_vars[count.index].cloudwatch_log_group_arn}"
+        },
+        {
+          "name"  = "TEAM",
+          "value" = local.airflow_dag_processor_container_vars[count.index].team
+        },
+        {
+          # The key is already json-encoded, so to avoid it being double-json encoded, we decode it
+          # first. But to do this we need to wrap it in double quotes so it's valid JSON.
+          "name"  = "DAG_SYNC_GITHUB_KEY",
+          "value" = jsondecode("\"${local.airflow_dag_processor_container_vars[count.index].dag_sync_github_key}\"")
+        },
+        {
+          "name"  = "TEAM_SECRET_ID",
+          "value" = local.airflow_dag_processor_container_vars[count.index].team_secret_id
+        }
+      ],
+      "essential" = true,
+      "image"     = local.airflow_dag_processor_container_vars[count.index].container_image,
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = local.airflow_dag_processor_container_vars[count.index].log_group,
+          "awslogs-region"        = local.airflow_dag_processor_container_vars[count.index].log_region,
+          "awslogs-stream-prefix" = local.airflow_dag_processor_container_vars[count.index].container_name,
+        }
+      },
+      "networkMode"       = "awsvpc",
+      "memoryReservation" = local.airflow_dag_processor_container_vars[count.index].memory,
+      "cpu"               = local.airflow_dag_processor_container_vars[count.index].cpu,
+      "mountPoints"       = [],
+      "name"              = local.airflow_dag_processor_container_vars[count.index].container_name,
+      "portMappings" = [
+        {
+          "containerPort" = 8080,
+          "hostPort"      = 8080,
+          "protocol"      = "tcp"
+        }
+      ]
+    }
+  ])
+
   execution_role_arn       = aws_iam_role.airflow_dag_processor_execution[count.index].arn
   task_role_arn            = aws_iam_role.airflow_team[count.index].arn
   network_mode             = "awsvpc"
