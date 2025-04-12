@@ -13,15 +13,6 @@ resource "aws_ecr_lifecycle_policy" "user_provided_expire_untagged_after_one_day
   policy     = data.aws_ecr_lifecycle_policy_document.expire_preview_and_untagged_after_one_day.json
 }
 
-resource "aws_ecr_repository" "admin" {
-  name = "${var.prefix}-admin"
-}
-
-resource "aws_ecr_lifecycle_policy" "admin_keep_last_five_releases" {
-  repository = aws_ecr_repository.admin.name
-  policy     = data.aws_ecr_lifecycle_policy_document.keep_last_five_releases.json
-}
-
 resource "aws_ecr_repository" "rstudio" {
   name = "${var.prefix}-rstudio"
 }
@@ -302,39 +293,6 @@ data "aws_ecr_lifecycle_policy_document" "expire_non_master_non_latest_after_one
   # ... and for when we end up with untagged images, expire them after 1 day as well
   rule {
     priority = 4
-    selection {
-      tag_status   = "untagged"
-      count_type   = "sinceImagePushed"
-      count_unit   = "days"
-      count_number = 1
-    }
-  }
-}
-
-data "aws_ecr_lifecycle_policy_document" "keep_last_five_releases" {
-  # always keep five images that fit semantic versioning pattern
-  rule {
-    priority = 1
-    selection {
-      tag_status       = "tagged"
-      tag_pattern_list = ["v*.*.*"]
-      count_type       = "imageCountMoreThan"
-      count_number     = 5
-    }
-  }
-  # keep five other images (from PR merge builds etc)
-  rule {
-    priority = 2
-    selection {
-      tag_status       = "tagged"
-      tag_pattern_list = ["*"]
-      count_type       = "imageCountMoreThan"
-      count_number     = 5
-    }
-  }
-  # ... and just in case we somehow end up with untagged images, expire them after 1 day
-  rule {
-    priority = 3
     selection {
       tag_status   = "untagged"
       count_type   = "sinceImagePushed"
