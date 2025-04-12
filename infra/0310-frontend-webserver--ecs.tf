@@ -49,8 +49,8 @@ resource "aws_service_discovery_service" "admin" {
 
 resource "aws_ecs_task_definition" "admin" {
   family = "${var.prefix}-admin"
-  container_definitions = templatefile(
-    "${path.module}/ecs_main_admin_container_definitions.json",
+  container_definitions = templatestring(
+    local.admin_container_definitions,
     merge(local.admin_container_vars, tomap({ "container_command" = "[\"/dataworkspace/start.sh\"]" }))
   )
   execution_role_arn       = aws_iam_role.admin_task_execution.arn
