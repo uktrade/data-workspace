@@ -48,12 +48,29 @@ resource "aws_launch_template" "arango_service" {
     name = aws_iam_instance_profile.arango_ec2[0].name
   }
 
-  user_data = (base64encode(templatefile("${path.module}/ecs_main_arango_user_data.sh",
-    {
-      ECS_CLUSTER   = aws_ecs_cluster.main_cluster.name
-      EBS_REGION    = data.aws_region.aws_region.name
-      EBS_VOLUME_ID = aws_ebs_volume.arango[0].id
-  })))
+  user_data = base64encode(<<-EOT
+      #!/bin/bash
+      # install and start ecs agent
+
+      EC2_INSTANCE_ID=$(ec2-metadata --instance-id | sed 's/instance-id: //')
+      aws ec2 attach-volume --volume-id ${aws_ebs_volume.arango[0].id} --instance-id $EC2_INSTANCE_ID --device /dev/xvdf --region ${data.aws_region.aws_region.name}
+      # Follow symlinks to find the real device
+      device=$(sudo readlink -f /dev/xvdf)
+        # Wait for the drive to be attached
+      while [ ! -e $device ] ; do sleep 1 ; done
+      # Format /dev/sdh if it does not contain a partition yet
+      if [ "$(sudo file -b -s $device)" == "data" ]; then
+      sudo mkfs -t ext4 $device
+      fi
+      # Mount the drive
+      sudo mkdir -p /data
+      sudo mount $device /data
+
+      mkdir -p /etc/ecs/
+      echo "ECS_CLUSTER=${aws_ecs_cluster.main_cluster.name}" >> /etc/ecs/ecs.config
+      sudo systemctl enable --now --no-block ecs
+    EOT
+  )
 
   lifecycle {
     create_before_destroy = true
