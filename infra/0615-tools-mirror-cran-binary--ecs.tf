@@ -1,19 +1,31 @@
 resource "aws_ecs_task_definition" "mirrors_sync_cran_binary_rv4" {
   count  = var.mirrors_bucket_name != "" ? 1 : 0
   family = "jupyterhub-mirrors-sync-cran-binary-rv4"
-  container_definitions = templatefile(
-    "${path.module}/ecs_main_mirrors_sync_cran_binary_container_definition.json", {
-      container_image  = "${aws_ecr_repository.mirrors_sync_cran_binary_rv4.repository_url}:master"
-      container_name   = "${local.mirrors_sync_cran_binary_container_name}"
-      container_cpu    = "${local.mirrors_sync_cran_binary_container_cpu}"
-      container_memory = "${local.mirrors_sync_cran_binary_container_memory}"
-
-      log_group  = "${aws_cloudwatch_log_group.mirrors_sync.*.name[count.index]}"
-      log_region = "${data.aws_region.aws_region.name}"
-
-      mirrors_bucket_name = "${var.mirrors_bucket_name}"
+  container_definitions = jsonencode([
+    {
+      "name"              = local.mirrors_sync_cran_binary_container_name,
+      "image"             = "${aws_ecr_repository.mirrors_sync_cran_binary_rv4.repository_url}:master"
+      "memoryReservation" = local.mirrors_sync_cran_binary_container_memory,
+      "cpu"               = local.mirrors_sync_cran_binary_container_cpu,
+      "essential"         = true,
+      "portMappings"      = [],
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = aws_cloudwatch_log_group.mirrors_sync.*.name[count.index],
+          "awslogs-region"        = data.aws_region.aws_region.name,
+          "awslogs-stream-prefix" = local.mirrors_sync_cran_binary_container_name
+        }
+      },
+      "environment" = [
+        {
+          "name"  = "MIRRORS_BUCKET_NAME",
+          "value" = var.mirrors_bucket_name,
+        }
+      ]
     }
-  )
+  ])
+
   execution_role_arn       = aws_iam_role.mirrors_sync_task_execution.*.arn[count.index]
   task_role_arn            = aws_iam_role.mirrors_sync_task.*.arn[count.index]
   network_mode             = "awsvpc"
