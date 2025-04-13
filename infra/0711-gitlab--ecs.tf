@@ -58,44 +58,79 @@ resource "aws_service_discovery_service" "gitlab" {
 resource "aws_ecs_task_definition" "gitlab" {
   count  = var.gitlab_on ? 1 : 0
   family = "${var.prefix}-gitlab"
-  container_definitions = templatefile(
-    "${path.module}/ecs_main_gitlab_container_definitions.json", {
-      container_image = "${aws_ecr_repository.gitlab.repository_url}:master"
-      container_name  = "gitlab"
-      log_group       = "${aws_cloudwatch_log_group.gitlab[count.index].name}"
-      log_region      = "${data.aws_region.aws_region.name}"
+  container_definitions = jsonencode([
+    {
+      "environment" = [
+        {
+          "name" = "GITLAB_OMNIBUS_CONFIG",
+          "value" = templatefile(
+            "${path.module}/ecs_main_gitlab_container_definitions_GITLAB_OMNIBUS_CONFIG.rb", {
+              external_domain = "${var.gitlab_domain}"
+              db__host        = "${aws_rds_cluster.gitlab[count.index].endpoint}"
+              db__name        = "${aws_rds_cluster.gitlab[count.index].database_name}"
+              db__password    = "${random_string.aws_db_instance_gitlab_password.result}"
+              db__port        = "${aws_rds_cluster.gitlab[count.index].port}"
+              db__user        = "${aws_rds_cluster.gitlab[count.index].master_username}"
 
-      memory = "${var.gitlab_memory}"
-      cpu    = "${var.gitlab_cpu}"
+              redis__host = "${aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes.0.address}"
+              redis__port = "${aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes.0.port}"
 
-      gitlab_omnibus_config = "${jsonencode(
-        templatefile(
-          "${path.module}/ecs_main_gitlab_container_definitions_GITLAB_OMNIBUS_CONFIG.rb", {
-            external_domain = "${var.gitlab_domain}"
-            db__host        = "${aws_rds_cluster.gitlab[count.index].endpoint}"
-            db__name        = "${aws_rds_cluster.gitlab[count.index].database_name}"
-            db__password    = "${random_string.aws_db_instance_gitlab_password.result}"
-            db__port        = "${aws_rds_cluster.gitlab[count.index].port}"
-            db__user        = "${aws_rds_cluster.gitlab[count.index].master_username}"
+              bucket__region = "${aws_s3_bucket.gitlab[count.index].region}"
+              bucket__domain = "${aws_s3_bucket.gitlab[count.index].bucket_regional_domain_name}"
 
-            redis__host = "${aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes.0.address}"
-            redis__port = "${aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes.0.port}"
-
-            bucket__region = "${aws_s3_bucket.gitlab[count.index].region}"
-            bucket__domain = "${aws_s3_bucket.gitlab[count.index].bucket_regional_domain_name}"
-
-            sso__id     = "${var.gitlab_sso_id}"
-            sso__secret = "${var.gitlab_sso_secret}"
-            sso__domain = "${var.gitlab_sso_domain}"
-          }
-        )
-      )}"
-      bucket        = "${aws_s3_bucket.gitlab[count.index].id}"
-      bucket_region = "${aws_s3_bucket.gitlab[count.index].region}"
-
-      secret_name = "${aws_secretsmanager_secret.gitlab[count.index].name}"
+              sso__id     = "${var.gitlab_sso_id}"
+              sso__secret = "${var.gitlab_sso_secret}"
+              sso__domain = "${var.gitlab_sso_domain}"
+            }
+          )
+        },
+        {
+          "name"  = "BUCKET",
+          "value" = aws_s3_bucket.gitlab[count.index].id
+        },
+        {
+          "name"  = "AWS_DEFAULT_REGION",
+          "value" = aws_s3_bucket.gitlab[count.index].region
+        },
+        {
+          "name"  = "SECRET_NAME",
+          "value" = aws_secretsmanager_secret.gitlab[count.index].name
+      }],
+      "essential" = true,
+      "image"     = "${aws_ecr_repository.gitlab.repository_url}:master",
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = aws_cloudwatch_log_group.gitlab[count.index].name
+          "awslogs-region"        = data.aws_region.aws_region.name,
+          "awslogs-stream-prefix" = "gitlab"
+        }
+      },
+      "networkMode"       = "awsvpc",
+      "memoryReservation" = tonumber(var.gitlab_memory),
+      "cpu"               = tonumber(var.gitlab_cpu),
+      "mountPoints" = [
+        {
+          "containerPath" = "/var/opt/gitlab",
+          "sourceVolume"  = "data-gitlab"
+        }
+      ],
+      "name" = "gitlab",
+      "portMappings" = [
+        {
+          "containerPort" = 80,
+          "hostPort"      = 80,
+          "protocol"      = "tcp"
+        },
+        {
+          "containerPort" = 22,
+          "hostPort"      = 22,
+          "protocol"      = "tcp"
+        }
+      ]
     }
-  )
+  ])
+
   execution_role_arn       = aws_iam_role.gitlab_task_execution[count.index].arn
   task_role_arn            = aws_iam_role.gitlab_task[count.index].arn
   network_mode             = "awsvpc"
