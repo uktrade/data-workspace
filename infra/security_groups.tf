@@ -1969,21 +1969,6 @@ resource "aws_security_group_rule" "efs_mount_target_notebooks_nfs_ingress_noteb
   protocol  = "tcp"
 }
 
-
-resource "aws_security_group" "quicksight" {
-  name        = var.quicksight_security_group_name
-  description = var.quicksight_security_group_description
-  vpc_id      = aws_vpc.datasets.id
-
-  tags = {
-    Name = "${var.quicksight_security_group_name}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_security_group_rule" "elasticsearch_ingress_from_admin" {
   description = "ingress-elasticsearch-https-from-admin"
 
