@@ -28,27 +28,68 @@ resource "aws_ecs_service" "superset" {
 resource "aws_ecs_task_definition" "superset_service" {
   count  = var.superset_on ? 1 : 0
   family = "${var.prefix}-superset"
-  container_definitions = templatefile(
-    "${path.module}/ecs_main_superset_container_definitions.json", {
-      container_image = "${aws_ecr_repository.superset.repository_url}:master"
-      container_name  = "superset"
-      log_group       = "${aws_cloudwatch_log_group.superset[count.index].name}"
-      log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.superset_container_cpu}"
-      memory          = "${local.superset_container_memory}"
-
-      db_host     = "${aws_rds_cluster.superset[count.index].endpoint}"
-      db_name     = "${aws_rds_cluster.superset[count.index].database_name}"
-      db_password = "${random_string.aws_db_instance_superset_password.result}"
-      db_port     = "${aws_rds_cluster.superset[count.index].port}"
-      db_user     = "${aws_rds_cluster.superset[count.index].master_username}"
-      admin_users = "${var.superset_admin_users}"
-      secret_key  = "${random_string.superset_secret_key.result}"
-
-      sentry_dsn         = "${var.sentry_notebooks_dsn}"
-      sentry_environment = "${var.sentry_environment}"
+  container_definitions = jsonencode([
+    {
+      "environment" = [
+        {
+          "name"  = "DB_HOST",
+          "value" = aws_rds_cluster.superset[count.index].endpoint
+        },
+        {
+          "name"  = "DB_NAME",
+          "value" = aws_rds_cluster.superset[count.index].database_name
+        },
+        {
+          "name"  = "DB_PASSWORD",
+          "value" = random_string.aws_db_instance_superset_password.result
+        },
+        {
+          "name"  = "DB_PORT",
+          "value" = tostring(aws_rds_cluster.superset[count.index].port)
+        },
+        {
+          "name"  = "DB_USER",
+          "value" = aws_rds_cluster.superset[count.index].master_username
+        },
+        {
+          "name"  = "ADMIN_USERS",
+          "value" = var.superset_admin_users
+        },
+        {
+          "name"  = "SECRET_KEY",
+          "value" = random_string.superset_secret_key.result
+        },
+        {
+          "name"  = "SENTRY_DSN",
+          "value" = var.sentry_notebooks_dsn
+        },
+        {
+          "name"  = "SENTRY_ENVIRONMENT",
+          "value" = var.sentry_environment
+      }],
+      "essential" = true,
+      "image"     = "${aws_ecr_repository.superset.repository_url}:master",
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = aws_cloudwatch_log_group.superset[count.index].name,
+          "awslogs-region"        = data.aws_region.aws_region.name,
+          "awslogs-stream-prefix" = "superset"
+        }
+      },
+      "networkMode"       = "awsvpc",
+      "memoryReservation" = local.superset_container_memory,
+      "cpu"               = local.superset_container_cpu,
+      "mountPoints"       = [],
+      "name"              = "superset",
+      "portMappings" = [{
+        "containerPort" = 8000,
+        "hostPort"      = 8000,
+        "protocol"      = "tcp"
+      }]
     }
-  )
+  ])
+
   execution_role_arn       = aws_iam_role.superset_task_execution[count.index].arn
   task_role_arn            = aws_iam_role.superset_task[count.index].arn
   network_mode             = "awsvpc"
