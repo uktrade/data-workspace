@@ -93,7 +93,7 @@ data "external" "dns_rewrite_proxy_current_tag" {
 
   query = {
     cluster_name   = "${aws_ecs_cluster.main_cluster.name}"
-    service_name   = "${var.prefix}-dns-rewrite-proxy" # Manually specified to avoid a cycle
+    service_name   = "${var.prefix}-dns-rewrite-proxy-new" # Manually specified to avoid a cycle
     container_name = "${local.dns_rewrite_proxy_container_name}"
   }
 }
