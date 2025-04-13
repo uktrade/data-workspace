@@ -100,8 +100,6 @@ data "aws_iam_policy_document" "mirrors_sync_task_execution" {
     ]
 
     resources = [
-      "${aws_ecr_repository.mirrors_sync.arn}",
-      "${aws_ecr_repository.mirrors_sync_cran_binary.arn}",
       "${aws_ecr_repository.mirrors_sync_cran_binary_rv4.arn}",
     ]
   }
