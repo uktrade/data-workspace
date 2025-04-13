@@ -20,24 +20,60 @@ resource "aws_ecs_service" "dns_rewrite_proxy_new" {
 
 resource "aws_ecs_task_definition" "dns_rewrite_proxy_new" {
   family = "${var.prefix}-dns-rewrite-proxy-new"
-  container_definitions = templatefile(
-    "${path.module}/ecs_main_dns_rewrite_proxy_container_definitions.json", {
-      container_image  = "${aws_ecr_repository.dns_rewrite_proxy.repository_url}:${data.external.dns_rewrite_proxy_current_tag.result.tag}"
-      container_name   = "${local.dns_rewrite_proxy_container_name}"
-      container_cpu    = "${local.dns_rewrite_proxy_container_cpu}"
-      container_memory = "${local.dns_rewrite_proxy_container_memory}"
+  container_definitions = jsonencode(
+    [
+      {
+        "name"              = local.dns_rewrite_proxy_container_name,
+        "image"             = "${aws_ecr_repository.dns_rewrite_proxy.repository_url}:${data.external.dns_rewrite_proxy_current_tag.result.tag}",
+        "memoryReservation" = local.dns_rewrite_proxy_container_memory,
+        "cpu"               = local.dns_rewrite_proxy_container_cpu
+        "essential"         = true,
+        "portMappings" = [
+          {
+            "containerPort" = 53,
+            "protocol"      = "udp"
+          },
+          {
+            "containerPort" = 8888,
+            "protocol"      = "tcp"
+          },
+        ],
+        "logConfiguration" = {
+          "logDriver" = "awslogs",
+          "options" = {
+            "awslogs-group"         = aws_cloudwatch_log_group.dns_rewrite_proxy.name,
+            "awslogs-region"        = data.aws_region.aws_region.name,
+            "awslogs-stream-prefix" = local.dns_rewrite_proxy_container_name,
+          }
+        },
+        "environment" = [
+          {
+            "name"  = "AWS_ROUTE53_ZONE",
+            "value" = var.aws_route53_zone,
+          },
+          {
+            "name"  = "DNS_SERVER",
+            "value" = cidrhost(aws_vpc.main.cidr_block, 2)
+          },
+          {
+            "name"  = "AWS_REGION",
+            "value" = data.aws_region.aws_region.name
+          },
+          {
+            "name"  = "AWS_EC2_HOST",
+            "value" = "ec2.${data.aws_region.aws_region.name}.amazonaws.com"
+          },
+          {
+            "name"  = "VPC_ID",
+            "value" = aws_vpc.notebooks.id
+          },
+          {
+            "name"  = "IP_ADDRESS",
+            "value" = aws_lb.dns_rewrite_proxy_new.subnet_mapping.*.private_ipv4_address[0]
+        }]
+      }
+  ])
 
-      log_group  = "${aws_cloudwatch_log_group.dns_rewrite_proxy.name}"
-      log_region = "${data.aws_region.aws_region.name}"
-
-      dns_server       = "${cidrhost(aws_vpc.main.cidr_block, 2)}"
-      aws_region       = "${data.aws_region.aws_region.name}"
-      aws_ec2_host     = "ec2.${data.aws_region.aws_region.name}.amazonaws.com"
-      vpc_id           = "${aws_vpc.notebooks.id}"
-      aws_route53_zone = "${var.aws_route53_zone}"
-      ip_address       = "${aws_lb.dns_rewrite_proxy_new.subnet_mapping.*.private_ipv4_address[0]}"
-    }
-  )
   execution_role_arn       = aws_iam_role.dns_rewrite_proxy_task_execution.arn
   task_role_arn            = aws_iam_role.dns_rewrite_proxy_task.arn
   network_mode             = "awsvpc"
