@@ -4,15 +4,6 @@
 // Some repos also expire certain tagged images because they are either kaniko-generated cached
 // layers, or no-longer deployed images
 
-resource "aws_ecr_repository" "user_provided" {
-  name = "${var.prefix}-user-provided"
-}
-
-resource "aws_ecr_lifecycle_policy" "user_provided_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.user_provided.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_preview_and_untagged_after_one_day.json
-}
-
 resource "aws_ecr_repository" "rstudio" {
   name = "${var.prefix}-rstudio"
 }
@@ -58,15 +49,6 @@ resource "aws_ecr_repository" "sentryproxy" {
 
 resource "aws_ecr_lifecycle_policy" "sentryproxy_expire_untagged_after_one_day" {
   repository = aws_ecr_repository.sentryproxy.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
-resource "aws_ecr_repository" "dns_rewrite_proxy" {
-  name = "${var.prefix}-dns-rewrite-proxy"
-}
-
-resource "aws_ecr_lifecycle_policy" "dns_rewrite_proxy_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.dns_rewrite_proxy.name
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
