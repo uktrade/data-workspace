@@ -1,27 +1,3 @@
-
-locals {
-  matchbox_container_vars = [for i, v in var.matchbox_instances : {
-    container_image          = "${aws_ecr_repository.matchbox[0].repository_url}:master"
-    container_name           = "matchbox"
-    cpu                      = "${local.matchbox_container_cpu}"
-    memory                   = "${local.matchbox_container_memory}"
-    database_uri             = "postgresql://${aws_rds_cluster.matchbox[i].master_username}:${random_string.aws_db_instance_matchbox_password[i].result}@${aws_rds_cluster.matchbox[i].endpoint}:5432/${aws_rds_cluster.matchbox[i].database_name}"
-    matchbox_s3_cache        = "${var.matchbox_s3_cache}-${var.matchbox_instances[i]}"
-    log_group                = "${aws_cloudwatch_log_group.matchbox[0].name}"
-    log_region               = "${data.aws_region.aws_region.name}"
-    mb__postgres__host       = "${aws_rds_cluster.matchbox[i].endpoint}"
-    mb__postgres__user       = "${aws_rds_cluster.matchbox[i].master_username}"
-    mb__postgres__password   = "${random_string.aws_db_instance_matchbox_password[i].result}"
-    mb__postgres__database   = "${aws_rds_cluster.matchbox[i].database_name}"
-    mb__api__api_key         = "${var.matchbox_api_key}"
-    sentry_matchbox_dsn      = "${var.sentry_matchbox_dsn}"
-    matchbox_datadog_api_key = "${var.matchbox_datadog_api_key}"
-    datadog_container_image  = "${aws_ecr_repository.datadog.repository_url}:7"
-
-    matchbox_datadog_environment = "${var.matchbox_datadog_environment}"
-  }]
-}
-
 resource "aws_ecs_cluster" "matchbox" {
   name = "${var.prefix}-matchbox"
 }
@@ -67,10 +43,149 @@ resource "aws_service_discovery_service" "matchbox" {
 resource "aws_ecs_task_definition" "matchbox_service" {
   count  = var.matchbox_on ? length(var.matchbox_instances) : 0
   family = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
-  container_definitions = templatefile(
-    "${path.module}/ecs_matchbox_matchbox_container_definitions.json",
-    local.matchbox_container_vars[count.index]
-  )
+  container_definitions = jsonencode([
+    {
+      "environment" = [
+        {
+          "name"  = "DATABASE_URI",
+          "value" = "postgresql://${aws_rds_cluster.matchbox[count.index].master_username}:${random_string.aws_db_instance_matchbox_password[count.index].result}@${aws_rds_cluster.matchbox[count.index].endpoint}:5432/${aws_rds_cluster.matchbox[count.index].database_name}"
+        },
+        {
+          "name"  = "AWS_DEFAULT_REGION",
+          "value" = "eu-west-2"
+        },
+        {
+          "name"  = "MB__SERVER__DATASTORE__CACHE_BUCKET_NAME",
+          "value" = "${var.matchbox_s3_cache}-${var.matchbox_instances[count.index]}"
+        },
+        {
+          "name"  = "MB__CLIENT__API_ROOT",
+          "value" = ""
+        },
+        {
+          "name"  = "MB__SERVER__BACKEND_TYPE",
+          "value" = "postgres"
+        },
+        {
+          "name"  = "MB__SERVER__POSTGRES__HOST",
+          "value" = aws_rds_cluster.matchbox[count.index].endpoint
+        },
+        {
+          "name"  = "MB__SERVER__POSTGRES__PORT",
+          "value" = "5432"
+        },
+        {
+          "name"  = "MB__SERVER__POSTGRES__USER",
+          "value" = aws_rds_cluster.matchbox[count.index].master_username
+        },
+        {
+          "name"  = "MB__SERVER__POSTGRES__PASSWORD",
+          "value" = random_string.aws_db_instance_matchbox_password[count.index].result
+        },
+        {
+          "name"  = "MB__SERVER__POSTGRES__DATABASE",
+          "value" = aws_rds_cluster.matchbox[count.index].database_name
+        },
+        {
+          "name"  = "MB__SERVER__POSTGRES__DB_SCHEMA",
+          "value" = "mb"
+        },
+        {
+          "name"  = "MB__SERVER__API_KEY",
+          "value" = var.matchbox_api_key
+        },
+        {
+          "name"  = "MB__SERVER__LOG_LEVEL",
+          "value" = "INFO"
+        },
+        {
+          "name"  = "MB__SERVER__BATCH_SIZE",
+          "value" = "250_000"
+        },
+        {
+          "name"  = "SENTRY_MATCHBOX_DSN",
+          "value" = var.sentry_matchbox_dsn
+        },
+        {
+          "name"  = "DD_AGENT_HOST",
+          "value" = "127.0.0.1"
+        }
+      ],
+      "essential"   = true,
+      "image"       = "${aws_ecr_repository.matchbox[0].repository_url}:master",
+      "networkMode" = "awsvpc",
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = aws_cloudwatch_log_group.matchbox[0].name,
+          "awslogs-region"        = data.aws_region.aws_region.name,
+          "awslogs-stream-prefix" = "matchbox"
+        }
+      },
+      "memoryReservation" = local.matchbox_container_memory,
+      "cpu"               = local.matchbox_container_cpu
+      "mountPoints"       = [],
+      "name"              = "matchbox",
+      "portMappings" = [{
+        "containerPort" = 8000,
+        "hostPort"      = 8000,
+        "protocol"      = "tcp"
+      }]
+      }, {
+      "environment" = [
+        {
+          "name"  = "DD_API_KEY",
+          "value" = var.matchbox_datadog_api_key
+        },
+        {
+          "name"  = "DD_SERVICE",
+          "value" = "matchbox"
+        },
+        {
+          "name"  = "DD_ENV",
+          "value" = var.matchbox_datadog_environment
+        },
+        {
+          "name"  = "DD_APM_ENABLED",
+          "value" = "true"
+        },
+        {
+          "name"  = "DD_APM_NON_LOCAL_TRAFFIC",
+          "value" = "true"
+        },
+        {
+          "name"  = "DD_LOGS_ENABLED",
+          "value" = "true"
+        },
+        {
+          "name"  = "DD_PROFILING_ENABLED",
+          "value" = "true"
+        },
+        {
+          "name"  = "DD_PROCESS_AGENT_PROCESS_COLLECTION_ENABLED",
+          "value" = "true"
+        },
+        {
+          "name"  = "DD_SITE",
+          "value" = "datadoghq.eu"
+        }
+      ],
+      "essential"   = true,
+      "image"       = "${aws_ecr_repository.datadog.repository_url}:7",
+      "networkMode" = "awsvpc",
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = aws_cloudwatch_log_group.matchbox[0].name,
+          "awslogs-region"        = data.aws_region.aws_region.name,
+          "awslogs-stream-prefix" = "datadog-agent"
+        }
+      },
+      "mountPoints" = [],
+      "name"        = "datadog-agent"
+    }
+  ])
+
   execution_role_arn = aws_iam_role.matchbox_task_execution[count.index].arn
   task_role_arn      = aws_iam_role.matchbox_task[count.index].arn
   network_mode       = "awsvpc"
