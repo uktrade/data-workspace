@@ -22,15 +22,6 @@ resource "aws_ecr_lifecycle_policy" "prometheus_expire_untagged_after_one_day" {
   policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
 }
 
-resource "aws_ecr_repository" "visualisation_base" {
-  name = "${var.prefix}-visualisation-base"
-}
-
-resource "aws_ecr_lifecycle_policy" "visualisation_base_expire_old_after_one_day" {
-  repository = aws_ecr_repository.visualisation_base.name
-  policy     = data.aws_ecr_lifecycle_policy_document.visualisation_base_expire_old_after_one_day.json
-}
-
 resource "aws_ecr_repository" "mirrors_sync_cran_binary_rv4" {
   name = "${var.prefix}-mirrors-sync-cran-binary-rv4"
 }
