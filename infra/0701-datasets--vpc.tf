@@ -92,21 +92,6 @@ resource "aws_route53_resolver_firewall_rule" "datasets_block_otherwise" {
   priority                = 200
 }
 
-resource "aws_vpc_peering_connection" "datasets_to_paas" {
-  count       = var.paas_cidr_block != "" ? 1 : 0
-  peer_vpc_id = var.paas_vpc_id
-  vpc_id      = aws_vpc.datasets.id
-  auto_accept = true
-
-  accepter {
-    allow_remote_vpc_dns_resolution = false
-  }
-
-  tags = {
-    Name = "${var.prefix}-datasets-to-paas"
-  }
-}
-
 resource "aws_vpc_peering_connection" "datasets_to_main" {
   peer_vpc_id = aws_vpc.datasets.id
   vpc_id      = aws_vpc.main.id

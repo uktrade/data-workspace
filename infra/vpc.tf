@@ -1,10 +1,3 @@
-resource "aws_route" "pcx_datasets_to_paas" {
-  count                     = var.paas_cidr_block != "" ? 1 : 0
-  route_table_id            = aws_route_table.datasets.id
-  destination_cidr_block    = var.paas_cidr_block
-  vpc_peering_connection_id = aws_vpc_peering_connection.datasets_to_paas[0].id
-}
-
 resource "aws_route" "pcx_datasets_to_main" {
   route_table_id            = aws_route_table.datasets.id
   destination_cidr_block    = aws_vpc.main.cidr_block
