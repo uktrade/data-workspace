@@ -430,3 +430,32 @@ resource "aws_vpc_endpoint" "datasets_ecr_dkr_endpoint" {
   private_dns_enabled = true
   policy              = data.aws_iam_policy_document.aws_datasets_endpoint_ecr.json
 }
+
+data "aws_iam_policy_document" "aws_datasets_endpoint_ecr" {
+  # Contains policies for both ECR and DKR endpoints, as recommended
+
+  dynamic "statement" {
+    for_each = var.arango_on ? [0] : []
+    content {
+      principals {
+        type        = "AWS"
+        identifiers = ["*"]
+      }
+
+      principals {
+        type        = "AWS"
+        identifiers = ["${aws_iam_role.arango_task_execution[0].arn}"]
+      }
+
+      actions = [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
+      ]
+
+      resources = [
+        "*",
+      ]
+    }
+  }
+}
