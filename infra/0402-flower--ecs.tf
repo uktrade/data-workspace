@@ -26,19 +26,45 @@ resource "aws_ecs_service" "flower" {
 
 resource "aws_ecs_task_definition" "flower_service" {
   family = "${var.prefix}-flower"
-  container_definitions = templatefile(
-    "${path.module}/ecs_main_flower_container_definitions.json", {
-      container_image = "${aws_ecr_repository.flower.repository_url}:master"
-      container_name  = "flower"
-      log_group       = "${aws_cloudwatch_log_group.flower.name}"
-      log_region      = "${data.aws_region.aws_region.name}"
-      cpu             = "${local.flower_container_cpu}"
-      memory          = "${local.flower_container_memory}"
-      redis_url       = "redis://${aws_elasticache_cluster.admin.cache_nodes.0.address}:6379"
-      flower_username = "${var.flower_username}"
-      flower_password = "${var.flower_password}"
+  container_definitions = jsonencode([
+    {
+      "environment" = [
+        {
+          "name"  = "REDIS_URL",
+          "value" = "redis://${aws_elasticache_cluster.admin.cache_nodes.0.address}:6379"
+        },
+        {
+          "name"  = "FLOWER_USERNAME",
+          "value" = var.flower_username
+        },
+        {
+          "name"  = "FLOWER_PASSWORD",
+          "value" = var.flower_password
+        }
+      ],
+      "essential" = true,
+      "image"     = "${aws_ecr_repository.flower.repository_url}:master",
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = aws_cloudwatch_log_group.flower.name,
+          "awslogs-region"        = data.aws_region.aws_region.name,
+          "awslogs-stream-prefix" = "flower"
+        }
+      },
+      "networkMode"       = "awsvpc",
+      "memoryReservation" = local.flower_container_memory,
+      "cpu"               = local.flower_container_cpu,
+      "mountPoints"       = [],
+      "name"              = "flower",
+      "portMappings" = [{
+        "containerPort" = 80,
+        "hostPort"      = 80,
+        "protocol"      = "tcp"
+      }]
     }
-  )
+  ])
+
   execution_role_arn       = aws_iam_role.flower_task_execution.arn
   task_role_arn            = aws_iam_role.flower_task.arn
   network_mode             = "awsvpc"

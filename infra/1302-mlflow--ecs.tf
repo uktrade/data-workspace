@@ -1,19 +1,3 @@
-locals {
-  mlflow_container_vars = [for i, v in var.mlflow_instances : {
-    container_image      = "${aws_ecr_repository.mlflow.repository_url}:master"
-    container_name       = "mlflow"
-    log_group            = "${aws_cloudwatch_log_group.mlflow[i].name}"
-    log_region           = "${data.aws_region.aws_region.name}"
-    cpu                  = "${local.mlflow_container_cpu}"
-    memory               = "${local.mlflow_container_memory}"
-    artifact_bucket_name = "${aws_s3_bucket.mlflow[i].bucket}"
-    jwt_public_key       = "${var.jwt_public_key}"
-    mlflow_hostname      = "http://mlflow--${var.mlflow_instances_long[i]}.${var.admin_domain}"
-    database_uri         = "postgresql://${aws_rds_cluster.mlflow[i].master_username}:${random_string.aws_db_instance_mlflow_password[i].result}@${aws_rds_cluster.mlflow[i].endpoint}:5432/${aws_rds_cluster.mlflow[i].database_name}"
-    proxy_port           = "${local.mlflow_port}"
-  }]
-}
-
 resource "aws_ecs_service" "mlflow" {
   count                             = var.mlflow_on ? length(var.mlflow_instances) : 0
   name                              = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
@@ -73,10 +57,59 @@ resource "aws_service_discovery_service" "mlflow" {
 resource "aws_ecs_task_definition" "mlflow_service" {
   count  = var.mlflow_on ? length(var.mlflow_instances) : 0
   family = "${var.prefix}-mlflow-${var.mlflow_instances[count.index]}"
-  container_definitions = templatefile(
-    "${path.module}/ecs_main_mlflow_container_definitions.json",
-    local.mlflow_container_vars[count.index]
-  )
+  container_definitions = jsonencode([
+    {
+      "environment" = [
+        {
+          "name"  = "ARTIFACT_BUCKET_NAME",
+          "value" = aws_s3_bucket.mlflow[count.index].bucket
+        },
+        {
+          # The public key is already JSON-encoded from a previous version of the Terraform where
+          # it was put directly into the JSON
+          "name"  = "JWT_PUBLIC_KEY",
+          "value" = jsondecode("\"${var.jwt_public_key}\"")
+        },
+        {
+          "name"  = "MLFLOW_HOSTNAME",
+          "value" = "http://mlflow--${var.mlflow_instances_long[count.index]}.${var.admin_domain}"
+        },
+        {
+          "name"  = "DATABASE_URI",
+          "value" = "postgresql://${aws_rds_cluster.mlflow[count.index].master_username}:${random_string.aws_db_instance_mlflow_password[count.index].result}@${aws_rds_cluster.mlflow[count.index].endpoint}:5432/${aws_rds_cluster.mlflow[count.index].database_name}"
+        },
+        {
+          "name"  = "PROXY_PORT",
+          "value" = tostring(local.mlflow_port)
+        },
+        {
+          "name"  = "AWS_DEFAULT_REGION",
+          "value" = "eu-west-2"
+        }
+      ],
+      "essential" = true,
+      "image"     = "${aws_ecr_repository.mlflow.repository_url}:master",
+      "logConfiguration" = {
+        "logDriver" = "awslogs",
+        "options" = {
+          "awslogs-group"         = aws_cloudwatch_log_group.mlflow[count.index].name,
+          "awslogs-region"        = data.aws_region.aws_region.name,
+          "awslogs-stream-prefix" = "mlflow"
+        }
+      },
+      "networkMode"       = "awsvpc",
+      "memoryReservation" = local.mlflow_container_memory,
+      "cpu"               = local.mlflow_container_cpu,
+      "mountPoints"       = [],
+      "name"              = "mlflow",
+      "portMappings" = [{
+        "containerPort" = local.mlflow_port,
+        "hostPort"      = local.mlflow_port,
+        "protocol"      = "tcp"
+      }]
+    }
+  ])
+
   execution_role_arn       = aws_iam_role.mlflow_task_execution[count.index].arn
   task_role_arn            = aws_iam_role.mlflow_task[count.index].arn
   network_mode             = "awsvpc"
