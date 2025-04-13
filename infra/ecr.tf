@@ -4,15 +4,6 @@
 // Some repos also expire certain tagged images because they are either kaniko-generated cached
 // layers, or no-longer deployed images
 
-resource "aws_ecr_repository" "rstudio" {
-  name = "${var.prefix}-rstudio"
-}
-
-resource "aws_ecr_lifecycle_policy" "rstudio_expire_untagged_after_one_day" {
-  repository = aws_ecr_repository.rstudio.name
-  policy     = data.aws_ecr_lifecycle_policy_document.expire_untagged_after_one_day.json
-}
-
 resource "aws_ecr_repository" "tools" {
   count = length(var.tools)
   name  = "${var.prefix}-${var.tools[count.index].name}"
