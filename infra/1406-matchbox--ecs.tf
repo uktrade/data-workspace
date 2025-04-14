@@ -122,8 +122,8 @@ resource "aws_ecs_task_definition" "matchbox_service" {
           "awslogs-stream-prefix" = "matchbox"
         }
       },
-      "memoryReservation" = local.matchbox_container_memory,
-      "cpu"               = local.matchbox_container_cpu
+      "memoryReservation" = var.matchbox_api_container_resources.memory,
+      "cpu"               = var.matchbox_api_container_resources.cpu
       "mountPoints"       = [],
       "name"              = "matchbox",
       "portMappings" = [{
@@ -190,8 +190,9 @@ resource "aws_ecs_task_definition" "matchbox_service" {
   task_role_arn      = aws_iam_role.matchbox_task[count.index].arn
   network_mode       = "awsvpc"
 
-  cpu                      = local.matchbox_container_cpu
-  memory                   = local.matchbox_container_memory
+  cpu    = var.matchbox_api_container_resources.cpu
+  memory = var.matchbox_api_container_resources.memory
+
   requires_compatibilities = ["FARGATE"]
   tags                     = {}
 
