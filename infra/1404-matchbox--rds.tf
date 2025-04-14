@@ -36,14 +36,19 @@ resource "aws_rds_cluster" "matchbox" {
 }
 
 resource "aws_rds_cluster_instance" "matchbox" {
-  count                   = var.matchbox_on ? 1 : 0
-  identifier              = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
-  cluster_identifier      = aws_rds_cluster.matchbox[count.index].id
-  engine                  = aws_rds_cluster.matchbox[count.index].engine
-  engine_version          = aws_rds_cluster.matchbox[count.index].engine_version
-  db_parameter_group_name = aws_db_parameter_group.matchbox_postgres[0].name
-  instance_class          = var.matchbox_db_instance_class
-  promotion_tier          = 1
+  count                      = var.matchbox_on ? 1 : 0
+  identifier                 = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  cluster_identifier         = aws_rds_cluster.matchbox[count.index].id
+  engine                     = aws_rds_cluster.matchbox[count.index].engine
+  engine_version             = aws_rds_cluster.matchbox[count.index].engine_version
+  db_parameter_group_name    = aws_db_parameter_group.matchbox_postgres[0].name
+  instance_class             = var.matchbox_db_instance_class
+  promotion_tier             = 1
+  monitoring_interval        = 0
+  auto_minor_version_upgrade = true
+  copy_tags_to_snapshot      = false
+  force_destroy              = false
+  apply_immediately          = true
 }
 
 resource "aws_db_subnet_group" "matchbox" {
