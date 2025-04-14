@@ -12,6 +12,12 @@ resource "aws_vpc" "main" {
   }
 }
 
+resource "aws_service_discovery_private_dns_namespace" "jupyterhub" {
+  name        = "jupyterhub"
+  description = "jupyterhub"
+  vpc         = aws_vpc.main.id
+}
+
 # DHCP options define DNS settings for the VPC and should stay with aws_vpc.main for clarity and tight coupling.
 resource "aws_vpc_dhcp_options" "main" {
   domain_name_servers = ["AmazonProvidedDNS"]
@@ -145,4 +151,45 @@ resource "aws_route" "private_with_egress_nat_gateway_ipv4" {
 
 resource "aws_eip" "nat_gateway" {
   vpc = true
+}
+
+resource "aws_cloudwatch_log_group" "vpc_main_flow_log" {
+  name              = "${var.prefix}-vpc-main-flow-log"
+  retention_in_days = "3653"
+}
+
+resource "aws_iam_role" "vpc_main_flow_log" {
+  name               = "${var.prefix}-vpc-main-flow-log"
+  assume_role_policy = data.aws_iam_policy_document.vpc_main_flow_log_vpc_flow_logs_assume_role.json
+}
+
+data "aws_iam_policy_document" "vpc_main_flow_log_vpc_flow_logs_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["vpc-flow-logs.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "vpc_main_flow_log" {
+  name   = "${var.prefix}-vpc-main-flow-log"
+  role   = aws_iam_role.vpc_main_flow_log.id
+  policy = data.aws_iam_policy_document.vpc_main_flow_log.json
+}
+
+data "aws_iam_policy_document" "vpc_main_flow_log" {
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+    ]
+
+    resources = [
+      "${aws_cloudwatch_log_group.vpc_main_flow_log.arn}:*",
+    ]
+  }
 }

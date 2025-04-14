@@ -375,10 +375,13 @@ variable "matchbox_instances_long" {
 
 variable "matchbox_api_container_resources" {
   description = "Map of specs to use when building the Matchbox API"
-  type        = map(string)
+  type = object({
+    cpu    = number
+    memory = number
+  })
   default = {
-    cpu    = "1024"
-    memory = "8192"
+    cpu    = 1024
+    memory = 8192
   }
 }
 
