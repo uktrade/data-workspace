@@ -1,3 +1,24 @@
+###################################################################################################
+#
+# IMPORTANT
+#
+# This file is "legacy". Unless an urgent change is needed, do not change this file other than to
+# remove security groups or rules.
+#
+# Instead:
+#
+# 1. Place definitions of security groups close to the definition of the resources that are
+#    assigned them. In most cases the same file as the resource is defined is appropriate. In the
+#    rare case that there is no resource, a "--sg.tf" file should be created for this.
+#
+# 2. Place security groups rules next to the security group definition of the _client_ side of
+#    the relationship, i.e. the one that needs the egress rule. In the rare case that there is
+#    no client security group, for example if exposing a server to a CIDR, then a separate file
+#    ending in "--sg.tf" file should be made for these rules (possibly via a prefix list).
+#
+###################################################################################################
+
+
 resource "aws_security_group" "dns_rewrite_proxy" {
   name        = "${var.prefix}-dns-rewrite-proxy"
   description = "${var.prefix}-dns-rewrite-proxy"
@@ -1969,39 +1990,11 @@ resource "aws_security_group_rule" "efs_mount_target_notebooks_nfs_ingress_noteb
   protocol  = "tcp"
 }
 
-
-resource "aws_security_group" "quicksight" {
-  name        = var.quicksight_security_group_name
-  description = var.quicksight_security_group_description
-  vpc_id      = aws_vpc.datasets.id
-
-  tags = {
-    Name = "${var.quicksight_security_group_name}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_security_group_rule" "elasticsearch_ingress_from_admin" {
   description = "ingress-elasticsearch-https-from-admin"
 
   security_group_id        = aws_security_group.datasets.id
   source_security_group_id = aws_security_group.admin_service.id
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "elasticsearch_ingress_from_paas" {
-  count       = var.paas_cidr_block != "" ? 1 : 0
-  description = "ingress-elasticsearch-https-from-paas-ie-data-flow"
-
-  security_group_id = aws_security_group.datasets.id
-  cidr_blocks       = [var.paas_cidr_block]
 
   type      = "ingress"
   from_port = "443"
