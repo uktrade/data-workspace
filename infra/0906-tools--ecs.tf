@@ -401,3 +401,132 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
   }
 }
 
+# Tools/notebooks can connect to security groups in other VPCs, but they need the peering
+# connections setup first, and so we have to manually specify depends_on for this.
+
+resource "aws_security_group" "notebooks" {
+  name        = "${var.prefix}-notebooks"
+  description = "${var.prefix}-notebooks"
+  vpc_id      = aws_vpc.notebooks.id
+
+  tags = {
+    Name = "${var.prefix}-notebooks"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+module "tools_outgoing_https_vpc_endpoints" {
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = concat([
+    aws_security_group.ecr_api,
+    aws_security_group.ecr_dkr,
+    aws_security_group.cloudwatch,
+    ], var.sagemaker_on ? [
+    aws_security_group.sagemaker_vpc_endpoints_main[0]] : []
+  )
+  server_prefix_list_ids = [
+    aws_vpc_endpoint.s3.prefix_list_id
+  ]
+  ports = [443]
+
+  depends_on = [aws_vpc_peering_connection.jupyterhub]
+}
+
+module "tools_outgoing_https_sentry_proxy" {
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = [aws_security_group.sentryproxy_service]
+  ports                  = [443]
+
+  depends_on = [aws_vpc_peering_connection.jupyterhub]
+}
+
+module "tools_outgoing_ssh_gitlab" {
+  count  = var.gitlab_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = [aws_security_group.gitlab_service[0]]
+  ports                  = [22]
+
+  depends_on = [aws_vpc_peering_connection.jupyterhub]
+}
+
+module "tools_outgoing_mlflow" {
+  count  = length(var.mlflow_instances)
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = [aws_security_group.mlflow_service[count.index]]
+  ports                  = [local.mlflow_port]
+}
+
+module "tools_outgoing_matchbox_api" {
+  count  = var.matchbox_on ? length(var.matchbox_instances) : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = [aws_security_group.matchbox_service[count.index]]
+  ports                  = [local.matchbox_api_port]
+
+  depends_on = [aws_vpc_peering_connection.matchbox_to_notebooks[0]]
+}
+
+module "tools_outgoing_matchbox_dev_db" {
+  source = "./modules/security_group_client_server_connections"
+  count  = var.matchbox_on && var.matchbox_dev_mode_on ? length(var.matchbox_instances) : 0
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = [aws_security_group.matchbox_db[count.index]]
+  ports                  = [local.matchbox_db_port]
+
+  depends_on = [aws_vpc_peering_connection.matchbox_to_notebooks[0]]
+}
+
+module "tools_outgoing_postgresql" {
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = [aws_security_group.datasets]
+  ports                  = [aws_rds_cluster_instance.datasets.port]
+
+  depends_on = [aws_vpc_peering_connection.datasets_to_notebooks]
+}
+
+module "tools_outgoing_arango" {
+  count  = var.arango_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = [aws_security_group.arango_lb[0]]
+  ports                  = [local.arango_container_port]
+
+  depends_on = [aws_vpc_peering_connection.datasets_to_notebooks]
+}
+
+module "tools_outgoing_nfs" {
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_security_groups = [aws_security_group.efs_mount_target_notebooks]
+  ports                  = [2049]
+
+  depends_on = [aws_vpc_peering_connection.jupyterhub]
+}
+
+module "tools_outgoing_dns" {
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.notebooks]
+  server_ipv4_cidrs      = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+  ports                  = [53]
+  protocol               = "udp"
+
+  depends_on = [aws_vpc_peering_connection.jupyterhub]
+}

@@ -16,6 +16,8 @@
 #    no client security group, for example if exposing a server to a CIDR, then a separate file
 #    ending in "--sg.tf" file should be made for these rules (possibly via a prefix list).
 #
+# 3. And ideally use ./module/security_group_client_server_connections to create the rules.
+#
 ###################################################################################################
 
 
@@ -90,18 +92,6 @@ resource "aws_security_group_rule" "sentryproxy_egress_https" {
   cidr_blocks       = ["0.0.0.0/0"]
 
   type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "sentryproxy_ingress_http_notebooks" {
-  description = "ingress-http"
-
-  security_group_id        = aws_security_group.sentryproxy_service.id
-  source_security_group_id = aws_security_group.notebooks.id
-
-  type      = "ingress"
   from_port = "443"
   to_port   = "443"
   protocol  = "tcp"
@@ -433,32 +423,6 @@ resource "aws_security_group_rule" "admin_db_ingress_postgres_from_admin_service
   protocol  = "tcp"
 }
 
-resource "aws_security_group" "notebooks" {
-  name        = "${var.prefix}-notebooks"
-  description = "${var.prefix}-notebooks"
-  vpc_id      = aws_vpc.notebooks.id
-
-  tags = {
-    Name = "${var.prefix}-notebooks"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_security_group_rule" "notebooks_egress_nfs_efs_mount_target_notebooks" {
-  description = "egress-nfs-efs-mount-target"
-
-  security_group_id        = aws_security_group.notebooks.id
-  source_security_group_id = aws_security_group.efs_mount_target_notebooks.id
-
-  type      = "egress"
-  from_port = "2049"
-  to_port   = "2049"
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "notebooks_ingress_https_from_admin" {
   description = "ingress-https-from-jupytehub"
 
@@ -492,68 +456,6 @@ resource "aws_security_group_rule" "notebooks_ingress_http_from_prometheus" {
   type      = "ingress"
   from_port = local.notebook_container_port + 1
   to_port   = local.notebook_container_port + 1
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "notebooks_egress_https_to_everywhere" {
-  description = "egress-https-to-everywhere"
-
-  security_group_id = aws_security_group.notebooks.id
-  cidr_blocks       = ["0.0.0.0/0"]
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "notebooks_egress_http_to_everywhere" {
-  description = "egress-http-to-everywhere"
-
-  security_group_id = aws_security_group.notebooks.id
-  cidr_blocks       = ["0.0.0.0/0"]
-
-  type      = "egress"
-  from_port = "80"
-  to_port   = "80"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "notebooks_egress_ssh_to_gitlab_service" {
-  count       = var.gitlab_on ? 1 : 0
-  description = "ingress-ssh-from-nlb"
-
-  security_group_id        = aws_security_group.notebooks.id
-  source_security_group_id = aws_security_group.gitlab_service[count.index].id
-
-  type      = "egress"
-  from_port = "22"
-  to_port   = "22"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "notebooks_egress_dns_udp" {
-  description = "egress-dns-udp"
-
-  security_group_id = aws_security_group.notebooks.id
-  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
-
-  type      = "egress"
-  from_port = "53"
-  to_port   = "53"
-  protocol  = "udp"
-}
-
-resource "aws_security_group_rule" "notebooks_egress_arango_lb" {
-  count       = var.arango_on ? 1 : 0
-  description = "egress-to-arango-lb"
-
-  security_group_id        = aws_security_group.notebooks.id
-  source_security_group_id = aws_security_group.arango_lb[0].id
-
-  type      = "egress"
-  from_port = local.arango_container_port
-  to_port   = local.arango_container_port
   protocol  = "tcp"
 }
 
@@ -743,18 +645,6 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_gitlab_runner" {
 
   security_group_id        = aws_security_group.ecr_api.id
   source_security_group_id = aws_security_group.gitlab_runner[count.index].id
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "ecr_api_ingress_https_from_notebooks" {
-  description = "ingress-https-from-notebooks"
-
-  security_group_id        = aws_security_group.ecr_api.id
-  source_security_group_id = aws_security_group.notebooks.id
 
   type      = "ingress"
   from_port = "443"
@@ -1134,19 +1024,6 @@ resource "aws_security_group_rule" "gitlab_service_ingress_ssh_from_whitelist" {
 
   security_group_id = aws_security_group.gitlab_service[count.index].id
   cidr_blocks       = var.gitlab_ip_whitelist
-
-  type      = "ingress"
-  from_port = "22"
-  to_port   = "22"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "gitlab_service_ingress_ssh_from_notebooks" {
-  count       = var.gitlab_on ? 1 : 0
-  description = "ingress-ssh-from-nlb"
-
-  security_group_id        = aws_security_group.gitlab_service[count.index].id
-  source_security_group_id = aws_security_group.notebooks.id
 
   type      = "ingress"
   from_port = "22"
@@ -1978,18 +1855,6 @@ resource "aws_security_group" "efs_mount_target_notebooks" {
   }
 }
 
-resource "aws_security_group_rule" "efs_mount_target_notebooks_nfs_ingress_notebooks" {
-  description = "ingress-nfs-notebooks"
-
-  security_group_id        = aws_security_group.efs_mount_target_notebooks.id
-  source_security_group_id = aws_security_group.notebooks.id
-
-  type      = "ingress"
-  from_port = "2049"
-  to_port   = "2049"
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "elasticsearch_ingress_from_admin" {
   description = "ingress-elasticsearch-https-from-admin"
 
@@ -2091,19 +1956,6 @@ resource "aws_security_group_rule" "mlflow_service_ingress_http_mlflow_dataflow_
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "mlflow_service_ingress_notebooks" {
-  count       = length(var.mlflow_instances)
-  description = "ingress-notebooks"
-
-  security_group_id        = aws_security_group.mlflow_service[count.index].id
-  source_security_group_id = aws_security_group.notebooks.id
-
-  type      = "ingress"
-  from_port = local.mlflow_port
-  to_port   = local.mlflow_port
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_mlflow" {
   count       = length(var.mlflow_instances)
   description = "ingress-https-from-mlflow-${var.mlflow_instances[count.index]}-service"
@@ -2197,32 +2049,6 @@ resource "aws_security_group_rule" "mlflow_service_egress_postgres_mlflow_db" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "notebooks_egress_http_to_mlflow_service" {
-  count       = length(var.mlflow_instances)
-  description = "egress-http-to-mlflow-service-${var.mlflow_instances[count.index]}"
-
-  security_group_id        = aws_security_group.notebooks.id
-  source_security_group_id = aws_security_group.mlflow_service[count.index].id
-
-  type      = "egress"
-  from_port = local.mlflow_port
-  to_port   = local.mlflow_port
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "notebooks_egress_http_to_matchbox_service" {
-  count       = length(var.matchbox_instances)
-  description = "egress-http-to-matchbox-service-${var.matchbox_instances[count.index]}-temp"
-
-  security_group_id        = aws_security_group.notebooks.id
-  source_security_group_id = aws_security_group.matchbox_service[count.index].id
-
-  type      = "egress"
-  from_port = local.matchbox_api_port
-  to_port   = local.matchbox_api_port
-  protocol  = "tcp"
-}
-
 resource "aws_security_group" "ecs" {
   name   = "${var.prefix}-ecs"
   vpc_id = aws_vpc.main.id
@@ -2282,19 +2108,6 @@ resource "aws_security_group_rule" "arango_lb_egress_https_to_arango_service" {
   type      = "egress"
   from_port = local.arango_container_port
   to_port   = local.arango_container_port
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "arango_lb_notebooks_ingress" {
-  count       = var.arango_on ? 1 : 0
-  description = "inbound peering connection with notebooks vpc"
-
-  security_group_id        = aws_security_group.arango_lb[0].id
-  source_security_group_id = aws_security_group.notebooks.id
-
-  type      = "ingress"
-  from_port = "8529"
-  to_port   = "8529"
   protocol  = "tcp"
 }
 
@@ -2489,32 +2302,6 @@ resource "aws_security_group_rule" "matchbox_egress_https_to_matchbox_s3_endpoin
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "matchbox_api_ingress_http_from_notebooks" {
-  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
-  description = "matchbox-api-ingress-https-from-notebooks"
-
-  security_group_id        = aws_security_group.matchbox_service[count.index].id
-  source_security_group_id = aws_security_group.notebooks.id
-
-  type      = "ingress"
-  from_port = "80"
-  to_port   = "80"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "matchbox_api_ingress_http_from_notebooks_matchbox_port" {
-  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
-  description = "matchbox-api-ingress-https-from-notebooks"
-
-  security_group_id        = aws_security_group.matchbox_service[count.index].id
-  source_security_group_id = aws_security_group.notebooks.id
-
-  type      = "ingress"
-  from_port = local.matchbox_api_port
-  to_port   = local.matchbox_api_port
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "matchbox_egress_https_datadog" {
   count       = length(var.matchbox_instances)
   description = "egress-https-to-datadog"
@@ -2673,32 +2460,6 @@ resource "aws_security_group_rule" "matchbox_db_egress_https_to_matchbox_s3_endp
   type      = "egress"
   from_port = "443"
   to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "matchbox_db_ingress_https_from_notebooks" {
-  count       = var.matchbox_on && var.matchbox_dev_mode_on ? 1 : 0
-  description = "matchbox-db-ingress-https-from-notebooks"
-
-  security_group_id        = aws_security_group.matchbox_db[count.index].id
-  source_security_group_id = aws_security_group.notebooks.id
-
-  type      = "ingress"
-  from_port = local.matchbox_db_port
-  to_port   = local.matchbox_db_port
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "notebooks_egress_https_to_matchbox_db" {
-  count       = var.matchbox_on && var.matchbox_dev_mode_on ? 1 : 0
-  description = "notebooks-egress-https-to-matchbox-db"
-
-  security_group_id        = aws_security_group.notebooks.id
-  source_security_group_id = aws_security_group.matchbox_db[count.index].id
-
-  type      = "egress"
-  from_port = local.matchbox_db_port
-  to_port   = local.matchbox_db_port
   protocol  = "tcp"
 }
 
