@@ -424,24 +424,6 @@ resource "aws_security_group_rule" "notebooks_ingress_http_from_prometheus" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group" "sagemaker" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  name        = "${var.prefix}-sagemaker"
-  description = "${var.prefix}-sagemaker"
-  vpc_id      = aws_vpc.sagemaker[0].id
-
-  tags = {
-    Name = "${var.prefix}-sagemaker"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-
 resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_sagemaker_vpc" {
 
   count = var.sagemaker_on ? 1 : 0

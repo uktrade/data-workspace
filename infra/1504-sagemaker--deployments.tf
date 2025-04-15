@@ -324,3 +324,19 @@ module "sagemaker_outgoing_https" {
   server_prefix_list_ids = [aws_vpc_endpoint.sagemaker_s3[0].prefix_list_id]
   ports                  = [443]
 }
+
+resource "aws_security_group" "sagemaker" {
+  count = var.sagemaker_on ? 1 : 0
+
+  name        = "${var.prefix}-sagemaker"
+  description = "${var.prefix}-sagemaker"
+  vpc_id      = aws_vpc.sagemaker[0].id
+
+  tags = {
+    Name = "${var.prefix}-sagemaker"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
