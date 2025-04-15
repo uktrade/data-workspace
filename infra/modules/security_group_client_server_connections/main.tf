@@ -1,3 +1,45 @@
+###################################################################################################
+# A module that creates ingress and egress security group rules connecting "clients" with
+# "servers", avoiding the boilerplate of having to create both egress and ingress rules, and
+# also allows multiple groups of related rules to be easily and clearly created.
+#
+# The "clients" are defined by security groups, and the "server" by security groups, prefix list
+# IDs, or CIDRs.
+#
+# Following is a full/complex example: it creates all the rules neccessary for the
+# aws_security_group.notebooks security group to make tcp 443 connections to a number of VPC
+# endpoints.
+#
+# In total, assuming sagemaker_on is true, it results in nine security group rules, adding rules
+# to both the client and server security groups (the number is odd because the prefix list IDs
+# have no security group to create rules for).
+#
+# module "tools_outgoing_https_vpc_endpoints" {
+#   source = "./modules/security_group_client_server_connections"
+#
+#   client_security_groups = [aws_security_group.notebooks]
+#   server_security_groups = concat([
+#     aws_security_group.ecr_api,
+#     aws_security_group.ecr_dkr,
+#     aws_security_group.cloudwatch,
+#     ], var.sagemaker_on ? [
+#     aws_security_group.sagemaker_vpc_endpoints_main[0]] : []
+#   )
+#   server_prefix_list_ids = [
+#     aws_vpc_endpoint.s3.prefix_list_id
+#   ]
+#   ports = [443]
+#
+#   depends_on = [aws_vpc_peering_connection.jupyterhub]
+# }
+#
+# In this particular case as well, the security groups are in different VPCs, so an explicit
+# depends_on meta-argument is added to make sure the peering connection exists, otherwise adding
+# the rules can fail.
+#
+###################################################################################################
+
+
 #################
 # Input variables
 
