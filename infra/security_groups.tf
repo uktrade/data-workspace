@@ -85,17 +85,6 @@ resource "aws_security_group" "sentryproxy_service" {
   }
 }
 
-resource "aws_security_group_rule" "sentryproxy_egress_https" {
-  description = "egress-https"
-
-  security_group_id = aws_security_group.sentryproxy_service.id
-  cidr_blocks       = ["0.0.0.0/0"]
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
 
 resource "aws_security_group" "admin_alb" {
   name        = "${var.prefix}-admin-alb"

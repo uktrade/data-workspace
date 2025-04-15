@@ -100,10 +100,10 @@ data "aws_iam_policy_document" "sns_endpoint_policy" {
 }
 
 module "sagemaker_to_endpoints_https" {
-  count = var.sagemaker_on ? 1 : 0
+  count  = var.sagemaker_on ? 1 : 0
   source = "./modules/security_group_client_server_connections"
 
   client_security_groups = [aws_security_group.sagemaker[0]]
   server_security_groups = [aws_security_group.sagemaker_endpoints[0]]
-  ports = [443]
+  ports                  = [443]
 }

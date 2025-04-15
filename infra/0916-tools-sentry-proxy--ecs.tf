@@ -176,3 +176,12 @@ data "aws_iam_policy_document" "sentryproxy_task_ecs_tasks_assume_role" {
     }
   }
 }
+
+
+module "sentryproxy_to_internet_https" {
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.sentryproxy_service]
+  server_ipv4_cidrs      = ["0.0.0.0/0"]
+  ports                  = [443]
+}
