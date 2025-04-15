@@ -262,18 +262,6 @@ resource "aws_security_group_rule" "admin_service_egress_http_to_gitlab_service"
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "gitlab_service_egress_https_to_ecr_api" {
-  count       = var.gitlab_on ? 1 : 0
-  description = "egress-https-to-ecr-api"
-
-  security_group_id        = aws_security_group.gitlab_service[count.index].id
-  source_security_group_id = aws_security_group.ecr_api.id
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
 
 resource "aws_security_group_rule" "admin_service_egress_https_to_cloudwatch" {
   description = "egress-https-to-cloudwatch"
