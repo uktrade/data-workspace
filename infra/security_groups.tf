@@ -97,18 +97,6 @@ resource "aws_security_group_rule" "sentryproxy_egress_https" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "sentryproxy_ingress_http_superset" {
-  description = "ingress-http-superset"
-
-  security_group_id        = aws_security_group.sentryproxy_service.id
-  source_security_group_id = aws_security_group.superset_service.id
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
 resource "aws_security_group" "admin_alb" {
   name        = "${var.prefix}-admin-alb"
   description = "${var.prefix}-admin-alb"
@@ -664,17 +652,6 @@ resource "aws_security_group_rule" "ecr_api_ingress_https_from_mirrors_sync" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "ecr_api_ingress_https_from_superset" {
-  description = "ingress-https-from-superset"
-
-  security_group_id        = aws_security_group.ecr_api.id
-  source_security_group_id = aws_security_group.superset_service.id
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
 
 resource "aws_security_group_rule" "ecr_api_ingress_https_from_healthcheck" {
   description = "ingress-https-from-healthcheck-service"
@@ -1237,46 +1214,6 @@ resource "aws_security_group" "superset_db" {
   }
 }
 
-# Connections to ECR and CloudWatch. ECR needs S3, and its VPC endpoint type
-# does not have an IP range or security group to limit access to
-resource "aws_security_group_rule" "superset_egress_https_all" {
-  description = "egress-https-to-all"
-
-  security_group_id = aws_security_group.superset_service.id
-  cidr_blocks       = ["0.0.0.0/0"]
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "superset_db_ingress_postgres_superset_service" {
-  description = "ingress-postgress-superset-service"
-
-  security_group_id        = aws_security_group.superset_db.id
-  source_security_group_id = aws_security_group.superset_service.id
-
-  type      = "ingress"
-  from_port = "5432"
-  to_port   = "5432"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group" "superset_service" {
-  name        = "${var.prefix}-superset-service"
-  description = "${var.prefix}-superset-service"
-  vpc_id      = aws_vpc.notebooks.id
-
-  tags = {
-    Name = "${var.prefix}-superset-service"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_security_group_rule" "superset_service_ingress_http_superset_lb" {
   description = "ingress-superset-lb"
 
@@ -1289,29 +1226,6 @@ resource "aws_security_group_rule" "superset_service_ingress_http_superset_lb" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "superset_service_egress_postgres_superset_db" {
-  description = "egress-postgres-superset-db"
-
-  security_group_id        = aws_security_group.superset_service.id
-  source_security_group_id = aws_security_group.superset_db.id
-
-  type      = "egress"
-  from_port = "5432"
-  to_port   = "5432"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "superset_service_egress_https_to_ecr_api" {
-  description = "egress-https-to-ecr-api"
-
-  security_group_id        = aws_security_group.superset_service.id
-  source_security_group_id = aws_security_group.ecr_api.id
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
 
 resource "aws_security_group_rule" "prometheus_service_egress_https_to_ecr_api" {
   description = "egress-https-to-ecr-api"
@@ -1335,30 +1249,6 @@ resource "aws_security_group_rule" "sentryproxy_service_egress_https_to_ecr_api"
   from_port = "443"
   to_port   = "443"
   protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "superset_service_egress_https_to_cloudwatch" {
-  description = "egress-https-to-cloudwatch"
-
-  security_group_id        = aws_security_group.superset_service.id
-  source_security_group_id = aws_security_group.cloudwatch.id
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "superset_service_egress_dns_udp_to_dns_rewrite_proxy" {
-  description = "egress-dns-to-dns-rewrite-proxy"
-
-  security_group_id = aws_security_group.superset_service.id
-  cidr_blocks       = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
-
-  type      = "egress"
-  from_port = "53"
-  to_port   = "53"
-  protocol  = "udp"
 }
 
 resource "aws_security_group" "superset_lb" {

@@ -331,3 +331,80 @@ resource "random_string" "superset_secret_key" {
   length  = 64
   special = false
 }
+
+resource "aws_security_group" "superset_service" {
+  name        = "${var.prefix}-superset-service"
+  description = "${var.prefix}-superset-service"
+  vpc_id      = aws_vpc.notebooks.id
+
+  tags = {
+    Name = "${var.prefix}-superset-service"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+module "superset_outgoing_https_vpc_endpoints" {
+  count  = var.superset_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.superset_service]
+  server_security_groups = [
+    aws_security_group.ecr_api,
+    aws_security_group.ecr_dkr,
+    aws_security_group.cloudwatch,
+  ]
+  server_prefix_list_ids = [
+    aws_vpc_endpoint.s3.prefix_list_id
+  ]
+  ports = [443]
+
+  depends_on = [aws_vpc_peering_connection.jupyterhub]
+}
+
+module "superset_outgoing_postgresql_datasets" {
+  count  = var.superset_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.superset_service]
+  server_security_groups = [aws_security_group.datasets]
+  ports                  = [aws_rds_cluster_instance.datasets.port]
+
+  depends_on = [aws_vpc_peering_connection.datasets_to_notebooks]
+}
+
+module "superset_outgoing_postgresql_superset" {
+  count  = var.superset_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.superset_service]
+  server_security_groups = [aws_security_group.superset_db]
+  ports                  = [aws_rds_cluster_instance.superset[0].port]
+
+  depends_on = [aws_vpc_peering_connection.datasets_to_notebooks]
+}
+
+module "superset_outgoing_https_sentry_proxy" {
+  count  = var.superset_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.superset_service]
+  server_security_groups = [aws_security_group.sentryproxy_service]
+  ports                  = [443]
+
+  depends_on = [aws_vpc_peering_connection.jupyterhub]
+}
+
+module "superset_outgoing_dns" {
+  count  = var.superset_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.superset_service]
+  server_ipv4_cidrs      = ["${aws_subnet.private_with_egress.*.cidr_block[0]}"]
+  ports                  = [53]
+  protocol               = "udp"
+
+  depends_on = [aws_vpc_peering_connection.jupyterhub]
+}

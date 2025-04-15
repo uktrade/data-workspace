@@ -102,27 +102,3 @@ resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_admin" {
   to_port   = aws_rds_cluster_instance.datasets.port
   protocol  = "tcp"
 }
-
-resource "aws_security_group_rule" "datasets_db_ingress_postgres_from_superset" {
-  description = "ingress-postgres-from-superset"
-
-  security_group_id        = aws_security_group.datasets.id
-  source_security_group_id = aws_security_group.superset_service.id
-
-  type      = "ingress"
-  from_port = aws_rds_cluster_instance.datasets.port
-  to_port   = aws_rds_cluster_instance.datasets.port
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "superset_service_egress_postgres_datasets_db" {
-  description = "egress-postgres-datasets-db"
-
-  security_group_id        = aws_security_group.superset_service.id
-  source_security_group_id = aws_security_group.datasets.id
-
-  type      = "egress"
-  from_port = "5432"
-  to_port   = "5432"
-  protocol  = "tcp"
-}
