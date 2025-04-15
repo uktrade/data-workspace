@@ -424,20 +424,6 @@ resource "aws_security_group_rule" "notebooks_ingress_http_from_prometheus" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_sagemaker_vpc" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "ingress-from-sagemaker-to-sagemaker-endpoints"
-
-  security_group_id        = aws_security_group.sagemaker_endpoints[0].id
-  source_security_group_id = aws_security_group.sagemaker[0].id
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
 
 #######################
 
