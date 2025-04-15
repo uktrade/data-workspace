@@ -452,21 +452,6 @@ resource "aws_security_group" "sagemaker" {
   }
 }
 
-resource "aws_security_group_rule" "sagemaker_egress_to_sagemaker_endpoints" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "sagemaker-egress-to-sagemaker-endpoints"
-
-  security_group_id        = aws_security_group.sagemaker[0].id
-  source_security_group_id = aws_security_group.sagemaker_endpoints[0].id
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "sagemaker_egress_to_s3_endpoint" {
 
   count = var.sagemaker_on ? 1 : 0
