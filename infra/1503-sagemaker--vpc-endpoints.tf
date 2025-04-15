@@ -107,3 +107,12 @@ module "sagemaker_to_endpoints_https" {
   server_security_groups = [aws_security_group.sagemaker_endpoints[0]]
   ports                  = [443]
 }
+
+module "sagemaker_to_s3_endpoint" {
+  count  = var.sagemaker_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.sagemaker[0]]
+  server_prefix_list_ids = [aws_vpc_endpoint.sagemaker_s3[0].prefix_list_id]
+  ports                  = [443]
+}
