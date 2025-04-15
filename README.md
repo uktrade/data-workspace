@@ -179,7 +179,8 @@ These components are used when publishing data from Data Workspace.
 
 - [infra/](./infra/)
 
-   The [Terraform](https://www.terraform.io/) source to build the infrastructure of Data Workspace in Amazon Web Services (AWS).
+   The [Terraform](https://www.terraform.io/) source to build the infrastructure of Data Workspace in Amazon Web Services (AWS). If making changes please follow the rules in its [README](./infra/README.md).
+
 
 - [README.md](./README.md)
 
