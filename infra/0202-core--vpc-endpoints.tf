@@ -109,12 +109,12 @@ resource "aws_vpc_endpoint" "cloudwatch_monitoring" {
   security_group_ids = ["${aws_security_group.cloudwatch.id}"]
   subnet_ids         = ["${aws_subnet.private_with_egress.*.id[0]}"]
 
-  policy = data.aws_iam_policy_document.aws_vpc_endpoint_cloudwatch_monitoring.json
+  policy = data.aws_iam_policy_document.allow_only_current_account.json
 
   private_dns_enabled = true
 }
 
-data "aws_iam_policy_document" "aws_vpc_endpoint_cloudwatch_monitoring" {
+data "aws_iam_policy_document" "allow_only_current_account" {
   statement {
     principals {
       type        = "AWS"
@@ -145,6 +145,7 @@ resource "aws_vpc_endpoint" "ecs" {
   vpc_endpoint_type   = "Interface"
   security_group_ids  = ["${aws_security_group.ecs.id}"]
   subnet_ids          = ["${aws_subnet.private_with_egress.*.id[0]}"]
+  policy              = data.aws_iam_policy_document.allow_only_current_account.json
   private_dns_enabled = true
 }
 
