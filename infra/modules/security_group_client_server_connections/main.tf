@@ -44,7 +44,7 @@
 # Input variables
 
 variable "client_security_groups" {
-  description = "The security groups on the client-side of the connections, needing egress rules"
+  description = "The security groups on the client-side of the connections - needing egress rules"
   type = list(object({
     id   = string
     name = string
@@ -52,7 +52,7 @@ variable "client_security_groups" {
 }
 
 variable "server_security_groups" {
-  description = "The security groups on the server-side of the connections, needing ingress rules"
+  description = "The security groups on the server-side of the connections - needing ingress rules"
   type = list(object({
     id   = string
     name = string
@@ -61,24 +61,25 @@ variable "server_security_groups" {
 }
 
 variable "server_ipv4_cidrs" {
-  description = "The IPv4 CIDR ranges on the server-side of the connections"
+  description = "The IPv4 CIDR ranges of the server-side of the connections"
   type        = list(string)
   default     = []
 }
 
 variable "server_prefix_list_ids" {
-  description = "The IDs of the prefix list of the server-side of the connections"
+  description = "The IDs of the prefix lists on the server-side of the connections"
   type        = list(string)
   default     = []
 }
 
 variable "ports" {
-  type    = list(number)
-  default = []
+  description = "The ports used by the connections"
+  type        = list(number)
+  default     = []
 }
 
 variable "protocol" {
-  description = "The ports used by the connections"
+  description = "The protocol used by the connections - tcp in almost all cases"
   type        = string
   default     = "tcp"
 }
