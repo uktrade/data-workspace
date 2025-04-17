@@ -85,17 +85,6 @@ resource "aws_security_group" "sentryproxy_service" {
   }
 }
 
-resource "aws_security_group_rule" "sentryproxy_egress_https" {
-  description = "egress-https"
-
-  security_group_id = aws_security_group.sentryproxy_service.id
-  cidr_blocks       = ["0.0.0.0/0"]
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
 
 resource "aws_security_group" "admin_alb" {
   name        = "${var.prefix}-admin-alb"
@@ -262,18 +251,6 @@ resource "aws_security_group_rule" "admin_service_egress_http_to_gitlab_service"
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "gitlab_service_egress_https_to_ecr_api" {
-  count       = var.gitlab_on ? 1 : 0
-  description = "egress-https-to-ecr-api"
-
-  security_group_id        = aws_security_group.gitlab_service[count.index].id
-  source_security_group_id = aws_security_group.ecr_api.id
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
 
 resource "aws_security_group_rule" "admin_service_egress_https_to_cloudwatch" {
   description = "egress-https-to-cloudwatch"
@@ -447,67 +424,6 @@ resource "aws_security_group_rule" "notebooks_ingress_http_from_prometheus" {
   protocol  = "tcp"
 }
 
-resource "aws_security_group" "sagemaker" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  name        = "${var.prefix}-sagemaker"
-  description = "${var.prefix}-sagemaker"
-  vpc_id      = aws_vpc.sagemaker[0].id
-
-  tags = {
-    Name = "${var.prefix}-sagemaker"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_security_group_rule" "sagemaker_egress_to_sagemaker_endpoints" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "sagemaker-egress-to-sagemaker-endpoints"
-
-  security_group_id        = aws_security_group.sagemaker[0].id
-  source_security_group_id = aws_security_group.sagemaker_endpoints[0].id
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "sagemaker_egress_to_s3_endpoint" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "sagemaker-egress-to-s3"
-
-  security_group_id = aws_security_group.sagemaker[0].id
-  prefix_list_ids   = [aws_vpc_endpoint.sagemaker_s3[0].prefix_list_id]
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "sagemaker_endpoint_ingress_to_sagemaker_vpc" {
-
-  count = var.sagemaker_on ? 1 : 0
-
-  description = "ingress-from-sagemaker-to-sagemaker-endpoints"
-
-  security_group_id        = aws_security_group.sagemaker_endpoints[0].id
-  source_security_group_id = aws_security_group.sagemaker[0].id
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
 
 #######################
 

@@ -314,3 +314,29 @@ module "mistral_7b_instruct_deployment" {
   s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
   environment_name_prefix = var.prefix
 }
+
+module "sagemaker_outgoing_https" {
+  count  = var.sagemaker_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.sagemaker[0]]
+  server_security_groups = [aws_security_group.sagemaker_endpoints[0]]
+  server_prefix_list_ids = [aws_vpc_endpoint.sagemaker_s3[0].prefix_list_id]
+  ports                  = [443]
+}
+
+resource "aws_security_group" "sagemaker" {
+  count = var.sagemaker_on ? 1 : 0
+
+  name        = "${var.prefix}-sagemaker"
+  description = "${var.prefix}-sagemaker"
+  vpc_id      = aws_vpc.sagemaker[0].id
+
+  tags = {
+    Name = "${var.prefix}-sagemaker"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
