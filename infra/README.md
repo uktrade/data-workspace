@@ -103,6 +103,12 @@ This includes when using `count` or `for_each`  to quickly create instantiate mu
 
 Although AWS supports having multiple security groups assigned to a single resource, this adds an unnecessary layer of complexity. Do not do this, and just have a single security group on any resource.
 
+#### 3f) Define security groups and rules at the top level, not from modules
+
+Security groups and their rules should be defined at the top level, and not inside modules (other than by using [security_group_client_server_connections](./module/security_group_client_server_connection)). While this might introduce a degree of verbosity or repetition, what is allowed to communicate with what is a core property of the infrastructure to surface, for example to create or update network diagrams.
+
+This approach also makes modules flexible — for example by easily allowing security group rules to be different depending on which VPC the modules created by the resource run in. It also follows [Hashicorp's recommended pattern of modules being passed dependencies rather than creating them](https://developer.hashicorp.com/terraform/language/modules/develop/composition#dependency-inversion).
+
 
 ## 4) IAM-related resources
 
