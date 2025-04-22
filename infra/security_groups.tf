@@ -2204,19 +2204,6 @@ resource "aws_security_group_rule" "matchbox_endpoints_https_ingress_from_matchb
   protocol  = "tcp"
 }
 
-resource "aws_security_group_rule" "matchbox_endpoints_https_ingress_from_matchbox_codebuild" {
-  count       = var.matchbox_on ? length(var.matchbox_instances) : 0
-  description = "ingress-matchbox-endpoints"
-
-  security_group_id        = aws_security_group.matchbox_endpoints[0].id
-  source_security_group_id = aws_security_group.matchbox_codebuild[count.index].id
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
 resource "aws_security_group_rule" "matchbox_service_egress_udp_to_dns_rewrite_proxy" {
   count       = length(var.matchbox_instances)
   description = "egress-dns-to-dns-rewrite-proxy"

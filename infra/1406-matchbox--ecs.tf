@@ -339,15 +339,6 @@ resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog" {
   role_arn        = aws_iam_role.matchbox_datadog_logs[0].arn
 }
 
-resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog_codebuild" {
-  count           = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? 1 : 0
-  name            = "${var.prefix}-matchbox-codebuild-datadog"
-  log_group_name  = aws_cloudwatch_log_group.matchbox_codebuild[count.index].name
-  filter_pattern  = ""
-  destination_arn = var.cloudwatch_destination_datadog_arn
-  role_arn        = aws_iam_role.matchbox_datadog_logs[0].arn
-}
-
 resource "aws_iam_role" "matchbox_datadog_logs" {
   count = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? length(var.matchbox_instances) : 0
   name  = "${var.prefix}-matchbox-datadog-logs"
