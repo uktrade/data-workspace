@@ -90,7 +90,7 @@ variable "protocol" {
 
 locals {
   server_security_group_ports = {
-    for tuple in setproduct(var.client_security_groups, var.server_security_groups, var.ports) : "${tuple[0].id}.${tuple[1].id}.${tuple[2]}" => {
+    for tuple in setproduct(var.client_security_groups, var.server_security_groups, var.ports) : "${tuple[0].name}.${tuple[1].name}.${tuple[2]}" => {
       client_security_group_id   = tuple[0].id
       client_security_group_name = tuple[0].name
       server_security_group_id   = tuple[1].id
@@ -129,7 +129,7 @@ resource "aws_vpc_security_group_ingress_rule" "server_security_group_from_clien
 
 locals {
   server_cidr_ports = {
-    for tuple in setproduct(var.client_security_groups, var.server_ipv4_cidrs, var.ports) : "${tuple[0].id}.${tuple[1]}.${tuple[2]}" => {
+    for tuple in setproduct(var.client_security_groups, var.server_ipv4_cidrs, var.ports) : "${tuple[0].name}.${tuple[1]}.${tuple[2]}" => {
       client_security_group_id = tuple[0].id
       server_ipv4_cidr         = tuple[1]
       port                     = tuple[2]
@@ -154,7 +154,7 @@ resource "aws_vpc_security_group_egress_rule" "client_to_server_cidr" {
 
 locals {
   server_prefix_list_id_ports = {
-    for tuple in setproduct(var.client_security_groups, var.server_prefix_list_ids, var.ports) : "${tuple[0].id}.${tuple[1]}.${tuple[2]}" => {
+    for tuple in setproduct(var.client_security_groups, var.server_prefix_list_ids, var.ports) : "${tuple[0].name}.${tuple[1]}.${tuple[2]}" => {
       client_security_group_id = tuple[0].id
       server_prefix_list_id    = tuple[1]
       port                     = tuple[2]
