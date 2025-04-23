@@ -32,16 +32,19 @@ resource "aws_security_group" "matchbox_codebuild" {
   }
 }
 
-module "matchbox_codebuild_outgoing_http_to_all" {
+# Allows install of packages via HTTP (Debian) and HTTPS (e.g. Docker Hub / PyPI).
+#
+# For the avoidance of doubt Debian performs public/private key signature verification on packages,
+# where the public key is installed on the base image, which is itself fetched by HTTPS from
+# Docker Hub
+module "matchbox_codebuild_outgoing_http_https_to_all" {
   count  = var.matchbox_on ? length(var.matchbox_instances) : 0
   source = "./modules/security_group_client_server_connections"
 
   client_security_groups = [aws_security_group.matchbox_codebuild[count.index]]
+  server_ipv4_cidrs      = ["0.0.0.0/0"]
 
-  # Allows install of Debian packages which are via HTTP
-  server_ipv4_cidrs = ["0.0.0.0/0"]
-
-  ports = [80]
+  ports = [80, 443]
 }
 
 module "matchbox_codebuild_outgoing_https_vpc_endpoints" {
@@ -50,9 +53,6 @@ module "matchbox_codebuild_outgoing_https_vpc_endpoints" {
 
   client_security_groups = [aws_security_group.matchbox_codebuild[count.index]]
   server_security_groups = [aws_security_group.matchbox_endpoints[0]]
-
-  # Allows the Docker build to pull in packages from the outside world, e.g. PyPI
-  server_ipv4_cidrs = ["0.0.0.0/0"]
 
   ports = [443]
 }
