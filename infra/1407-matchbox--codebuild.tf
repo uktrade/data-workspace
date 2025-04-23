@@ -16,9 +16,10 @@ module "aws_codebuild_project_matchbox" {
   region_name = data.aws_region.aws_region.name
   account_id  = data.aws_caller_identity.aws_caller_identity.account_id
 
-  build_on_merge                 = true
-  build_on_release               = true
+  build_on_merge                 = var.matchbox_deploy_on_github_merge
   deploy_on_github_merge_pattern = var.matchbox_deploy_on_github_merge_pattern
+
+  build_on_release = var.matchbox_deploy_on_github_release
 }
 
 resource "aws_security_group" "matchbox_codebuild" {
