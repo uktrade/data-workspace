@@ -37,10 +37,10 @@ module "matchbox_codebuild_outgoing_http_to_all" {
   source = "./modules/security_group_client_server_connections"
 
   client_security_groups = [aws_security_group.matchbox_codebuild[count.index]]
+
   # Allows install of Debian packages which are via HTTP
-  server_ipv4_cidrs = [
-    "0.0.0.0/0"
-  ]
+  server_ipv4_cidrs = ["0.0.0.0/0"]
+
   ports = [80]
 }
 
@@ -49,12 +49,10 @@ module "matchbox_codebuild_outgoing_https_vpc_endpoints" {
   source = "./modules/security_group_client_server_connections"
 
   client_security_groups = [aws_security_group.matchbox_codebuild[count.index]]
-  server_security_groups = [
-    aws_security_group.matchbox_endpoints[0]
-  ]
+  server_security_groups = [aws_security_group.matchbox_endpoints[0]]
+
   # Allows the Docker build to pull in packages from the outside world, e.g. PyPI
-  server_ipv4_cidrs = [
-    "0.0.0.0/0"
-  ]
+  server_ipv4_cidrs = ["0.0.0.0/0"]
+
   ports = [443]
 }
