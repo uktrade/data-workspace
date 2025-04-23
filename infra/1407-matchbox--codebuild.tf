@@ -13,13 +13,12 @@ module "aws_codebuild_project_matchbox" {
   codeconnection_arn                 = var.codeconnection_arn
   cloudwatch_destination_datadog_arn = var.cloudwatch_destination_datadog_arn
 
-  region_name = data.aws_region.aws_region.name
-  account_id  = data.aws_caller_identity.aws_caller_identity.account_id
-
   build_on_merge                 = var.matchbox_deploy_on_github_merge
   deploy_on_github_merge_pattern = var.matchbox_deploy_on_github_merge_pattern
+  build_on_release               = var.matchbox_deploy_on_github_release
 
-  build_on_release = var.matchbox_deploy_on_github_release
+  region_name = data.aws_region.aws_region.name
+  account_id  = data.aws_caller_identity.aws_caller_identity.account_id
 }
 
 resource "aws_security_group" "matchbox_codebuild" {
