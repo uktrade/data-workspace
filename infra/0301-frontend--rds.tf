@@ -1,12 +1,13 @@
 resource "aws_db_instance" "admin" {
   identifier = "${var.prefix}-admin"
 
-  allocated_storage     = var.admin_db_instance_allocated_storage
-  max_allocated_storage = var.admin_db_instance_max_allocated_storage
-  storage_type          = "gp2"
-  engine                = "postgres"
-  engine_version        = var.admin_db_instance_version
-  instance_class        = var.admin_db_instance_class
+  allocated_storage           = var.admin_db_instance_allocated_storage
+  max_allocated_storage       = var.admin_db_instance_max_allocated_storage
+  storage_type                = "gp2"
+  engine                      = "postgres"
+  engine_version              = var.admin_db_instance_version
+  instance_class              = var.admin_db_instance_class
+  allow_major_version_upgrade = true
 
   apply_immediately = true
 
@@ -30,7 +31,6 @@ resource "aws_db_instance" "admin" {
     ignore_changes = [
       snapshot_identifier,
       final_snapshot_identifier,
-      engine_version,
     ]
   }
 }
