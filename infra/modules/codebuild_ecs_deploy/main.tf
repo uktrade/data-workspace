@@ -129,7 +129,7 @@ variable "account_id" {
 }
 
 variable "cloudwatch_destination_datadog_arn" {
-  description = "The cloudwatch destination arn for Datadog"
+  description = "The CloudWatch destination ARN for sending logs to Datadog"
   type        = string
   default     = ""
 }
