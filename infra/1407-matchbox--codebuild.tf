@@ -3,22 +3,24 @@ module "aws_codebuild_project_matchbox" {
   source = "./modules/codebuild_ecs_deploy"
 
   name              = "${var.prefix}-matchbox"
+
   github_source_url = var.matchbox_github_source_url
+  dockerfile_path   = "src/matchbox/server/Dockerfile"
+
   ecs_service       = aws_ecs_service.matchbox[count.index]
   ecr_repository    = aws_ecr_repository.matchbox[count.index]
 
   subnets        = aws_subnet.matchbox_private[*]
   security_group = aws_security_group.matchbox_codebuild[count.index]
 
-  codeconnection_arn                 = var.codeconnection_arn
-  cloudwatch_destination_datadog_arn = var.cloudwatch_destination_datadog_arn
-
   build_on_merge                 = var.matchbox_deploy_on_github_merge
   deploy_on_github_merge_pattern = var.matchbox_deploy_on_github_merge_pattern
   build_on_release               = var.matchbox_deploy_on_github_release
 
-  region_name = data.aws_region.aws_region.name
-  account_id  = data.aws_caller_identity.aws_caller_identity.account_id
+  region_name                        = data.aws_region.aws_region.name
+  account_id                         = data.aws_caller_identity.aws_caller_identity.account_id
+  codeconnection_arn                 = var.codeconnection_arn
+  cloudwatch_destination_datadog_arn = var.cloudwatch_destination_datadog_arn
 }
 
 resource "aws_security_group" "matchbox_codebuild" {
