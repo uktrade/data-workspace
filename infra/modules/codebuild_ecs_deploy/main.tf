@@ -201,32 +201,32 @@ resource "aws_codebuild_project" "main" {
 }
 
 resource "aws_codebuild_webhook" "merge" {
-  count        = var.build_on_merge && var.codeconnection_arn != "" ? 1 : 0
+  count        = (var.build_on_merge || var.build_on_release) && var.codeconnection_arn != "" ? 1 : 0
   project_name = aws_codebuild_project.main.name
   build_type   = "BUILD"
 
-  filter_group {
-    filter {
-      type    = "EVENT"
-      pattern = "PUSH"
-    }
+  dynamic "filter_group" {
+    for_each = var.build_on_merge ? [0] : []
+    content {
+      filter {
+        type    = "EVENT"
+        pattern = "PUSH"
+      }
 
-    filter {
-      type    = "HEAD_REF"
-      pattern = var.deploy_on_github_merge_pattern
+      filter {
+        type    = "HEAD_REF"
+        pattern = var.deploy_on_github_merge_pattern
+      }
     }
   }
-}
 
-resource "aws_codebuild_webhook" "release" {
-  count        = var.build_on_release && var.codeconnection_arn != "" ? 1 : 0
-  project_name = aws_codebuild_project.main.name
-  build_type   = "BUILD"
-
-  filter_group {
-    filter {
-      type    = "EVENT"
-      pattern = "RELEASED"
+  dynamic "filter_group" {
+    for_each = var.build_on_release ? [0] : []
+    content {
+      filter {
+        type    = "EVENT"
+        pattern = "RELEASED"
+      }
     }
   }
 }
