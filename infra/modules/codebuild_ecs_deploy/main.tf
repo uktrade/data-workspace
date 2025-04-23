@@ -94,6 +94,18 @@ variable "subnets" {
   }))
 }
 
+variable "build_on_merge" {
+  description = "Whether to run the project automatically on GitHub merge"
+  type        = bool
+  default     = false
+}
+
+variable "deploy_on_github_merge_pattern" {
+  description = "The merge pattern that is to be built on merge"
+  type        = string
+  default     = ""
+}
+
 variable "build_on_release" {
   description = "Whether to run the project automatically on GitHub release"
   type        = bool
@@ -114,6 +126,12 @@ variable "region_name" {
 variable "account_id" {
   description = "The account ID of subnets - needed for technical/security reasons"
   type        = string
+}
+
+variable "cloudwatch_destination_datadog_arn" {
+  description = "The CloudWatch destination ARN for sending logs to Datadog"
+  type        = string
+  default     = ""
 }
 
 
@@ -146,7 +164,7 @@ resource "aws_codebuild_project" "main" {
             - docker buildx create --use --name builder --driver docker-container
             - |
               docker buildx build --builder builder \
-                --file Dockerfile \
+                --file ${var.dockerfile_path} \
                 --build-arg GIT_COMMIT=$${CODEBUILD_SOURCE_VERSION} \
                 --push -t ${var.ecr_repository.repository_url}:master \
                 --cache-from type=registry,ref=${var.ecr_repository.repository_url}:${var.ecr_cache_tag} \
@@ -182,15 +200,33 @@ resource "aws_codebuild_project" "main" {
   }
 }
 
-resource "aws_codebuild_webhook" "main" {
-  count        = var.build_on_release && var.codeconnection_arn != "" ? 1 : 0
+resource "aws_codebuild_webhook" "merge" {
+  count        = (var.build_on_merge || var.build_on_release) && var.codeconnection_arn != "" ? 1 : 0
   project_name = aws_codebuild_project.main.name
   build_type   = "BUILD"
 
-  filter_group {
-    filter {
-      type    = "EVENT"
-      pattern = "RELEASED"
+  dynamic "filter_group" {
+    for_each = var.build_on_merge ? [0] : []
+    content {
+      filter {
+        type    = "EVENT"
+        pattern = "PUSH"
+      }
+
+      filter {
+        type    = "HEAD_REF"
+        pattern = var.deploy_on_github_merge_pattern
+      }
+    }
+  }
+
+  dynamic "filter_group" {
+    for_each = var.build_on_release ? [0] : []
+    content {
+      filter {
+        type    = "EVENT"
+        pattern = "RELEASED"
+      }
     }
   }
 }
@@ -313,4 +349,52 @@ resource "aws_iam_role_policy" "main" {
 resource "aws_cloudwatch_log_group" "main" {
   name              = "${var.name}-codebuild"
   retention_in_days = "3653"
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "datadog" {
+  count           = var.cloudwatch_destination_datadog_arn != "" ? 1 : 0
+  name            = "${var.name}-codebuild-datadog"
+  log_group_name  = aws_cloudwatch_log_group.main.name
+  filter_pattern  = ""
+  destination_arn = var.cloudwatch_destination_datadog_arn
+  role_arn        = aws_iam_role.datadog_logs[0].arn
+}
+
+resource "aws_iam_role" "datadog_logs" {
+  count = var.cloudwatch_destination_datadog_arn != "" ? 1 : 0
+  name  = "${var.name}-codebuild-datadog-logs"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "logs.eu-west-2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "datadog_logs" {
+  count = var.cloudwatch_destination_datadog_arn != "" ? 1 : 0
+  name  = "${var.name}-codebuild-datadog-logs"
+  role  = aws_iam_role.datadog_logs[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      "Effect" = "Allow",
+      "Action" = [
+        "firehose:PutRecord",
+        "firehose:PutRecordBatch",
+        "kinesis:PutRecord",
+        "kinesis:PutRecords"
+      ],
+      "Resource" = var.cloudwatch_destination_datadog_arn
+    }]
+  })
 }
