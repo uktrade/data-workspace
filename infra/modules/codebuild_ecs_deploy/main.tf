@@ -130,7 +130,7 @@ variable "account_id" {
 
 variable "cloudwatch_destination_datadog_arn" {
   description = "The cloudwatch destination arn for Datadog"
-  type = string
+  type        = string
   default     = ""
 }
 
