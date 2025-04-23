@@ -164,7 +164,7 @@ resource "aws_codebuild_project" "main" {
             - docker buildx create --use --name builder --driver docker-container
             - |
               docker buildx build --builder builder \
-                --file Dockerfile \
+                --file ${var.dockerfile_path} \
                 --build-arg GIT_COMMIT=$${CODEBUILD_SOURCE_VERSION} \
                 --push -t ${var.ecr_repository.repository_url}:master \
                 --cache-from type=registry,ref=${var.ecr_repository.repository_url}:${var.ecr_cache_tag} \
