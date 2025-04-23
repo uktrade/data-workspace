@@ -2,13 +2,13 @@ module "aws_codebuild_project_matchbox" {
   count  = var.matchbox_on ? length(var.matchbox_instances) : 0
   source = "./modules/codebuild_ecs_deploy"
 
-  name              = "${var.prefix}-matchbox"
+  name = "${var.prefix}-matchbox"
 
   github_source_url = var.matchbox_github_source_url
   dockerfile_path   = "src/matchbox/server/Dockerfile"
 
-  ecs_service       = aws_ecs_service.matchbox[count.index]
-  ecr_repository    = aws_ecr_repository.matchbox[count.index]
+  ecs_service    = aws_ecs_service.matchbox[count.index]
+  ecr_repository = aws_ecr_repository.matchbox[count.index]
 
   build_on_merge                 = var.matchbox_deploy_on_github_merge
   deploy_on_github_merge_pattern = var.matchbox_deploy_on_github_merge_pattern
