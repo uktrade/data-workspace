@@ -35,13 +35,16 @@ resource "aws_ecs_task_definition" "tools" {
         "name"  = "SENTRY_ENVIRONMENT",
         "value" = var.sentry_environment
       }],
-      "mountPoints" = [{
+      "mountPoints" = concat([{
         "sourceVolume"  = "home_directory",
         "containerPath" = "/home/coder"
         }, {
         "sourceVolume"  = "home_directory",
         "containerPath" = "/home/dw-user"
-      }]
+        }], var.tools_efs_on ? [{
+        "sourceVolume"  = "efs_storage"
+        "containerPath" = "/efs"
+      }] : [])
     },
     {
       "name"      = "metrics",
@@ -93,6 +96,7 @@ resource "aws_ecs_task_definition" "tools" {
   ])
 
   execution_role_arn       = aws_iam_role.notebook_task_execution.arn
+  task_role_arn            = aws_iam_role.tools_dummy_task_role.arn
   network_mode             = "awsvpc"
   cpu                      = local.notebook_container_cpu
   memory                   = local.notebook_container_memory
@@ -104,6 +108,20 @@ resource "aws_ecs_task_definition" "tools" {
 
   volume {
     name = "home_directory"
+  }
+
+  dynamic "volume" {
+    for_each = var.tools_efs_on ? [0] : []
+    content {
+      name = "efs_storage"
+      efs_volume_configuration {
+        file_system_id     = aws_efs_file_system.notebooks.id
+        transit_encryption = "ENABLED"
+        authorization_config {
+          iam = "ENABLED"
+        }
+      }
+    }
   }
 
   lifecycle {
@@ -124,6 +142,23 @@ resource "aws_cloudwatch_log_subscription_filter" "notebook" {
   log_group_name  = aws_cloudwatch_log_group.notebook.name
   filter_pattern  = ""
   destination_arn = var.cloudwatch_destination_arn
+}
+
+# this dummy IAM role is required to pass AWS validation
+# but this is correctly overriden during spawning in Data Workspace FE
+resource "aws_iam_role" "tools_dummy_task_role" {
+  name = "${var.prefix}-tools-dummy-task-role"
+  path = "/"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Deny"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
 }
 
 resource "aws_iam_role" "notebook_task_execution" {
@@ -155,7 +190,6 @@ resource "aws_iam_policy" "notebook_task_execution" {
 }
 
 data "aws_iam_policy_document" "notebook_task_execution" {
-
 
   statement {
     actions = [
@@ -262,23 +296,19 @@ data "aws_iam_policy_document" "notebook_s3_access_template" {
     }
   }
 
-  statement {
-    actions = [
-      "elasticfilesystem:ClientMount",
-      "elasticfilesystem:ClientWrite",
-    ]
+  dynamic "statement" {
+    for_each = var.tools_efs_on ? [1] : []
 
-    condition {
-      test     = "StringEquals"
-      variable = "elasticfilesystem:AccessPointArn"
-      values = [
-        "arn:aws:elasticfilesystem:${data.aws_region.aws_region.name}:${data.aws_caller_identity.aws_caller_identity.account_id}:access-point/__ACCESS_POINT_ID__"
+    content {
+      actions = [
+        "elasticfilesystem:ClientMount",
+        "elasticfilesystem:ClientWrite",
+      ]
+
+      resources = [
+        "${aws_efs_file_system.notebooks.arn}",
       ]
     }
-
-    resources = [
-      "${aws_efs_file_system.notebooks.arn}",
-    ]
   }
 
   dynamic "statement" {
@@ -389,15 +419,19 @@ data "aws_iam_policy_document" "jupyterhub_notebook_task_boundary" {
     }
   }
 
-  statement {
-    actions = [
-      "elasticfilesystem:ClientMount",
-      "elasticfilesystem:ClientWrite",
-    ]
+  dynamic "statement" {
+    for_each = var.tools_efs_on ? [1] : []
 
-    resources = [
-      "${aws_efs_file_system.notebooks.arn}",
-    ]
+    content {
+      actions = [
+        "elasticfilesystem:ClientMount",
+        "elasticfilesystem:ClientWrite",
+      ]
+
+      resources = [
+        "${aws_efs_file_system.notebooks.arn}",
+      ]
+    }
   }
 }
 
