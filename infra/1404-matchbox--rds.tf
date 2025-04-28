@@ -126,3 +126,38 @@ data "aws_iam_policy_document" "matchbox_s3_import_policy_template" {
     resources = ["arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[count.index].id}/*"]
   }
 }
+
+resource "aws_vpc_peering_connection" "matchbox_to_main" {
+  count       = var.matchbox_on ? 1 : 0
+  peer_vpc_id = aws_vpc.main.id
+  vpc_id      = aws_vpc.matchbox[0].id
+  auto_accept = true
+
+  accepter {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  requester {
+    allow_remote_vpc_dns_resolution = false
+  }
+
+  tags = {
+    Name = "${var.prefix}"
+  }
+}
+
+resource "aws_route" "pcx_private_with_egress_to_matchbox" {
+  count = var.matchbox_on ? length(var.aws_availability_zones) : 0
+
+  route_table_id            = aws_route_table.private_with_egress.id
+  destination_cidr_block    = aws_subnet.matchbox_private.*.cidr_block[count.index]
+  vpc_peering_connection_id = aws_vpc_peering_connection.matchbox_to_main[0].id
+}
+
+resource "aws_route" "pcx_matchbox_to_main" {
+  count = var.matchbox_on ? length(var.aws_availability_zones) : 0
+
+  route_table_id            = aws_route_table.matchbox.id
+  destination_cidr_block    = aws_vpc.private_with_egress.cidr_block[count.index]
+  vpc_peering_connection_id = aws_vpc_peering_connection.matchbox_to_main[0].id
+}
