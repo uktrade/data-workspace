@@ -151,7 +151,7 @@ resource "aws_ecs_task_definition" "gitlab" {
           "value" = aws_secretsmanager_secret.gitlab[count.index].name
       }],
       "essential" = true,
-      "image"     = "${aws_ecr_repository.gitlab.repository_url}:master",
+      "image"     = "${aws_ecr_repository.gitlab.repository_url}:14.0.12-ce.0",
       "logConfiguration" = {
         "logDriver" = "awslogs",
         "options" = {
