@@ -126,16 +126,3 @@ data "aws_iam_policy_document" "matchbox_s3_import_policy_template" {
     resources = ["arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[count.index].id}/*"]
   }
 }
-
-resource "aws_security_group_rule" "matchbox_db_ingress_from_airflow_dag_processor" {
-  count       = var.matchbox_on && var.airflow_on ? 1 : 0
-  description = "ingress-matchbox-from-airflow"
-
-  security_group_id        = aws_security_group.matchbox_db[count.index].id
-  source_security_group_id = aws_security_group.airflow_dag_processor_service[count.index].id
-
-  type      = "ingress"
-  from_port = "5432"
-  to_port   = "5432"
-  protocol  = "tcp"
-}
