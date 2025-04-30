@@ -45,7 +45,7 @@ data "aws_iam_policy_document" "aws_efs_file_system_policy_notebooks" {
     actions = [""]
 
     resources = [
-      "${aws_efs_file_system.notebooks.arn}",
+      aws_efs_file_system.notebooks.arn
     ]
   }
 }
@@ -63,7 +63,7 @@ resource "aws_vpc_endpoint" "efs_notebooks" {
   vpc_endpoint_type  = "Interface"
   security_group_ids = ["${aws_security_group.efs_notebooks.id}"]
 
-  policy = data.aws_iam_policy_document.aws_vpc_endpoint_s3_notebooks.json
+  policy = data.aws_iam_policy_document.aws_vpc_endpoint_efs.json
 
   timeouts {}
 
@@ -76,13 +76,13 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_efs" {
       identifiers = ["*"]
     }
 
-    actions = [
-      "elasticfilesystem:ClientMount",
-      "elasticfilesystem:ClientWrite",
-    ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values   = [data.aws_caller_identity.aws_caller_identity.account_id]
+    }
 
-    resources = [
-      "${aws_efs_file_system.notebooks.arn}",
-    ]
+    actions   = ["*"]
+    resources = ["*"]
   }
 }

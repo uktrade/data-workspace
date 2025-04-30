@@ -496,6 +496,11 @@ variable "tools" {
   }]
 }
 
+variable "tools_efs_on" {
+  type    = bool
+  default = false
+}
+
 variable "admin_codebuild_release_on" {
   type    = bool
   default = false
