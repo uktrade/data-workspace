@@ -44,6 +44,9 @@ resource "aws_ecs_task_definition" "tools" {
         }], var.tools_efs_on ? [{
         "sourceVolume"  = "efs_storage"
         "containerPath" = "/efs"
+        }] : [], var.tools_efs_on ? [{
+        "sourceVolume"  = "efs_storage_team"
+        "containerPath" = "/efs/team"
       }] : [])
     },
     {
@@ -118,7 +121,23 @@ resource "aws_ecs_task_definition" "tools" {
         file_system_id     = aws_efs_file_system.notebooks.id
         transit_encryption = "ENABLED"
         authorization_config {
-          iam = "ENABLED"
+          access_point_id = aws_efs_access_point.efs_notebooks.id
+          iam             = "ENABLED"
+        }
+      }
+    }
+  }
+
+  dynamic "volume" {
+    for_each = var.tools_efs_on ? [0] : []
+    content {
+      name = "efs_storage_team"
+      efs_volume_configuration {
+        file_system_id     = aws_efs_file_system.notebooks.id
+        transit_encryption = "ENABLED"
+        authorization_config {
+          access_point_id = aws_efs_access_point.efs_notebooks_team.id
+          iam             = "ENABLED"
         }
       }
     }
@@ -160,6 +179,7 @@ resource "aws_iam_role" "tools_dummy_task_role" {
     }]
   })
 }
+
 
 resource "aws_iam_role" "notebook_task_execution" {
   name               = "${var.prefix}-notebook-task-execution"
