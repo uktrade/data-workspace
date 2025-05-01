@@ -15,18 +15,27 @@ resource "aws_db_parameter_group" "matchbox_postgres" {
 }
 
 resource "aws_rds_cluster" "matchbox" {
-  count                       = var.matchbox_on ? length(var.matchbox_instances) : 0
-  cluster_identifier          = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
-  engine                      = "aurora-postgresql"
-  engine_version              = "17.4"
-  allow_major_version_upgrade = true
-  availability_zones          = var.aws_availability_zones
-  database_name               = "${var.prefix_underscore}_matchbox_${var.matchbox_instances[count.index]}"
-  master_username             = "${var.prefix_underscore}_matchbox_master_${var.matchbox_instances[count.index]}"
-  master_password             = random_string.aws_db_instance_matchbox_password[count.index].result
-  backup_retention_period     = 1
-  preferred_backup_window     = "03:29-03:59"
-  apply_immediately           = true
+  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+
+  cluster_identifier           = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  engine                       = "aurora-postgresql"
+  engine_version               = "17.4"
+  engine_mode                  = "provisioned"
+  allow_major_version_upgrade  = true
+  availability_zones           = var.aws_availability_zones
+  database_name                = "${var.prefix_underscore}_matchbox_${var.matchbox_instances[count.index]}"
+  master_username              = "${var.prefix_underscore}_matchbox_master_${var.matchbox_instances[count.index]}"
+  master_password              = random_string.aws_db_instance_matchbox_password[count.index].result
+  backup_retention_period      = 1
+  preferred_backup_window      = "03:29-03:59"
+  apply_immediately            = true
+  performance_insights_enabled = var.matchbox_performance_insights
+
+  serverlessv2_scaling_configuration {
+    min_capacity             = var.matchbox_scaling_min_capacity
+    max_capacity             = var.matchbox_scaling_max_capacity
+    seconds_until_auto_pause = var.matchbox_scaling_scaledown_seconds
+  }
 
   vpc_security_group_ids = ["${aws_security_group.matchbox_db[count.index].id}"]
   db_subnet_group_name   = aws_db_subnet_group.matchbox[count.index].name
@@ -36,13 +45,14 @@ resource "aws_rds_cluster" "matchbox" {
 }
 
 resource "aws_rds_cluster_instance" "matchbox" {
-  count                      = var.matchbox_on ? 1 : 0
+  count = var.matchbox_on ? 1 : 0
+
   identifier                 = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
   cluster_identifier         = aws_rds_cluster.matchbox[count.index].id
   engine                     = aws_rds_cluster.matchbox[count.index].engine
   engine_version             = aws_rds_cluster.matchbox[count.index].engine_version
   db_parameter_group_name    = aws_db_parameter_group.matchbox_postgres[0].name
-  instance_class             = var.matchbox_db_instance_class
+  instance_class             = "db.serverless"
   promotion_tier             = 1
   monitoring_interval        = 0
   auto_minor_version_upgrade = true

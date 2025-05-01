@@ -373,6 +373,21 @@ variable "matchbox_instances_long" {
   default = []
 }
 
+variable "matchbox_scaling_min_capacity" {
+  type    = number
+  default = 0
+}
+
+variable "matchbox_scaling_max_capacity" {
+  type    = number
+  default = 64
+}
+
+variable "matchbox_scaling_scaledown_seconds" {
+  type    = number
+  default = 300
+}
+
 variable "matchbox_api_container_resources" {
   description = "Map of specs to use when building the Matchbox API"
   type = object({
@@ -383,11 +398,6 @@ variable "matchbox_api_container_resources" {
     cpu    = 1024
     memory = 8192
   }
-}
-
-variable "matchbox_db_instance_class" {
-  type    = string
-  default = ""
 }
 
 variable "matchbox_postgres_parameters" {
@@ -449,6 +459,11 @@ variable "matchbox_deploy_on_github_merge_pattern" {
 }
 
 variable "matchbox_deploy_on_github_release" {
+  type    = bool
+  default = false
+}
+
+variable "matchbox_performance_insights" {
   type    = bool
   default = false
 }
