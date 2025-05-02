@@ -377,16 +377,3 @@ resource "aws_iam_role_policy" "matchbox_datadog_logs" {
     }]
   })
 }
-
-resource "aws_security_group_rule" "matchbox_service_ingress_from_airflow_dag_processor" {
-  count       = var.matchbox_on && var.airflow_on ? 1 : 0
-  description = "ingress-matchbox-from-airflow"
-
-  security_group_id        = aws_security_group.matchbox_service[count.index].id
-  source_security_group_id = aws_security_group.airflow_dag_processor_service[count.index].id
-
-  type      = "ingress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
