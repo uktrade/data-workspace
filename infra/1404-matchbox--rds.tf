@@ -15,46 +15,47 @@ resource "aws_db_parameter_group" "matchbox_postgres" {
 }
 
 resource "aws_rds_cluster" "matchbox" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
 
-  cluster_identifier           = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  cluster_identifier           = "${var.prefix}-matchbox-rds-cluster"
   engine                       = "aurora-postgresql"
   engine_version               = "17.4"
-  engine_mode                  = "provisioned"
+  engine_mode                  = "provisioned" # NOTE: "provisioned" for Aurora Serverless v2 ("serverless" is for v1)
   allow_major_version_upgrade  = true
   availability_zones           = var.aws_availability_zones
-  database_name                = "${var.prefix_underscore}_matchbox_${var.matchbox_instances[count.index]}"
-  master_username              = "${var.prefix_underscore}_matchbox_master_${var.matchbox_instances[count.index]}"
+  database_name                = "${var.prefix_underscore}_matchbox_${var.matchbox_db_instances[count.index]}"
+  master_username              = "${var.prefix_underscore}_matchbox_master_${var.matchbox_db_instances[count.index]}"
   master_password              = random_string.aws_db_instance_matchbox_password[count.index].result
   backup_retention_period      = 1
   preferred_backup_window      = "03:29-03:59"
   apply_immediately            = true
-  performance_insights_enabled = var.matchbox_performance_insights
+  performance_insights_enabled = var.matchbox_db_performance_insights
+  enable_http_endpoint         = var.matchbox_db_http_endpoint
 
   serverlessv2_scaling_configuration {
-    min_capacity             = var.matchbox_scaling_min_capacity
-    max_capacity             = var.matchbox_scaling_max_capacity
-    seconds_until_auto_pause = var.matchbox_scaling_scaledown_seconds
+    min_capacity             = var.matchbox_db_scaling.min_capacity
+    max_capacity             = var.matchbox_db_scaling.max_capacity
+    seconds_until_auto_pause = var.matchbox_db_scaling.scaledown_seconds
   }
 
   vpc_security_group_ids = ["${aws_security_group.matchbox_db[count.index].id}"]
-  db_subnet_group_name   = aws_db_subnet_group.matchbox[count.index].name
+  db_subnet_group_name   = aws_db_subnet_group.matchbox[0].name
 
-  final_snapshot_identifier = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  final_snapshot_identifier = "${var.prefix}-matchbox-${var.matchbox_db_instances[count.index]}"
   copy_tags_to_snapshot     = true
 }
 
 resource "aws_rds_cluster_instance" "matchbox" {
-  count = var.matchbox_on ? 1 : 0
+  count = var.matchbox_on ? length(var.matchbox_db_instances) : 0
 
-  identifier                 = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
-  cluster_identifier         = aws_rds_cluster.matchbox[count.index].id
-  engine                     = aws_rds_cluster.matchbox[count.index].engine
-  engine_version             = aws_rds_cluster.matchbox[count.index].engine_version
+  identifier                 = "${var.prefix}-matchbox-${var.matchbox_db_instances[count.index]}"
+  cluster_identifier         = aws_rds_cluster.matchbox[0].id
+  engine                     = aws_rds_cluster.matchbox[0].engine
+  engine_version             = aws_rds_cluster.matchbox[0].engine_version
   db_parameter_group_name    = aws_db_parameter_group.matchbox_postgres[0].name
   instance_class             = "db.serverless"
   promotion_tier             = 1
-  monitoring_interval        = 0
+  monitoring_interval        = 60
   auto_minor_version_upgrade = true
   copy_tags_to_snapshot      = false
   force_destroy              = false
@@ -76,7 +77,7 @@ resource "aws_db_subnet_group" "matchbox" {
 }
 
 resource "random_string" "aws_db_instance_matchbox_password" {
-  count   = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count   = var.matchbox_on ? length(var.matchbox_db_instances) : 0
   length  = 99
   special = false
 }

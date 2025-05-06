@@ -312,7 +312,7 @@ data "aws_iam_policy_document" "matchbox_task" {
       "s3:*",
     ]
 
-    resources = ["arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[count.index].id}", "arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[count.index].id}/*"]
+    resources = ["arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[0].id}", "arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[0].id}/*"]
   }
 }
 
