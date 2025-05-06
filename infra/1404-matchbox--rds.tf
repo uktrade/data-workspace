@@ -55,7 +55,7 @@ resource "aws_rds_cluster_instance" "matchbox" {
   db_parameter_group_name    = aws_db_parameter_group.matchbox_postgres[0].name
   instance_class             = "db.serverless"
   promotion_tier             = 1
-  monitoring_interval        = 60
+  monitoring_interval        = 0
   auto_minor_version_upgrade = true
   copy_tags_to_snapshot      = false
   force_destroy              = false
