@@ -37,13 +37,14 @@ resource "aws_lb_listener" "gitlab_22" {
 }
 
 resource "aws_lb_target_group" "gitlab_80" {
-  count              = var.gitlab_on ? 1 : 0
-  name_prefix        = "gl80-"
-  port               = "80"
-  vpc_id             = aws_vpc.main.id
-  target_type        = "ip"
-  protocol           = "TCP"
-  preserve_client_ip = true
+  count                = var.gitlab_on ? 1 : 0
+  name_prefix          = "gl80-"
+  port                 = "80"
+  vpc_id               = aws_vpc.main.id
+  target_type          = "ip"
+  protocol             = "TCP"
+  preserve_client_ip   = true
+  deregistration_delay = 5
 
   health_check {
     protocol            = "TCP"
@@ -58,13 +59,14 @@ resource "aws_lb_target_group" "gitlab_80" {
 }
 
 resource "aws_lb_target_group" "gitlab_22" {
-  count              = var.gitlab_on ? 1 : 0
-  name_prefix        = "gl22-"
-  port               = "22"
-  vpc_id             = aws_vpc.main.id
-  target_type        = "ip"
-  protocol           = "TCP"
-  preserve_client_ip = true
+  count                = var.gitlab_on ? 1 : 0
+  name_prefix          = "gl22-"
+  port                 = "22"
+  vpc_id               = aws_vpc.main.id
+  target_type          = "ip"
+  protocol             = "TCP"
+  preserve_client_ip   = true
+  deregistration_delay = 5
 
   health_check {
     protocol            = "TCP"
