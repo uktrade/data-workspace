@@ -247,7 +247,7 @@ module "airflow_outgoing_matchbox_api" {
   count  = var.matchbox_on && var.airflow_on ? 1 : 0
   source = "./modules/security_group_client_server_connections"
 
-  client_security_groups = [aws_security_group.airflow_dag_processor_service[count.index].id]
+  client_security_groups = [aws_security_group.airflow_dag_processor_service]
   server_security_groups = [aws_security_group.matchbox_service[count.index]]
   ports                  = [443]
 
