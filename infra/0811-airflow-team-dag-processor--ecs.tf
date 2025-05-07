@@ -242,3 +242,14 @@ data "aws_iam_policy_document" "airflow_dag_processor_task_ecs_tasks_assume_role
     }
   }
 }
+
+module "airflow_outgoing_matchbox_api" {
+  count  = var.matchbox_on && var.airflow_on ? 1 : 0
+  source = "./modules/security_group_client_server_connections"
+
+  client_security_groups = [aws_security_group.airflow_dag_processor_service[count.index].id]
+  server_security_groups = [aws_security_group.matchbox_service[count.index]]
+  ports                  = [443]
+
+  depends_on = [aws_vpc_peering_connection.matchbox_to_main[0]]
+}
