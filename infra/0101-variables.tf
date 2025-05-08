@@ -136,6 +136,10 @@ variable "gitlab_on" {
   type    = bool
   default = true
 }
+variable "gitlab_tag" {
+  type    = string
+  default = "master"
+}
 variable "gitlab_ip_whitelist" {
   type = list(any)
 }
