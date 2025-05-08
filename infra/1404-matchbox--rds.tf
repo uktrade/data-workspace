@@ -9,7 +9,7 @@ resource "aws_db_parameter_group" "matchbox_postgres" {
     content {
       name         = parameter.key
       value        = parameter.value
-      apply_method = "immediate"
+      apply_method = "pending-reboot"
     }
   }
 }
@@ -17,15 +17,15 @@ resource "aws_db_parameter_group" "matchbox_postgres" {
 resource "aws_rds_cluster" "matchbox" {
   count = var.matchbox_on ? 1 : 0
 
-  cluster_identifier           = "${var.prefix}-matchbox-rds-cluster"
+  cluster_identifier           = "${var.prefix}-matchbox-${var.matchbox_instances[0]}"
   engine                       = "aurora-postgresql"
   engine_version               = "17.4"
   engine_mode                  = "provisioned" # NOTE: "provisioned" for Aurora Serverless v2 ("serverless" is for v1)
   allow_major_version_upgrade  = true
   availability_zones           = var.aws_availability_zones
-  database_name                = "${var.prefix_underscore}_matchbox_${var.matchbox_db_instances[count.index]}"
-  master_username              = "${var.prefix_underscore}_matchbox_master_${var.matchbox_db_instances[count.index]}"
-  master_password              = random_string.aws_db_instance_matchbox_password[count.index].result
+  database_name                = "${var.prefix_underscore}_matchbox_${var.matchbox_instances[0]}"
+  master_username              = "${var.prefix_underscore}_matchbox_master_${var.matchbox_instances[0]}"
+  master_password              = random_password.db_password[count.index].result
   backup_retention_period      = 1
   preferred_backup_window      = "03:29-03:59"
   apply_immediately            = true
@@ -54,7 +54,7 @@ resource "aws_rds_cluster_instance" "matchbox" {
   engine_version             = aws_rds_cluster.matchbox[0].engine_version
   db_parameter_group_name    = aws_db_parameter_group.matchbox_postgres[0].name
   instance_class             = "db.serverless"
-  promotion_tier             = 1
+  promotion_tier             = count.index
   monitoring_interval        = 0
   auto_minor_version_upgrade = true
   copy_tags_to_snapshot      = false
@@ -76,8 +76,22 @@ resource "aws_db_subnet_group" "matchbox" {
   }
 }
 
-resource "random_string" "aws_db_instance_matchbox_password" {
-  count   = var.matchbox_on ? length(var.matchbox_db_instances) : 0
+resource "aws_secretsmanager_secret" "db_password" {
+  count   = var.matchbox_on ? 1 : 0
+
+  name = "matchbox_db_password"
+}
+
+resource "aws_secretsmanager_secret_version" "db_password" {
+  count   = var.matchbox_on ? 1 : 0
+
+  secret_id     = aws_secretsmanager_secret.db_password[count.index].id
+  secret_string = random_password.db_password[count.index].result
+}
+
+resource "random_password" "db_password" {
+  count   = var.matchbox_on ? 1 : 0
+
   length  = 99
   special = false
 }

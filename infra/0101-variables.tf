@@ -461,6 +461,11 @@ variable "matchbox_deploy_on_github_merge_pattern" {
   default = "refs/heads/main"
 }
 
+variable "matchbox_server_loglevel" {
+  type    = string
+  default = "INFO"
+}
+
 variable "matchbox_deploy_on_github_release" {
   type    = bool
   default = false
