@@ -70,6 +70,7 @@ resource "aws_ecs_task_definition" "gitlab" {
             letsencrypt['enable'] = false
             redis['enable'] = false
             postgresql['enable'] = false
+            gitaly['custom_hooks_dir'] = '/var/opt/gitlab/gitaly/custom_hooks'
             gitlab_rails['redis_host'] = '${aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes.0.address}'
             gitlab_rails['redis_port'] = ${aws_elasticache_cluster.gitlab_redis[count.index].cache_nodes.0.port}
             gitlab_rails['db_adapter'] = 'postgresql'
