@@ -249,7 +249,7 @@ module "airflow_outgoing_matchbox_api" {
 
   client_security_groups = [aws_security_group.airflow_dag_processor_service]
   server_security_groups = [aws_security_group.matchbox_service[count.index]]
-  ports                  = [443]
+  ports                  = [local.matchbox_api_port]
 
   depends_on = [aws_vpc_peering_connection.matchbox_to_main[0]]
 }
