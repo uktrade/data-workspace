@@ -86,3 +86,40 @@ data "aws_iam_policy_document" "aws_vpc_endpoint_efs" {
     resources = ["*"]
   }
 }
+
+resource "aws_efs_access_point" "efs_notebooks_team" {
+  file_system_id = aws_efs_file_system.notebooks.id
+
+  posix_user {
+    uid = 1001
+    gid = 1001
+  }
+
+  root_directory {
+    path = "/team"
+    creation_info {
+      owner_uid   = 1001
+      owner_gid   = 1001
+      permissions = "770"
+    }
+  }
+}
+
+resource "aws_efs_access_point" "efs_notebooks" {
+  file_system_id = aws_efs_file_system.notebooks.id
+
+  posix_user {
+    uid            = 1000
+    gid            = 1000
+    secondary_gids = [1001]
+  }
+
+  root_directory {
+    path = "/"
+    creation_info {
+      owner_uid   = 1000
+      owner_gid   = 1000
+      permissions = "755"
+    }
+  }
+}
