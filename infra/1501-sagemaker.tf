@@ -76,16 +76,6 @@ module "sns" {
   #notification_email = var.sagemaker_budget_emails
 }
 
-module "sagemaker_output_mover" {
-  count = var.sagemaker_on ? 1 : 0
-
-  source                       = "./modules/sagemaker_output_mover"
-  account_id                   = data.aws_caller_identity.aws_caller_identity.account_id
-  aws_region                   = data.aws_region.aws_region.name
-  s3_bucket_notebooks_arn      = aws_s3_bucket.notebooks.arn
-  prefix                       = var.prefix
-  default_sagemaker_bucket_arn = module.iam[0].default_sagemaker_bucket_arn
-}
 
 module "budgets" {
   count = var.sagemaker_on ? 1 : 0
@@ -96,4 +86,39 @@ module "budgets" {
   budget_name_prefix  = "${var.prefix}-sagemaker"
   sns_topic_arn       = module.sns[0].sns_topic_arn
   notification_email  = var.sagemaker_budget_emails
+}
+
+
+module "sagemaker_output_mover" {
+  count = var.sagemaker_on ? 1 : 0
+
+  source                          = "./modules/sagemaker_output_mover"
+  account_id                      = data.aws_caller_identity.aws_caller_identity.account_id
+  aws_region                      = data.aws_region.aws_region.name
+  s3_bucket_notebooks_arn         = aws_s3_bucket.notebooks.arn
+  prefix                          = var.prefix
+  default_sagemaker_bucket_arn    = module.iam[0].default_sagemaker_bucket_arn
+  lambda_layer_boto3_stubs_s3_arn = module.lambda_layers[0].lambda_layer_boto3_stubs_s3_arn
+}
+
+
+module "store_inferences" {
+  count = var.sagemaker_on ? 1 : 0
+
+  source                  = "./modules/store_inferences"
+  prefix                  = var.prefix
+  aws_region              = data.aws_region.aws_region.name
+  account_id              = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
+  notebooks_s3_bucket_arn = aws_s3_bucket.notebooks.arn
+}
+
+
+module "lambda_layers" {
+  count = var.sagemaker_on ? 1 : 0
+
+  source     = "./modules/lambda_layers"
+  prefix     = var.prefix
+  aws_region = data.aws_region.aws_region.name
 }
