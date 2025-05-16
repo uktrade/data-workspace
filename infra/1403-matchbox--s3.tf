@@ -16,7 +16,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "matchbox_dev_encr
 }
 
 resource "aws_s3_bucket" "matchbox_s3_cache" {
-  # count  = length(var.matchbox_instances)
   count  = var.matchbox_on ? 1 : 0
   bucket = "${var.matchbox_s3_cache}-${var.matchbox_instances[count.index]}"
 }
@@ -35,7 +34,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "matchbox_s3_cache
 
 resource "aws_s3_bucket_policy" "matchbox" {
   count  = var.matchbox_on ? length(var.matchbox_instances) : 0
-  bucket = aws_s3_bucket.matchbox_s3_cache[count.index].id
+  bucket = aws_s3_bucket.matchbox_s3_cache[0].id
   policy = data.aws_iam_policy_document.matchbox[count.index].json
 }
 
@@ -51,7 +50,7 @@ data "aws_iam_policy_document" "matchbox" {
       "s3:*",
     ]
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[count.index].id}/*",
+      "arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[0].id}/*",
     ]
     condition {
       test     = "Bool"

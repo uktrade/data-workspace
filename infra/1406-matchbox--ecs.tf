@@ -48,7 +48,7 @@ resource "aws_ecs_task_definition" "matchbox_service" {
       "environment" = [
         {
           "name"  = "DATABASE_URI",
-          "value" = "postgresql://${aws_rds_cluster.matchbox[count.index].master_username}:${random_string.aws_db_instance_matchbox_password[count.index].result}@${aws_rds_cluster.matchbox[count.index].endpoint}:5432/${aws_rds_cluster.matchbox[count.index].database_name}"
+          "value" = "postgresql://${aws_rds_cluster.matchbox[count.index].master_username}:${random_password.db_password[count.index].result}@${aws_rds_cluster.matchbox[count.index].endpoint}:5432/${aws_rds_cluster.matchbox[count.index].database_name}"
         },
         {
           "name"  = "AWS_DEFAULT_REGION",
@@ -80,7 +80,7 @@ resource "aws_ecs_task_definition" "matchbox_service" {
         },
         {
           "name"  = "MB__SERVER__POSTGRES__PASSWORD",
-          "value" = random_string.aws_db_instance_matchbox_password[count.index].result
+          "value" = random_password.db_password[count.index].result
         },
         {
           "name"  = "MB__SERVER__POSTGRES__DATABASE",
@@ -96,7 +96,7 @@ resource "aws_ecs_task_definition" "matchbox_service" {
         },
         {
           "name"  = "MB__SERVER__LOG_LEVEL",
-          "value" = "INFO"
+          "value" = var.matchbox_server_loglevel
         },
         {
           "name"  = "MB__SERVER__BATCH_SIZE",
@@ -312,7 +312,7 @@ data "aws_iam_policy_document" "matchbox_task" {
       "s3:*",
     ]
 
-    resources = ["arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[count.index].id}", "arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[count.index].id}/*"]
+    resources = ["arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[0].id}", "arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[0].id}/*"]
   }
 }
 
