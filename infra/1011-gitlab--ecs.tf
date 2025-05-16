@@ -84,7 +84,7 @@ resource "aws_ecs_task_definition" "gitlab" {
             gitlab_rails['db_username'] = '${aws_rds_cluster.gitlab[count.index].master_username}'
             gitlab_rails['db_password'] = '${random_string.aws_db_instance_gitlab_password.result}'
             gitlab_rails['db_database'] = '${aws_rds_cluster.gitlab[count.index].database_name}'
-            gitlab_rails['uploads_object_store_enabled'] = true
+            gitlab_rails['uploads_object_store_enabled'] = false
             gitlab_rails['uploads_object_store_remote_directory'] = 'uploads'
             gitlab_rails['uploads_object_store_connection'] = {
               'provider' => 'AWS',
