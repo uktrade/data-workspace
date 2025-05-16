@@ -8,7 +8,7 @@ module "aws_codebuild_project_matchbox" {
   dockerfile_path   = "src/matchbox/server/Dockerfile"
 
   ecs_service    = aws_ecs_service.matchbox[count.index]
-  ecr_repository = aws_ecr_repository.matchbox[count.index]
+  ecr_repository = aws_ecr_repository.matchbox[0]
 
   build_on_merge                 = var.matchbox_deploy_on_github_merge
   deploy_on_github_merge_pattern = var.matchbox_deploy_on_github_merge_pattern
@@ -27,7 +27,7 @@ resource "aws_security_group" "matchbox_codebuild" {
   count       = var.matchbox_on ? length(var.matchbox_instances) : 0
   name        = "${var.prefix}-matchbox-codebuild"
   description = "${var.prefix}-matchbox-codebuild"
-  vpc_id      = aws_vpc.matchbox[count.index].id
+  vpc_id      = aws_vpc.matchbox[0].id
 
   tags = {
     Name = "${var.prefix}-matchbox-codebuild"
