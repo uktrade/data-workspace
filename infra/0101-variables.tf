@@ -377,11 +377,6 @@ variable "matchbox_db_instances" {
   default = []
 }
 
-variable "matchbox_instances_long" {
-  type    = list(string)
-  default = []
-}
-
 variable "matchbox_db_scaling" {
   type = object({
     min_capacity      = number
