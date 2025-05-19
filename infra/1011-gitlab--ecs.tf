@@ -92,8 +92,8 @@ resource "aws_ecs_task_definition" "gitlab" {
               'host' => '${aws_s3_bucket.gitlab[count.index].bucket_regional_domain_name}',
               'use_iam_profile' => true
             }
-            gitlab_rails['artifacts_enabled'] = true
-            gitlab_rails['artifacts_object_store_enabled'] = true;
+            gitlab_rails['artifacts_enabled'] = false
+            gitlab_rails['artifacts_object_store_enabled'] = false;
             gitlab_rails['artifacts_object_store_remote_directory'] = 'artifacts';
             gitlab_rails['artifacts_object_store_connection'] = {
               'provider' => 'AWS',
@@ -101,7 +101,7 @@ resource "aws_ecs_task_definition" "gitlab" {
               'host' => '${aws_s3_bucket.gitlab[count.index].bucket_regional_domain_name}',
               'use_iam_profile' => true
             }
-            gitlab_rails['lfs_object_store_enabled'] = true
+            gitlab_rails['lfs_object_store_enabled'] = false
             gitlab_rails['lfs_object_store_remote_directory'] = 'lfs-objects'
             gitlab_rails['lfs_object_store_connection'] = {
               'provider' => 'AWS',
@@ -109,8 +109,8 @@ resource "aws_ecs_task_definition" "gitlab" {
               'host' => '${aws_s3_bucket.gitlab[count.index].bucket_regional_domain_name}',
               'use_iam_profile' => true
             }
-            gitlab_rails['external_diffs_enabled'] = true
-            gitlab_rails['external_diffs_object_store_enabled'] = true
+            gitlab_rails['external_diffs_enabled'] = false
+            gitlab_rails['external_diffs_object_store_enabled'] = false
             gitlab_rails['external_diffs_object_store_remote_directory'] = 'external-diffs'
             gitlab_rails['external_diffs_object_store_connection'] = {
               'provider' => 'AWS',
