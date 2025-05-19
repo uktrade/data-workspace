@@ -502,7 +502,7 @@ module "tools_outgoing_mlflow" {
 }
 
 module "tools_outgoing_matchbox_api" {
-  count  = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count  = var.matchbox_on ? 1 : 0
   source = "./modules/security_group_client_server_connections"
 
   client_security_groups = [aws_security_group.notebooks]
@@ -514,7 +514,7 @@ module "tools_outgoing_matchbox_api" {
 
 module "tools_outgoing_matchbox_dev_db" {
   source = "./modules/security_group_client_server_connections"
-  count  = var.matchbox_on && var.matchbox_dev_mode_on ? length(var.matchbox_instances) : 0
+  count  = var.matchbox_on && var.matchbox_dev_mode_on ? 1 : 0
 
   client_security_groups = [aws_security_group.notebooks]
   server_security_groups = [aws_security_group.matchbox_db[count.index]]

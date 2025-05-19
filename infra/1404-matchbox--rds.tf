@@ -17,14 +17,14 @@ resource "aws_db_parameter_group" "matchbox_postgres" {
 resource "aws_rds_cluster" "matchbox" {
   count = var.matchbox_on ? 1 : 0
 
-  cluster_identifier           = "${var.prefix}-matchbox-${var.matchbox_instances[0]}"
+  cluster_identifier           = "${var.prefix}-matchbox-${var.matchbox_environment}"
   engine                       = "aurora-postgresql"
   engine_version               = "17.4"
   engine_mode                  = "provisioned" # NOTE: "provisioned" for Aurora Serverless v2 ("serverless" is for v1)
   allow_major_version_upgrade  = true
   availability_zones           = var.aws_availability_zones
-  database_name                = "${var.prefix_underscore}_matchbox_${var.matchbox_instances[0]}"
-  master_username              = "${var.prefix_underscore}_matchbox_master_${var.matchbox_instances[0]}"
+  database_name                = "${var.prefix_underscore}_matchbox_${var.matchbox_environment}"
+  master_username              = "${var.prefix_underscore}_matchbox_master_${var.matchbox_environment}"
   master_password              = random_password.db_password[0].result
   backup_retention_period      = 1
   preferred_backup_window      = "03:29-03:59"
@@ -41,14 +41,14 @@ resource "aws_rds_cluster" "matchbox" {
   vpc_security_group_ids = ["${aws_security_group.matchbox_db[0].id}"]
   db_subnet_group_name   = aws_db_subnet_group.matchbox[0].name
 
-  final_snapshot_identifier = "${var.prefix}-matchbox-${var.matchbox_db_instances[0]}"
+  final_snapshot_identifier = "${var.prefix}-matchbox-${var.matchbox_environment}"
   copy_tags_to_snapshot     = true
 }
 
 resource "aws_rds_cluster_instance" "matchbox" {
   count = var.matchbox_on ? length(var.matchbox_db_instances) : 0
 
-  identifier                 = "${var.prefix}-matchbox-${var.matchbox_db_instances[count.index]}"
+  identifier                 = "${var.prefix}-matchbox-${var.matchbox_environment}-${var.matchbox_db_instances[count.index]}"
   cluster_identifier         = aws_rds_cluster.matchbox[0].id
   engine                     = aws_rds_cluster.matchbox[0].engine
   engine_version             = aws_rds_cluster.matchbox[0].engine_version
@@ -150,4 +150,47 @@ data "aws_iam_policy_document" "matchbox_s3_import_policy_template" {
 
     resources = ["arn:aws:s3:::${aws_s3_bucket.matchbox_s3_cache[count.index].id}/*"]
   }
+}
+
+resource "aws_security_group" "matchbox_db" {
+  count = var.matchbox_on ? 1 : 0
+
+  name        = "${var.prefix}-matchbox-${var.matchbox_environment}-db"
+  description = "${var.prefix}-matchbox-${var.matchbox_environment}-db"
+  vpc_id      = aws_vpc.matchbox[0].id
+
+  tags = {
+    Name = "${var.prefix}-matchbox-${var.matchbox_environment}-db"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "matchbox_endpoints" {
+  count = var.matchbox_on ? 1 : 0
+
+  name        = "${var.prefix}-matchbox-endpoints"
+  description = "${var.prefix}-matchbox-endpoints"
+  vpc_id      = aws_vpc.matchbox[0].id
+
+  tags = {
+    Name = "${var.prefix}-matchbox-endpoints"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "matchbox_service_egress_https_to_matchbox_db" {
+  count = var.matchbox_on ? 1 : 0
+
+  description              = "egress-matchbox-service"
+  security_group_id        = aws_security_group.matchbox_service[count.index].id
+  source_security_group_id = aws_security_group.matchbox_db[count.index].id
+
+  type      = "egress"
+  from_port = local.matchbox_db_port
+  to_port   = local.matchbox_db_port
+  protocol  = "tcp"
 }

@@ -367,9 +367,9 @@ variable "vpc_matchbox_cidr" {
   default = ""
 }
 
-variable "matchbox_instances" {
-  type    = list(string)
-  default = []
+variable "matchbox_environment" {
+  type    = string
+  default = ""
 }
 
 variable "matchbox_db_instances" {
@@ -426,11 +426,6 @@ variable "matchbox_s3_dev_artefacts" {
 }
 
 variable "matchbox_datadog_api_key" {
-  type    = string
-  default = ""
-}
-
-variable "matchbox_datadog_environment" {
   type    = string
   default = ""
 }

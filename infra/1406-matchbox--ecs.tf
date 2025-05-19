@@ -3,8 +3,9 @@ resource "aws_ecs_cluster" "matchbox" {
 }
 
 resource "aws_ecs_service" "matchbox" {
-  count                             = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name                              = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  count = var.matchbox_on ? 1 : 0
+
+  name                              = "${var.prefix}-matchbox-${var.matchbox_environment}"
   cluster                           = aws_ecs_cluster.matchbox.id
   task_definition                   = aws_ecs_task_definition.matchbox_service[count.index].arn
   desired_count                     = 1
@@ -24,7 +25,7 @@ resource "aws_ecs_service" "matchbox" {
 }
 
 resource "aws_service_discovery_service" "matchbox" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
   name  = "matchbox"
 
   dns_config {
@@ -41,8 +42,9 @@ resource "aws_service_discovery_service" "matchbox" {
 }
 
 resource "aws_ecs_task_definition" "matchbox_service" {
-  count  = var.matchbox_on ? length(var.matchbox_instances) : 0
-  family = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}"
+  count = var.matchbox_on ? 1 : 0
+
+  family = "${var.prefix}-matchbox-${var.matchbox_environment}"
   container_definitions = jsonencode([
     {
       "environment" = [
@@ -51,12 +53,16 @@ resource "aws_ecs_task_definition" "matchbox_service" {
           "value" = "postgresql://${aws_rds_cluster.matchbox[count.index].master_username}:${random_password.db_password[count.index].result}@${aws_rds_cluster.matchbox[count.index].endpoint}:5432/${aws_rds_cluster.matchbox[count.index].database_name}"
         },
         {
+          "name"  = "DATABASE_URI_READONLY",
+          "value" = "postgresql://${aws_rds_cluster.matchbox[count.index].master_username}:${random_password.db_password[count.index].result}@${aws_rds_cluster.matchbox[count.index].reader_endpoint}:5432/${aws_rds_cluster.matchbox[count.index].database_name}"
+        },
+        {
           "name"  = "AWS_DEFAULT_REGION",
           "value" = "eu-west-2"
         },
         {
           "name"  = "MB__SERVER__DATASTORE__CACHE_BUCKET_NAME",
-          "value" = "${var.matchbox_s3_cache}-${var.matchbox_instances[count.index]}"
+          "value" = "${var.matchbox_s3_cache}-${var.matchbox_environment}"
         },
         {
           "name"  = "MB__CLIENT__API_ROOT",
@@ -143,7 +149,7 @@ resource "aws_ecs_task_definition" "matchbox_service" {
         },
         {
           "name"  = "DD_ENV",
-          "value" = var.matchbox_datadog_environment
+          "value" = var.matchbox_environment
         },
         {
           "name"  = "DD_APM_ENABLED",
@@ -204,14 +210,16 @@ resource "aws_ecs_task_definition" "matchbox_service" {
 }
 
 resource "aws_iam_role" "matchbox_task_execution" {
-  count              = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name               = "${var.prefix}-matchbox-task-execution-${var.matchbox_instances[count.index]}"
+  count = var.matchbox_on ? 1 : 0
+
+  name               = "${var.prefix}-matchbox-task-execution-${var.matchbox_environment}"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.matchbox_task_execution_ecs_tasks_assume_role[count.index].json
 }
 
 data "aws_iam_policy_document" "matchbox_task_execution_ecs_tasks_assume_role" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
+
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -223,20 +231,22 @@ data "aws_iam_policy_document" "matchbox_task_execution_ecs_tasks_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "matchbox_task_execution" {
-  count      = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
+
   role       = aws_iam_role.matchbox_task_execution[count.index].name
   policy_arn = aws_iam_policy.matchbox_task_execution[count.index].arn
 }
 
 resource "aws_iam_policy" "matchbox_task_execution" {
-  count  = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name   = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-task-execution"
+  count = var.matchbox_on ? 1 : 0
+
+  name   = "${var.prefix}-matchbox-${var.matchbox_environment}-task-execution"
   path   = "/"
   policy = data.aws_iam_policy_document.matchbox_task_execution[count.index].json
 }
 
 data "aws_iam_policy_document" "matchbox_task_execution" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
 
   statement {
     actions = [
@@ -273,14 +283,16 @@ data "aws_iam_policy_document" "matchbox_task_execution" {
 }
 
 resource "aws_iam_role" "matchbox_task" {
-  count              = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name               = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-task"
+  count = var.matchbox_on ? 1 : 0
+
+  name               = "${var.prefix}-matchbox-${var.matchbox_environment}-task"
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.matchbox_task_ecs_tasks_assume_role[count.index].json
 }
 
 data "aws_iam_policy_document" "matchbox_task_ecs_tasks_assume_role" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
+
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -292,20 +304,22 @@ data "aws_iam_policy_document" "matchbox_task_ecs_tasks_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "matchbox_task" {
-  count      = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
+
   role       = aws_iam_role.matchbox_task[count.index].name
   policy_arn = aws_iam_policy.matchbox_task[count.index].arn
 }
 
 resource "aws_iam_policy" "matchbox_task" {
-  count  = var.matchbox_on ? length(var.matchbox_instances) : 0
-  name   = "${var.prefix}-matchbox-${var.matchbox_instances[count.index]}-task"
+  count = var.matchbox_on ? 1 : 0
+
+  name   = "${var.prefix}-matchbox-${var.matchbox_environment}-task"
   path   = "/"
   policy = data.aws_iam_policy_document.matchbox_task[count.index].json
 }
 
 data "aws_iam_policy_document" "matchbox_task" {
-  count = var.matchbox_on ? length(var.matchbox_instances) : 0
+  count = var.matchbox_on ? 1 : 0
 
   statement {
     actions = [
@@ -317,13 +331,15 @@ data "aws_iam_policy_document" "matchbox_task" {
 }
 
 resource "aws_cloudwatch_log_group" "matchbox" {
-  count             = var.matchbox_on ? 1 : 0
+  count = var.matchbox_on ? 1 : 0
+
   name              = "${var.prefix}-matchbox"
   retention_in_days = "3653"
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "matchbox" {
-  count           = var.cloudwatch_subscription_filter && var.matchbox_on ? 1 : 0
+  count = var.cloudwatch_subscription_filter && var.matchbox_on ? 1 : 0
+
   name            = "${var.prefix}-matchbox"
   log_group_name  = aws_cloudwatch_log_group.matchbox[count.index].name
   filter_pattern  = ""
@@ -331,7 +347,8 @@ resource "aws_cloudwatch_log_subscription_filter" "matchbox" {
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog" {
-  count           = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? 1 : 0
+  count = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? 1 : 0
+
   name            = "${var.prefix}-matchbox-datadog"
   log_group_name  = aws_cloudwatch_log_group.matchbox[count.index].name
   filter_pattern  = ""
@@ -340,9 +357,9 @@ resource "aws_cloudwatch_log_subscription_filter" "matchbox_datadog" {
 }
 
 resource "aws_iam_role" "matchbox_datadog_logs" {
-  count = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? length(var.matchbox_instances) : 0
-  name  = "${var.prefix}-matchbox-datadog-logs"
+  count = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? 1 : 0
 
+  name = "${var.prefix}-matchbox-datadog-logs"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -359,9 +376,10 @@ resource "aws_iam_role" "matchbox_datadog_logs" {
 }
 
 resource "aws_iam_role_policy" "matchbox_datadog_logs" {
-  count = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? length(var.matchbox_instances) : 0
-  name  = "${var.prefix}-matchbox-datadog-logs"
-  role  = aws_iam_role.matchbox_datadog_logs[0].id
+  count = var.cloudwatch_destination_datadog_arn != "" && var.matchbox_on ? 1 : 0
+
+  name = "${var.prefix}-matchbox-datadog-logs"
+  role = aws_iam_role.matchbox_datadog_logs[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -376,4 +394,19 @@ resource "aws_iam_role_policy" "matchbox_datadog_logs" {
       "Resource" = var.cloudwatch_destination_datadog_arn
     }]
   })
+}
+
+resource "aws_security_group" "matchbox_service" {
+  count = var.matchbox_on ? 1 : 0
+
+  name        = "${var.prefix}-matchbox-${var.matchbox_environment}-service"
+  description = "${var.prefix}-matchbox-${var.matchbox_environment}-service"
+  vpc_id      = aws_vpc.matchbox[0].id
+
+  tags = {
+    Name = "${var.prefix}-matchbox-${var.matchbox_environment}-service"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
