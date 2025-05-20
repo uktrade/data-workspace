@@ -68,28 +68,3 @@ data "aws_iam_policy_document" "matchbox" {
   }
 }
 
-resource "aws_security_group_rule" "matchbox_egress_https_to_matchbox_s3_endpoint" {
-  count = var.matchbox_on ? 1 : 0
-
-  description       = "egress-https-to-s3"
-  security_group_id = aws_security_group.matchbox_service[count.index].id
-  prefix_list_ids   = [aws_vpc_endpoint.matchbox_endpoint_s3[0].prefix_list_id]
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}
-
-resource "aws_security_group_rule" "matchbox_db_egress_https_to_matchbox_s3_endpoint" {
-  count = var.matchbox_on ? 1 : 0
-
-  description       = "egress-https-to-s3"
-  security_group_id = aws_security_group.matchbox_db[count.index].id
-  prefix_list_ids   = [aws_vpc_endpoint.matchbox_endpoint_s3[0].prefix_list_id]
-
-  type      = "egress"
-  from_port = "443"
-  to_port   = "443"
-  protocol  = "tcp"
-}

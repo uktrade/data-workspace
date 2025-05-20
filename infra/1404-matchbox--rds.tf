@@ -167,30 +167,16 @@ resource "aws_security_group" "matchbox_db" {
   }
 }
 
-resource "aws_security_group" "matchbox_endpoints" {
+
+resource "aws_security_group_rule" "matchbox_db_egress_https_to_matchbox_s3_endpoint" {
   count = var.matchbox_on ? 1 : 0
 
-  name        = "${var.prefix}-matchbox-endpoints"
-  description = "${var.prefix}-matchbox-endpoints"
-  vpc_id      = aws_vpc.matchbox[0].id
-
-  tags = {
-    Name = "${var.prefix}-matchbox-endpoints"
-  }
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_security_group_rule" "matchbox_service_egress_https_to_matchbox_db" {
-  count = var.matchbox_on ? 1 : 0
-
-  description              = "egress-matchbox-service"
-  security_group_id        = aws_security_group.matchbox_service[count.index].id
-  source_security_group_id = aws_security_group.matchbox_db[count.index].id
+  description       = "egress-https-to-s3"
+  security_group_id = aws_security_group.matchbox_db[count.index].id
+  prefix_list_ids   = [aws_vpc_endpoint.matchbox_endpoint_s3[0].prefix_list_id]
 
   type      = "egress"
-  from_port = local.matchbox_db_port
-  to_port   = local.matchbox_db_port
+  from_port = "443"
+  to_port   = "443"
   protocol  = "tcp"
 }
