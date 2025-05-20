@@ -55,7 +55,7 @@ resource "aws_lambda_function" "lambda_s3_move_output" {
   handler          = "s3_move_output.lambda_handler"
   runtime          = "python3.12"
   timeout          = 30
-  layers           = [var.lambda_layer_boto3_stubs_s3_arn]
+  layers           = [aws_lambda_layer_version.boto3_stubs_s3.arn]
 }
 
 
@@ -152,4 +152,23 @@ data "aws_iam_policy_document" "sns_publish_and_read_policy_error" {
     # TODO: circular dependency to get this ARN programmatically
     resources = ["arn:aws:sns:${var.aws_region}:${var.account_id}:${var.prefix}-async-sagemaker-error-topic"]
   }
+}
+
+resource "aws_s3_bucket" "lambda_layers" {
+  bucket = "${var.prefix}-${var.aws_region}-lambda-layers"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
+
+resource "aws_lambda_layer_version" "boto3_stubs_s3" {
+  layer_name  = "boto3-stubs-s3"
+  s3_bucket   = aws_s3_bucket.lambda_layers.id
+  s3_key      = "boto3-stubs-s3-layer.zip"
+  description = "Contains boto3-stubs[s3]"
 }

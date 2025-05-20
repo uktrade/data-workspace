@@ -21,8 +21,3 @@ variable "s3_bucket_notebooks_arn" {
 variable "default_sagemaker_bucket_arn" {
   type = string
 }
-
-
-variable "lambda_layer_boto3_stubs_s3_arn" {
-  type = string
-}
