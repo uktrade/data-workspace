@@ -3,8 +3,11 @@ module "aws_codebuild_project_admin" {
 
   name              = "${var.prefix}-admin"
   github_source_url = var.admin_github_source_url
-  ecs_service       = aws_ecs_service.admin
-  ecr_repository    = aws_ecr_repository.admin
+  ecs_services = [
+    aws_ecs_service.admin,
+    aws_ecs_service.admin_celery,
+  ]
+  ecr_repository = aws_ecr_repository.admin
 
   subnets        = aws_subnet.private_with_egress[*]
   security_group = aws_security_group.admin_codebuild

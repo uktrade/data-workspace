@@ -7,7 +7,7 @@ module "aws_codebuild_project_matchbox" {
   github_source_url = var.matchbox_github_source_url
   dockerfile_path   = "src/matchbox/server/Dockerfile"
 
-  ecs_service    = aws_ecs_service.matchbox[count.index]
+  ecs_services   = [aws_ecs_service.matchbox[count.index]]
   ecr_repository = aws_ecr_repository.matchbox[count.index]
 
   build_on_merge                 = var.matchbox_deploy_on_github_merge
