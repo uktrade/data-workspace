@@ -49,13 +49,14 @@ variable "dockerfile_path" {
   default     = "Dockerfile"
 }
 
-variable "ecs_service" {
-  description = "The ECS service to deploy"
-  type = object({
+variable "ecs_services" {
+  description = "The ECS service(s) to deploy"
+  type = list(object({
     name    = string
     id      = string
     cluster = string
-  })
+  }))
+  default = []
 }
 
 variable "ecr_repository" {
@@ -170,7 +171,9 @@ resource "aws_codebuild_project" "main" {
                 --cache-from type=registry,ref=${var.ecr_repository.repository_url}:${var.ecr_cache_tag} \
                 --cache-to mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${var.ecr_repository.repository_url}:${var.ecr_cache_tag}  \
                 .
-            - aws ecs update-service --cluster ${var.ecs_service.cluster} --service ${var.ecs_service.name} --force-new-deployment
+            - |
+              echo "Deploying ${length(var.ecs_services)} service${length(var.ecs_services) == 0 || length(var.ecs_services) > 1 ? "s" : ""}"
+              ${join(" && ", [for ecs_service in var.ecs_services : "aws ecs update-service --cluster ${ecs_service.cluster} --service ${ecs_service.name} --force-new-deployment"])}
     EOT
   }
   source_version = var.default_source_branch
@@ -297,7 +300,7 @@ resource "aws_iam_role_policy" "main" {
       {
         Effect = "Allow",
         Resource = [
-          var.ecs_service.id,
+          for ecs_service in var.ecs_services : ecs_service.id
         ],
         Action = [
           "ecs:UpdateService",
