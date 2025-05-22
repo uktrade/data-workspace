@@ -1,5 +1,6 @@
 resource "aws_vpc_endpoint" "matchbox_ecr_api_endpoint" {
-  count              = var.matchbox_on ? 1 : 0
+  count = var.matchbox_on ? 1 : 0
+
   vpc_id             = aws_vpc.matchbox[0].id
   service_name       = "com.amazonaws.eu-west-2.ecr.api"
   vpc_endpoint_type  = "Interface"
@@ -14,7 +15,8 @@ resource "aws_vpc_endpoint" "matchbox_ecr_api_endpoint" {
 }
 
 resource "aws_vpc_endpoint" "matchbox_ecr_dkr_endpoint" {
-  count              = var.matchbox_on ? 1 : 0
+  count = var.matchbox_on ? 1 : 0
+
   vpc_id             = aws_vpc.matchbox[0].id
   service_name       = "com.amazonaws.${data.aws_region.aws_region.name}.ecr.dkr"
   vpc_endpoint_type  = "Interface"
@@ -56,7 +58,8 @@ data "aws_iam_policy_document" "aws_matchbox_endpoint_ecr" {
 }
 
 resource "aws_vpc_endpoint" "matchbox_endpoint_s3" {
-  count             = var.matchbox_on ? 1 : 0
+  count = var.matchbox_on ? 1 : 0
+
   vpc_id            = aws_vpc.matchbox[0].id
   service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.s3"
   vpc_endpoint_type = "Gateway"
@@ -69,16 +72,14 @@ resource "aws_vpc_endpoint" "matchbox_endpoint_s3" {
 }
 
 resource "aws_vpc_endpoint" "matchbox_cloudwatch_logs" {
-  count             = var.matchbox_on ? 1 : 0
-  vpc_id            = aws_vpc.matchbox[0].id
-  service_name      = "com.amazonaws.${data.aws_region.aws_region.name}.logs"
-  vpc_endpoint_type = "Interface"
+  count = var.matchbox_on ? 1 : 0
 
-  security_group_ids = ["${aws_security_group.matchbox_endpoints[0].id}"]
-  subnet_ids         = ["${aws_subnet.matchbox_private.*.id[0]}"]
-
-  policy = data.aws_iam_policy_document.matchbox_cloudwatch_endpoint[0].json
-
+  vpc_id              = aws_vpc.matchbox[0].id
+  service_name        = "com.amazonaws.${data.aws_region.aws_region.name}.logs"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = ["${aws_security_group.matchbox_endpoints[0].id}"]
+  subnet_ids          = ["${aws_subnet.matchbox_private.*.id[0]}"]
+  policy              = data.aws_iam_policy_document.matchbox_cloudwatch_endpoint[0].json
   private_dns_enabled = true
 }
 
@@ -106,5 +107,20 @@ data "aws_iam_policy_document" "matchbox_cloudwatch_endpoint" {
     resources = [
       "*",
     ]
+  }
+}
+
+resource "aws_security_group" "matchbox_endpoints" {
+  count = var.matchbox_on ? 1 : 0
+
+  name        = "${var.prefix}-matchbox-endpoints"
+  description = "${var.prefix}-matchbox-endpoints"
+  vpc_id      = aws_vpc.matchbox[0].id
+
+  tags = {
+    Name = "${var.prefix}-matchbox-endpoints"
+  }
+  lifecycle {
+    create_before_destroy = true
   }
 }

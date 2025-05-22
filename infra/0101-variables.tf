@@ -367,29 +367,27 @@ variable "vpc_matchbox_cidr" {
   default = ""
 }
 
-variable "matchbox_instances" {
+variable "matchbox_environment" {
+  type    = string
+  default = ""
+}
+
+variable "matchbox_db_instances" {
   type    = list(string)
   default = []
 }
 
-variable "matchbox_instances_long" {
-  type    = list(string)
-  default = []
-}
-
-variable "matchbox_scaling_min_capacity" {
-  type    = number
-  default = 0
-}
-
-variable "matchbox_scaling_max_capacity" {
-  type    = number
-  default = 64
-}
-
-variable "matchbox_scaling_scaledown_seconds" {
-  type    = number
-  default = 300
+variable "matchbox_db_scaling" {
+  type = object({
+    min_capacity      = number
+    max_capacity      = number
+    scaledown_seconds = number
+  })
+  default = {
+    min_capacity      = 0
+    max_capacity      = 64
+    scaledown_seconds = 300
+  }
 }
 
 variable "matchbox_api_container_resources" {
@@ -432,11 +430,6 @@ variable "matchbox_datadog_api_key" {
   default = ""
 }
 
-variable "matchbox_datadog_environment" {
-  type    = string
-  default = ""
-}
-
 variable "matchbox_api_key" {
   type    = string
   default = ""
@@ -462,12 +455,22 @@ variable "matchbox_deploy_on_github_merge_pattern" {
   default = "refs/heads/main"
 }
 
+variable "matchbox_server_loglevel" {
+  type    = string
+  default = "INFO"
+}
+
 variable "matchbox_deploy_on_github_release" {
   type    = bool
   default = false
 }
 
-variable "matchbox_performance_insights" {
+variable "matchbox_db_performance_insights" {
+  type    = bool
+  default = false
+}
+
+variable "matchbox_db_http_endpoint" {
   type    = bool
   default = false
 }
