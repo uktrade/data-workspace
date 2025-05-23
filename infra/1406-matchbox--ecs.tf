@@ -38,6 +38,7 @@ resource "aws_service_discovery_service" "matchbox" {
   count = var.matchbox_on ? 1 : 0
   name  = "${var.prefix}-matchbox"
 
+
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.jupyterhub.id
     dns_records {
