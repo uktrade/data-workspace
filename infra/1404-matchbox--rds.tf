@@ -31,6 +31,7 @@ resource "aws_rds_cluster" "matchbox" {
   apply_immediately            = true
   performance_insights_enabled = var.matchbox_db_performance_insights
   enable_http_endpoint         = var.matchbox_db_http_endpoint
+  storage_encrypted            = true
 
   serverlessv2_scaling_configuration {
     min_capacity             = var.matchbox_db_scaling.min_capacity
