@@ -105,7 +105,7 @@ locals {
     arango_db__password = ""
     arango_db__port     = ""
     }, var.matchbox_on ? {
-    matchbox_client_api_root = "http://matchbox.${var.admin_domain}:8000"
+    matchbox_client_api_root = "https://matchbox.${var.admin_domain}:8000"
     } : {
     matchbox_client_api_root = ""
     }

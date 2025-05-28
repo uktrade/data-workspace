@@ -501,12 +501,12 @@ module "tools_outgoing_mlflow" {
   ports                  = [local.mlflow_port]
 }
 
-module "tools_outgoing_matchbox_api" {
+module "tools_outgoing_matchbox_lb" {
   count  = var.matchbox_on ? 1 : 0
   source = "./modules/security_group_client_server_connections"
 
   client_security_groups = [aws_security_group.notebooks]
-  server_security_groups = [aws_security_group.matchbox_service[count.index]]
+  server_security_groups = [aws_security_group.matchbox_lb[count.index]]
   ports                  = [local.matchbox_api_port]
 
   depends_on = [aws_vpc_peering_connection.matchbox_to_notebooks[0]]
