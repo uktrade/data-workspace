@@ -76,6 +76,19 @@ module "sns" {
   #notification_email = var.sagemaker_budget_emails
 }
 
+
+module "budgets" {
+  count = var.sagemaker_on ? 1 : 0
+
+  source              = "./modules/cost_monitoring/budgets"
+  budget_limit        = "1000"
+  cost_filter_service = "Amazon SageMaker"
+  budget_name_prefix  = "${var.prefix}-sagemaker"
+  sns_topic_arn       = module.sns[0].sns_topic_arn
+  notification_email  = var.sagemaker_budget_emails
+}
+
+
 module "sagemaker_output_mover" {
   count = var.sagemaker_on ? 1 : 0
 
@@ -87,13 +100,15 @@ module "sagemaker_output_mover" {
   default_sagemaker_bucket_arn = module.iam[0].default_sagemaker_bucket_arn
 }
 
-module "budgets" {
+
+module "store_inferences" {
   count = var.sagemaker_on ? 1 : 0
 
-  source              = "./modules/cost_monitoring/budgets"
-  budget_limit        = "1000"
-  cost_filter_service = "Amazon SageMaker"
-  budget_name_prefix  = "${var.prefix}-sagemaker"
-  sns_topic_arn       = module.sns[0].sns_topic_arn
-  notification_email  = var.sagemaker_budget_emails
+  source                  = "./modules/store_inferences"
+  prefix                  = var.prefix
+  aws_region              = data.aws_region.aws_region.name
+  account_id              = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
+  notebooks_s3_bucket_arn = aws_s3_bucket.notebooks.arn
 }
