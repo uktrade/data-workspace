@@ -32,12 +32,7 @@ data "aws_iam_policy_document" "lambda_sns_to_s3" {
     resources = ["arn:aws:logs:*:*:*"]
   }
   statement {
-    actions   = ["s3:GetObject"]
-    effect    = "Allow"
-    resources = ["${var.notebooks_s3_bucket_arn}/*"]
-  }
-  statement {
-    actions   = ["s3:PutObject", "s3:GetObject"]
+    actions   = ["s3:PutObject"]
     effect    = "Allow"
     resources = ["${aws_s3_bucket.store_inferences.arn}/*"]
   }
