@@ -322,10 +322,16 @@ variable "sagemaker_mistral_7b_instruct" {
   default = false
 }
 
+variable "sagemaker_llama_3_2_1b" {
+  type    = bool
+  default = false
+}
+
 variable "sagemaker_gpt_neo_125m_scale_up_cooldown" {
   type    = number
   default = 900
 }
+
 variable "sagemaker_flan_t3_780m_scaleup_cooldown" {
   type    = number
   default = 900
@@ -347,6 +353,11 @@ variable "sagemaker_llama_3_3b_instruct_scaleup_cooldown" {
 }
 
 variable "sagemaker_mistral_7b_instruct_scaleup_cooldown" {
+  type    = number
+  default = 900
+}
+
+variable "sagemaker_llama_3_2_1b_scaleup_cooldown" {
   type    = number
   default = 900
 }

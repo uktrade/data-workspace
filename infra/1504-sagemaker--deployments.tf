@@ -340,3 +340,54 @@ resource "aws_security_group" "sagemaker" {
     create_before_destroy = true
   }
 }
+
+###############
+# Llama 3.2 1B
+###############
+module "llama_3_2_1b_deployment" {
+
+  count = (var.sagemaker_on && var.sagemaker_llama_3_2_1b) ? 1 : 0  // to look into
+
+  model_name            = "llama-3-2-1b"
+  container_image       = "763104351884.dkr.ecr.eu-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124"
+  model_uri             = "s3://jumpstart-private-cache-prod-eu-west-2/meta-textgeneration/meta-textgeneration-llama-3-2-1b-instruct/artifacts/inference-prepack/v1.0.0/"
+  model_uri_compression = "None"
+  instance_type         = "ml.g5.xlarge" # 4 vCPU and 1 GPU and 16 GB-RAM
+  max_capacity          = 2
+  scale_up_cooldown     = var.sagemaker_llama_3_2_1b_scaleup_cooldown  // to look into
+  scale_down_cooldown   = 0
+  environment_variables = {
+    "ENDPOINT_SERVER_TIMEOUT" : "3600",
+    "HF_MODEL_ID" : "/opt/ml/model",
+    "MAX_INPUT_LENGTH" : "2047",
+    "MAX_TOTAL_TOKENS" : "2048",
+    "MODEL_CACHE_ROOT" : "/opt/ml/model",
+    "SAGEMAKER_ENV" : "1",
+    "SAGEMAKER_MODEL_SERVER_WORKERS" : "1",
+    "SAGEMAKER_PROGRAM" : "inference.py"
+  }
+  backlog_threshold_high   = 1
+  backlog_threshold_low    = 1
+  cpu_threshold_high       = 80 * 4 # 4 vCPUs
+  cpu_threshold_low        = 20 * 4 # 4 vCPUs
+  gpu_threshold_high       = 80 * 1 # 1 GPU
+  gpu_threshold_low        = 20 * 1 # 1 GPU
+  ram_threshold_high       = 80
+  ram_threshold_low        = 20
+  evaluation_periods_high  = 1
+  datapoints_to_alarm_high = 1
+  evaluation_periods_low   = 15
+  datapoints_to_alarm_low  = 15
+
+  # These variables do not change between LLMs
+  source                  = "./modules/sagemaker_deployment"
+  security_group_ids      = [aws_security_group.sagemaker[0].id]
+  subnets                 = aws_subnet.sagemaker_private_without_egress.*.id
+  aws_account_id          = data.aws_caller_identity.aws_caller_identity.account_id
+  sns_success_topic_arn   = module.sagemaker_output_mover[0].sns_success_topic_arn
+  sns_error_topic_arn     = module.sagemaker_output_mover[0].sns_error_topic_arn
+  execution_role_arn      = module.iam[0].inference_role
+  teams_webhook_url       = var.teams_webhook_url
+  s3_output_path          = module.iam[0].default_sagemaker_bucket_regional_domain_name
+  environment_name_prefix = var.prefix
+}
