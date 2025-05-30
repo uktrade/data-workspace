@@ -14,6 +14,12 @@ resource "aws_ecs_service" "matchbox" {
   platform_version                  = "1.4.0"
   health_check_grace_period_seconds = "10"
 
+  load_balancer {
+    target_group_arn = aws_lb_target_group.matchbox[0].arn
+    container_port   = local.matchbox_api_port
+    container_name   = "matchbox"
+  }
+
   service_registries {
     registry_arn = aws_service_discovery_service.matchbox[0].arn
   }
@@ -22,11 +28,15 @@ resource "aws_ecs_service" "matchbox" {
     subnets         = ["${aws_subnet.matchbox_private.*.id[0]}"]
     security_groups = ["${aws_security_group.matchbox_service[count.index].id}"]
   }
+
+  depends_on = [
+    aws_lb_listener.matchbox
+  ]
 }
 
 resource "aws_service_discovery_service" "matchbox" {
   count = var.matchbox_on ? 1 : 0
-  name  = "matchbox"
+  name  = "${var.prefix}-matchbox-api"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.jupyterhub.id
