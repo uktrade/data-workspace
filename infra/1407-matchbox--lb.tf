@@ -68,3 +68,32 @@ module "matchbox_lb_outgoing_matchbox_api" {
   server_security_groups = [aws_security_group.matchbox_service[count.index]]
   ports                  = [local.matchbox_api_port]
 }
+
+resource "aws_service_discovery_service" "matchbox_lb" {
+  name = "matchbox"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.jupyterhub.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "WEIGHTED"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+}
+
+resource "aws_service_discovery_instance" "matchbox_lb" {
+  count       = var.matchbox_on ? 1 : 0
+  instance_id = "${var.prefix}-matchbox-lb"
+  service_id  = aws_service_discovery_service.matchbox_lb.id
+
+  attributes = {
+    AWS_ALIAS_DNS_NAME = aws_lb.matchbox[count.index].dns_name
+  }
+}
